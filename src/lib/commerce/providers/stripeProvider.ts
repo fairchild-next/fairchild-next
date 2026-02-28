@@ -6,15 +6,11 @@ import {
 } from "../types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2026-02-25.clover",
 });
 
 export class StripeProvider implements CommerceProvider {
-  async createCheckoutSession(
-    items: CartLineItem[],
-    donation?: number,
-    orderId?: string
-  ): Promise<CheckoutSession> {
+  async createCheckoutSession(items: any[], donation?: number): Promise<CheckoutSession> {
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
       items.map((item) => ({
         price_data: {

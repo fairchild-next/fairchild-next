@@ -16,10 +16,11 @@ export interface CheckoutSession {
 export interface CommerceProvider {
   createCheckoutSession(
     items: CartLineItem[],
-    donation?: number
+    donation?: number,
+    orderId?: string
   ): Promise<CheckoutSession>;
 
   verifyOrder(orderId: string): Promise<{
-    status: "paid" | "pending" | "failed";
+    status: "paid" | "unpaid";
   }>;
 }

@@ -1,46 +1,59 @@
-"use client"
+"use client";
 
 import { useCartStore } from "@/lib/store/cartStore";
 
 type TicketType = {
-  id: string
-  label: string
-  price: number
-}
+  id: string;
+  label: string;
+  price: number;
+};
 
 type Props = {
-  title: string
-  tickets: TicketType[]
-}
+  title: string;
+  tickets: TicketType[];
+  onContinue?: (
+    total: number,
+    quantities: Record<string, number>
+  ) => void;
+};
 
-export default function TicketSelector({ title, tickets }: Props) {
-  const { cart, updateItem } = useCart()
+export default function TicketSelector({
+  title,
+  tickets,
+  onContinue,
+}: Props) {
+  const { items, updateItem } = useCartStore();
 
   const getQuantity = (id: string) => {
-    return cart.items.find(i => i.ticketTypeId === id)?.quantity || 0
-  }
+    return items.find((i) => i.ticketTypeId === id)?.quantity || 0;
+  };
 
   const changeQuantity = (ticket: TicketType, change: number) => {
-    const current = getQuantity(ticket.id)
-    const newQuantity = Math.max(0, current + change)
+    const current = getQuantity(ticket.id);
+    const newQuantity = Math.max(0, current + change);
 
     updateItem({
       ticketTypeId: ticket.id,
       name: ticket.label,
       price: ticket.price,
-      quantity: newQuantity
-    })
-  }
+      quantity: newQuantity,
+    });
+  };
 
-  const total = cart.items.reduce(
+  const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
-  )
+  );
 
-  const totalItems = cart.items.reduce(
+  const totalItems = items.reduce(
     (sum, item) => sum + item.quantity,
     0
-  )
+  );
+
+  const quantities: Record<string, number> = {};
+  items.forEach((item) => {
+    quantities[item.ticketTypeId] = item.quantity;
+  });
 
   return (
     <div className="px-6 pb-32 pt-6 max-w-md mx-auto">
@@ -49,7 +62,7 @@ export default function TicketSelector({ title, tickets }: Props) {
       </h2>
 
       <div className="space-y-6">
-        {tickets.map(ticket => (
+        {tickets.map((ticket) => (
           <div
             key={ticket.id}
             className="border border-gray-700 rounded-2xl p-6"
@@ -96,6 +109,11 @@ export default function TicketSelector({ title, tickets }: Props) {
 
         <button
           disabled={totalItems === 0}
+          onClick={() => {
+            if (onContinue) {
+              onContinue(total, quantities);
+            }
+          }}
           className={`w-full py-4 rounded-2xl font-semibold ${
             totalItems === 0
               ? "bg-gray-700 text-gray-400"
@@ -106,5 +124,5 @@ export default function TicketSelector({ title, tickets }: Props) {
         </button>
       </div>
     </div>
-  )
+  );
 }
