@@ -10,10 +10,20 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
 
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOtp({ email });
+const handleLogin = async () => {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: "http://192.168.1.68:3000",
+    },
+  });
+
+  if (error) {
+    alert("Login failed: " + error.message);
+  } else {
     alert("Check your email for login link.");
-  };
+  }
+};
 
   return (
     <div className="p-6 space-y-4">

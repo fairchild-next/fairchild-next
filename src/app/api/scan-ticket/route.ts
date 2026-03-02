@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// If someone opens the scan URL in a browser (e.g. from an old QR), redirect to home
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const base =
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  return NextResponse.redirect(`${base}/`);
+}
+
 export async function POST(req: Request) {
   try {
     const { qr_code } = await req.json();
@@ -38,6 +46,12 @@ export async function POST(req: Request) {
       .from("tickets")
       .update({ status: "used" })
       .eq("id", ticket.id);
+
+      await supabase.from("visits").insert({
+  user_id: ticket.user_id,
+  ticket_id: ticket.id,
+  visit_date: new Date().toISOString().split("T")[0],
+});
 
     return NextResponse.json({
       status: "valid",

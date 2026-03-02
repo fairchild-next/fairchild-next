@@ -22,22 +22,45 @@ export default function TicketSelector({
   tickets,
   onContinue,
 }: Props) {
-  const { items, updateItem } = useCartStore();
+  const { items, addItems, updateQuantity, removeItem } =
+    useCartStore();
 
-  const getQuantity = (id: string) => {
-    return items.find((i) => i.ticketTypeId === id)?.quantity || 0;
+  const getQuantity = (ticketId: string) => {
+    return (
+      items.find((i) => i.productId === ticketId)
+        ?.quantity || 0
+    );
   };
 
-  const changeQuantity = (ticket: TicketType, change: number) => {
-    const current = getQuantity(ticket.id);
+  const changeQuantity = (
+    ticket: TicketType,
+    change: number
+  ) => {
+    const existingItem = items.find(
+      (i) => i.productId === ticket.id
+    );
+
+    const current = existingItem?.quantity || 0;
     const newQuantity = Math.max(0, current + change);
 
-    updateItem({
-      ticketTypeId: ticket.id,
-      name: ticket.label,
-      price: ticket.price,
-      quantity: newQuantity,
-    });
+    if (!existingItem && newQuantity > 0) {
+      addItems([
+        {
+          id: ticket.id,
+          productType: "flex",
+          productId: ticket.id,
+          name: ticket.label,
+          price: ticket.price,
+          quantity: newQuantity,
+        },
+      ]);
+    } else if (existingItem) {
+      if (newQuantity === 0) {
+        removeItem(existingItem.id);
+      } else {
+        updateQuantity(existingItem.id, newQuantity);
+      }
+    }
   };
 
   const total = items.reduce(
@@ -52,7 +75,7 @@ export default function TicketSelector({
 
   const quantities: Record<string, number> = {};
   items.forEach((item) => {
-    quantities[item.ticketTypeId] = item.quantity;
+    quantities[item.productId] = item.quantity;
   });
 
   return (
@@ -79,7 +102,9 @@ export default function TicketSelector({
 
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => changeQuantity(ticket, -1)}
+                  onClick={() =>
+                    changeQuantity(ticket, -1)
+                  }
                   className="w-10 h-10 rounded bg-gray-700"
                 >
                   –
@@ -90,7 +115,9 @@ export default function TicketSelector({
                 </span>
 
                 <button
-                  onClick={() => changeQuantity(ticket, 1)}
+                  onClick={() =>
+                    changeQuantity(ticket, 1)
+                  }
                   className="w-10 h-10 rounded bg-green-500 text-black"
                 >
                   +
