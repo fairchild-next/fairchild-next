@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 
 type Ticket = {
   id: string;
@@ -46,7 +46,7 @@ function formatGuaranteedDate(dateStr: string): string {
 export default function PastTicketDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const groupKey = params.id as string;
 
   const [group, setGroup] = useState<Ticket[] | null>(null);
@@ -54,6 +54,7 @@ export default function PastTicketDetailPage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    if (!supabase) return;
     const load = async () => {
       const {
         data: { session },
@@ -91,7 +92,7 @@ export default function PastTicketDetailPage() {
     };
 
     void load();
-  }, [router, groupKey]);
+  }, [router, groupKey, supabase]);
 
   if (loading) {
     return (

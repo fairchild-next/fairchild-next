@@ -1,23 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useEffect } from "react";
+import {
+  SupabaseBrowserProvider,
+  useSupabaseBrowserClient,
+} from "@/lib/supabase/SupabaseBrowserProvider";
 import { MemberProvider } from "@/lib/memberContext";
 import { KidsModeProvider } from "@/lib/kidsModeContext";
 import { WeddingModeProvider } from "@/lib/weddingModeContext";
 import { EventsModeProvider } from "@/lib/eventsModeContext";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
-export default function Providers({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [supabase] = useState(() =>
-    createSupabaseBrowserClient()
-  );
+function AuthCodeExchange({ children }: { children: React.ReactNode }) {
+  const supabase = useSupabaseBrowserClient();
 
   useEffect(() => {
+    if (!supabase) return;
     const search = window.location.search;
     if (!search.includes("code=")) return;
 
@@ -25,19 +23,31 @@ export default function Providers({
       await supabase.auth.exchangeCodeForSession(window.location.href);
       window.history.replaceState({}, document.title, window.location.pathname);
     };
-    handleAuth();
+    void handleAuth();
   }, [supabase]);
 
+  return <>{children}</>;
+}
+
+export default function Providers({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <MemberProvider>
-      <KidsModeProvider>
-        <WeddingModeProvider>
-          <EventsModeProvider>
-            <ServiceWorkerRegistration />
-            {children}
-          </EventsModeProvider>
-        </WeddingModeProvider>
-      </KidsModeProvider>
-    </MemberProvider>
+    <SupabaseBrowserProvider>
+      <AuthCodeExchange>
+        <MemberProvider>
+          <KidsModeProvider>
+            <WeddingModeProvider>
+              <EventsModeProvider>
+                <ServiceWorkerRegistration />
+                {children}
+              </EventsModeProvider>
+            </WeddingModeProvider>
+          </KidsModeProvider>
+        </MemberProvider>
+      </AuthCodeExchange>
+    </SupabaseBrowserProvider>
   );
 }

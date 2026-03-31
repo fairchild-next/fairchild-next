@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useRouter } from "next/navigation";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -19,7 +19,7 @@ const normalizeDate = (date: Date) =>
   date.toISOString().split("T")[0];
 
 export default function DailyTicketsContent() {
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const router = useRouter();
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -39,6 +39,7 @@ export default function DailyTicketsContent() {
   );
 
   useEffect(() => {
+    if (!supabase) return;
     let cancelled = false;
     const fetchAvailableDates = async () => {
       const { data } = await supabase
@@ -56,9 +57,10 @@ export default function DailyTicketsContent() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
+    if (!supabase) return;
     let cancelled = false;
     const fetchFestivalDates = async () => {
       const { data } = await supabase
@@ -83,10 +85,10 @@ export default function DailyTicketsContent() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    if (!selectedDate) return;
+    if (!selectedDate || !supabase) return;
 
     let cancelled = false;
     setLoadingSlots(true);
@@ -109,7 +111,7 @@ export default function DailyTicketsContent() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate]);
+  }, [selectedDate, supabase]);
 
   const formatTime = (time: string) => time.slice(0, 5);
 

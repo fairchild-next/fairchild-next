@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function StaffLoginForm() {
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/staff/scanner";
@@ -18,6 +18,7 @@ export default function StaffLoginForm() {
   const [resetSent, setResetSent] = useState(false);
 
   const handleForgotPassword = async () => {
+    if (!supabase) return;
     if (!email.trim()) {
       setMessage("Enter your email first, then click Forgot password.");
       return;
@@ -47,6 +48,7 @@ export default function StaffLoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) return;
     setMessage(null);
     setResetSent(false);
     setLoading(true);

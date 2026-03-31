@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 
 type ScanStatus = "idle" | "valid" | "already_used" | "not_found" | "error" | "invalid_request";
 
 export default function StaffScannerPage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [decodedText, setDecodedText] = useState<string | null>(null);
   const [scanStatus, setScanStatus] = useState<ScanStatus | null>(null);
@@ -106,6 +106,7 @@ export default function StaffScannerPage() {
           </Link>
           <button
             onClick={async () => {
+              if (!supabase) return;
               await supabase.auth.signOut();
               router.push("/staff/login");
               router.refresh();

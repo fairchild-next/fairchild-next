@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useMember } from "@/lib/memberContext";
 import { getMemberEventDisplay } from "@/lib/memberEventDisplay";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
@@ -33,13 +33,14 @@ function formatDateRange(start: string, end: string): string {
 
 export default function EventsPage() {
   const router = useRouter();
+  const supabase = useSupabaseBrowserClient();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const { member } = useMember();
 
   useEffect(() => {
+    if (!supabase) return;
     let cancelled = false;
-    const supabase = createSupabaseBrowserClient();
     void supabase
       .from("events")
       .select("id, name, slug, description, start_date, end_date, start_time, end_time, image_url, is_festival, is_members_only")
@@ -54,7 +55,7 @@ export default function EventsPage() {
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [member]);
+  }, [member, supabase]);
 
   return (
     <div className="pb-24">

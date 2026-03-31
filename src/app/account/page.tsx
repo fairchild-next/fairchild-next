@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useMember } from "@/lib/memberContext";
 import { useKidsMode } from "@/lib/kidsModeContext";
 import { useWeddingMode } from "@/lib/weddingModeContext";
@@ -17,7 +17,7 @@ import {
 /** Account page for logged-in guests (non-members). Members are redirected to /member/profile. */
 export default function AccountPage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const { member, loading } = useMember();
   const { isKidsMode, setKidsMode } = useKidsMode();
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
@@ -27,6 +27,7 @@ export default function AccountPage() {
   const eventAccent = getCurrentEventAccentColor();
 
   useEffect(() => {
+    if (!supabase) return;
     if (loading) return;
     if (member) {
       router.replace("/member/profile");
@@ -41,9 +42,10 @@ export default function AccountPage() {
       setSessionChecked(true);
     };
     void check();
-  }, [loading, member, router, supabase.auth]);
+  }, [loading, member, router, supabase]);
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     // Full page reload ensures session is fully cleared (important when switching guest ↔ member on mobile)
     window.location.href = "/";

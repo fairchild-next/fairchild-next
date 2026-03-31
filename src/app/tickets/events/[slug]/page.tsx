@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import TicketSelector from "@/components/TicketSelector";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useMember } from "@/lib/memberContext";
 import { getMemberEventDisplay } from "@/lib/memberEventDisplay";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
@@ -49,7 +49,7 @@ export default function EventDetailPage() {
   const params = useParams();
   const slug = params?.slug as string;
   const { member } = useMember();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
@@ -57,7 +57,7 @@ export default function EventDetailPage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug || !supabase) return;
     let cancelled = false;
 
     const load = async () => {
@@ -90,7 +90,7 @@ export default function EventDetailPage() {
 
     void load();
     return () => { cancelled = true; };
-  }, [slug]);
+  }, [slug, supabase]);
 
   if (loading) {
     return (

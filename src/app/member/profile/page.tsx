@@ -7,7 +7,7 @@ import { useMember } from "@/lib/memberContext";
 import { useKidsMode } from "@/lib/kidsModeContext";
 import { useWeddingMode } from "@/lib/weddingModeContext";
 import { useEventsMode } from "@/lib/eventsModeContext";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { weddingBookletPdfUrl, weddingSiteUrl } from "@/lib/clients/fairchild/weddingContent";
 import {
   bunnyHoppeningEvent,
@@ -26,7 +26,7 @@ function formatExpiry(dateStr: string) {
 
 export default function MemberProfilePage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const { member, loading } = useMember();
   const { isKidsMode, setKidsMode } = useKidsMode();
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
@@ -53,6 +53,7 @@ export default function MemberProfilePage() {
   const eventAccent = getCurrentEventAccentColor();
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     // Full page reload ensures session is fully cleared (important when switching accounts on mobile)
     window.location.href = "/";

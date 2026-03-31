@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!supabase) return;
     supabase.auth.getSession().then(({ data }: { data: { session: { user?: { email?: string } } | null } }) => {
       const session = data.session;
       setCurrentUserEmail(session?.user?.email ?? null);
@@ -25,6 +26,7 @@ export default function LoginPage() {
   }, [supabase]);
 
   const handleSignOut = async () => {
+    if (!supabase) return;
     setLoading(true);
     setMessage(null);
     try {
@@ -41,6 +43,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) return;
     setMessage(null);
     setLoading(true);
     setResetSent(false);
@@ -71,6 +74,7 @@ export default function LoginPage() {
   };
 
   const handleForgotPassword = async () => {
+    if (!supabase) return;
     if (!email.trim()) {
       setMessage("Enter your email first, then click Forgot password.");
       return;

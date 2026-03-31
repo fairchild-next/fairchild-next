@@ -3,18 +3,19 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { getQuizStats } from "@/lib/quiz/stats";
 import { Trophy, Plant, ChartBar } from "@phosphor-icons/react";
 
 export default function AccountStatsPage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const [sessionChecked, setSessionChecked] = useState(false);
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [quizStats, setQuizStats] = useState<ReturnType<typeof getQuizStats> | null>(null);
 
   useEffect(() => {
+    if (!supabase) return;
     const check = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
@@ -36,7 +37,7 @@ export default function AccountStatsPage() {
       setQuizStats(getQuizStats());
     };
     void check();
-  }, [router, supabase.auth]);
+  }, [router, supabase]);
 
   if (!sessionChecked) {
     return (

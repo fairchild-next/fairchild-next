@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useCartStore } from "@/lib/store/cartStore";
 import { siteConfig } from "@/lib/siteConfig";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useMember } from "@/lib/memberContext";
 import CheckoutBarPortal from "@/components/CheckoutBarPortal";
 
@@ -12,7 +12,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearCart } = useCartStore();
   const { member } = useMember();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
 
   const [addDonation, setAddDonation] = useState(false);
   const [memberWantsDonation, setMemberWantsDonation] = useState(false);
@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   }, [items.length, router]);
 
   useEffect(() => {
-    if (items.length === 0) return;
+    if (items.length === 0 || !supabase) return;
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {

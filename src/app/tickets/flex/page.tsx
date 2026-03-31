@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import TicketSelector from "@/components/TicketSelector";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 
 type TicketType = {
   id: string;
@@ -14,13 +14,14 @@ type TicketType = {
 
 export default function FlexTicketPage() {
   const router = useRouter();
+  const supabase = useSupabaseBrowserClient();
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPeak, setIsPeak] = useState(false);
 
   useEffect(() => {
+    if (!supabase) return;
     let cancelled = false;
-    const supabase = createSupabaseBrowserClient();
     void supabase
       .from("ticket_types")
       .select("id, name, price, price_peak")
@@ -34,7 +35,7 @@ export default function FlexTicketPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [supabase]);
 
   // Flex = scheduled + $5 for same day type (weekday/off-peak or weekend/peak)
   const FLEX_UPCHARGE = 5;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import TicketSelector from "@/components/TicketSelector";
 import { siteConfig } from "@/lib/siteConfig";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useMember } from "@/lib/memberContext";
 import { getMemberEventDisplay, isMembersOnlyEvent } from "@/lib/memberEventDisplay";
 
@@ -27,6 +27,7 @@ type EventType = {
 
 export default function MemberTicketsPage() {
   const router = useRouter();
+  const supabase = useSupabaseBrowserClient();
   const { member, loading: memberLoading } = useMember();
   const [mode, setMode] = useState<"daily" | "exclusive">("daily");
   const [dailyTypes, setDailyTypes] = useState<TicketType[]>([]);
@@ -34,9 +35,8 @@ export default function MemberTicketsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!member) return;
+    if (!member || !supabase) return;
     let cancelled = false;
-    const supabase = createSupabaseBrowserClient();
 
     Promise.all([
       supabase
@@ -57,7 +57,7 @@ export default function MemberTicketsPage() {
     });
 
     return () => { cancelled = true; };
-  }, [member]);
+  }, [member, supabase]);
 
   // All free for members
   const dailyTickets = dailyTypes.map((t) => ({

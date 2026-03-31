@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { siteConfig } from "@/lib/siteConfig";
@@ -47,7 +47,7 @@ type MyTicketsData = {
 
 export default function MyTicketsPage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const { member } = useMember();
 
   const [data, setData] = useState<MyTicketsData | null>(null);
@@ -56,6 +56,7 @@ export default function MyTicketsPage() {
   const [membershipExpanded, setMembershipExpanded] = useState(false);
 
   useEffect(() => {
+    if (!supabase) return;
     const load = async () => {
       const {
         data: { session },
@@ -86,7 +87,7 @@ export default function MyTicketsPage() {
     };
 
     void load();
-  }, [router]);
+  }, [router, supabase]);
 
   if (!user) {
     return (

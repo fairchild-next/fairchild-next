@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 import {
   MAP_CONFIG_OPTIONS,
   isMapConfigSlug,
@@ -108,7 +109,7 @@ export default function MapEditor() {
     return "default";
   }, [searchParams]);
 
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useSupabaseBrowserClient();
   const [data, setData] = useState<MapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -468,6 +469,7 @@ export default function MapEditor() {
             <button
               type="button"
               onClick={async () => {
+                if (!supabase) return;
                 await supabase.auth.signOut();
                 router.push("/staff/login");
                 router.refresh();
