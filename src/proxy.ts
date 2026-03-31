@@ -2,11 +2,12 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
- * Refreshes Supabase auth cookies on each request so Route Handlers (e.g. /api/map/*)
- * see the same session as the browser. Without this, save/copy can hit the API as
- * effectively logged-out even when the client shows you as signed in.
+ * Runs on the Edge before routes. Refreshes Supabase auth cookies so Route Handlers
+ * (e.g. /api/map/*) see the same session as the browser.
+ *
+ * Next.js 16+: use `proxy.ts` + `export function proxy` (middleware file is deprecated).
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
