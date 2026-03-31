@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-02-25.clover",
-});
+let stripeClient: Stripe | undefined;
+function getStripe(): Stripe {
+  if (!stripeClient) {
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2026-02-25.clover",
+    });
+  }
+  return stripeClient;
+}
 
 export async function POST(req: Request) {
   const { sessionId } = await req.json();
@@ -14,7 +20,7 @@ export async function POST(req: Request) {
   }
 
   // 1️⃣ Verify with Stripe
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
   if (session.payment_status !== "paid") {
     return NextResponse.json({ status: "failed" });
