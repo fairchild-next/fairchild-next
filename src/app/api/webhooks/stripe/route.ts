@@ -2,16 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-let stripeClient: Stripe | undefined;
-function getStripe(): Stripe {
-  if (!stripeClient) {
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2026-02-25.clover",
-    });
-  }
-  return stripeClient;
-}
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -22,6 +12,16 @@ function generateQRCode() {
 }
 
 export async function POST(req: NextRequest) {
+  let stripeClient: Stripe | undefined;
+  function getStripe(): Stripe {
+    if (!stripeClient) {
+      stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2026-02-25.clover",
+      });
+    }
+    return stripeClient;
+  }
+
   const body = await req.text();
   const signature = req.headers.get("stripe-signature")!;
 
