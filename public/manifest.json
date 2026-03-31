@@ -1,0 +1,18 @@
+{
+  "name": "Fairchild Tropical Botanic Garden",
+  "short_name": "Fairchild",
+  "description": "Explore the garden, buy tickets, and discover exhibits",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/window.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

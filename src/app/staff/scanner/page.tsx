@@ -1,11 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 
 type ScanStatus = "idle" | "valid" | "already_used" | "not_found" | "error" | "invalid_request";
 
 export default function StaffScannerPage() {
+  const router = useRouter();
+  const supabase = createSupabaseBrowserClient();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [decodedText, setDecodedText] = useState<string | null>(null);
   const [scanStatus, setScanStatus] = useState<ScanStatus | null>(null);
@@ -93,7 +98,24 @@ export default function StaffScannerPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Staff Ticket Scanner</h1>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-xl font-semibold">Staff Ticket Scanner</h1>
+        <div className="flex items-center gap-3">
+          <Link href="/staff/map/edit" className="text-sm text-[var(--primary)] hover:underline">
+            Map editor
+          </Link>
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              router.push("/staff/login");
+              router.refresh();
+            }}
+            className="text-sm text-gray-400 hover:text-white"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
 
       <video
         ref={videoRef}

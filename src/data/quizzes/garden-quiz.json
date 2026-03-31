@@ -1,0 +1,248 @@
+{
+  "id": "garden-quiz",
+  "slug": "garden",
+  "title": "Garden Quiz",
+  "description": "Test your knowledge of plants and the garden.",
+  "questions": [
+    {
+      "id": "q1",
+      "text": "Which part of most plants captures sunlight to produce energy through photosynthesis?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q1a", "text": "Roots" },
+        { "id": "q1b", "text": "Leaves" },
+        { "id": "q1c", "text": "Seeds" },
+        { "id": "q1d", "text": "Bark" }
+      ],
+      "correctAnswerId": "q1b"
+    },
+    {
+      "id": "q2",
+      "text": "What do roots primarily do for a plant?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q2a", "text": "Capture sunlight" },
+        { "id": "q2b", "text": "Produce flowers" },
+        { "id": "q2c", "text": "Absorb water and nutrients from the soil" },
+        { "id": "q2d", "text": "Attract pollinators" }
+      ],
+      "correctAnswerId": "q2c"
+    },
+    {
+      "id": "q3",
+      "text": "Which structure of a flower produces pollen?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q3a", "text": "Petal" },
+        { "id": "q3b", "text": "Sepal" },
+        { "id": "q3c", "text": "Stamen" },
+        { "id": "q3d", "text": "Ovary" }
+      ],
+      "correctAnswerId": "q3c"
+    },
+    {
+      "id": "q4",
+      "text": "Which part of the orchid plant is used to produce vanilla flavoring?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q4a", "text": "Leaves" },
+        { "id": "q4b", "text": "Roots" },
+        { "id": "q4c", "text": "Stem" },
+        { "id": "q4d", "text": "Seed pod" }
+      ],
+      "correctAnswerId": "q4d"
+    },
+    {
+      "id": "q5",
+      "text": "What gas do plants take in from the air during photosynthesis?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q5a", "text": "Oxygen" },
+        { "id": "q5b", "text": "Nitrogen" },
+        { "id": "q5c", "text": "Carbon dioxide" },
+        { "id": "q5d", "text": "Hydrogen" }
+      ],
+      "correctAnswerId": "q5c"
+    },
+    {
+      "id": "q6",
+      "text": "Which plant structure usually attracts pollinators with bright colors and scents?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q6a", "text": "Leaves" },
+        { "id": "q6b", "text": "Flowers" },
+        { "id": "q6c", "text": "Roots" },
+        { "id": "q6d", "text": "Bark" }
+      ],
+      "correctAnswerId": "q6b"
+    },
+    {
+      "id": "q7",
+      "text": "Leaves with veins that branch into a network pattern are most typical of which plant group?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q7a", "text": "Mosses" },
+        { "id": "q7b", "text": "Monocots" },
+        { "id": "q7c", "text": "Dicots" },
+        { "id": "q7d", "text": "Ferns" }
+      ],
+      "correctAnswerId": "q7c"
+    },
+    {
+      "id": "q8",
+      "text": "In plant identification, what term describes leaves that appear in pairs directly across from each other on the stem?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q8a", "text": "Alternate" },
+        { "id": "q8b", "text": "Opposite" },
+        { "id": "q8c", "text": "Whorled" },
+        { "id": "q8d", "text": "Basal" }
+      ],
+      "correctAnswerId": "q8b"
+    },
+    {
+      "id": "q9",
+      "text": "Which type of fruit develops from a single flower with one ovary?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q9a", "text": "Aggregate fruit" },
+        { "id": "q9b", "text": "Multiple fruit" },
+        { "id": "q9c", "text": "Simple fruit" },
+        { "id": "q9d", "text": "Compound fruit" }
+      ],
+      "correctAnswerId": "q9c"
+    },
+    {
+      "id": "q10",
+      "text": "Why do many tropical plants have large leaves?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q10a", "text": "To store seeds" },
+        { "id": "q10b", "text": "To capture more sunlight in shaded environments" },
+        { "id": "q10c", "text": "To protect against insects" },
+        { "id": "q10d", "text": "To reduce water absorption" }
+      ],
+      "correctAnswerId": "q10b"
+    },
+    {
+      "id": "q11",
+      "text": "What do botanists call a plant that completes its life cycle in one growing season?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q11a", "text": "Perennial" },
+        { "id": "q11b", "text": "Biennial" },
+        { "id": "q11c", "text": "Annual" },
+        { "id": "q11d", "text": "Evergreen" }
+      ],
+      "correctAnswerId": "q11c"
+    },
+    {
+      "id": "q12",
+      "text": "What is the main role of fruit in flowering plants?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q12a", "text": "Store sunlight" },
+        { "id": "q12b", "text": "Protect and disperse seeds" },
+        { "id": "q12c", "text": "Produce pollen" },
+        { "id": "q12d", "text": "Support leaves" }
+      ],
+      "correctAnswerId": "q12b"
+    },
+    {
+      "id": "q13",
+      "text": "In botanical terms, a leaf described as \"palmate\" has which characteristic?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q13a", "text": "Leaflets arranged along a central stem" },
+        { "id": "q13b", "text": "Lobes radiating outward from a single point" },
+        { "id": "q13c", "text": "A long narrow shape with parallel sides" },
+        { "id": "q13d", "text": "A rounded outline with no tip" }
+      ],
+      "correctAnswerId": "q13b"
+    },
+    {
+      "id": "q14",
+      "text": "Which plant tissue transports water from roots to leaves?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q14a", "text": "Phloem" },
+        { "id": "q14b", "text": "Xylem" },
+        { "id": "q14c", "text": "Cambium" },
+        { "id": "q14d", "text": "Epidermis" }
+      ],
+      "correctAnswerId": "q14b"
+    },
+    {
+      "id": "q15",
+      "text": "Which of the following is considered a botanical berry?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q15a", "text": "Strawberry" },
+        { "id": "q15b", "text": "Raspberry" },
+        { "id": "q15c", "text": "Tomato" },
+        { "id": "q15d", "text": "Apple" }
+      ],
+      "correctAnswerId": "q15c"
+    },
+    {
+      "id": "q16",
+      "text": "Plants that climb using thin coiling structures that wrap around supports are using what adaptation?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q16a", "text": "Rhizomes" },
+        { "id": "q16b", "text": "Tendrils" },
+        { "id": "q16c", "text": "Stolons" },
+        { "id": "q16d", "text": "Tubers" }
+      ],
+      "correctAnswerId": "q16b"
+    },
+    {
+      "id": "q17",
+      "text": "What is the primary function of stomata on a leaf?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q17a", "text": "Anchor the leaf to the stem" },
+        { "id": "q17b", "text": "Exchange gases and regulate water loss" },
+        { "id": "q17c", "text": "Produce seeds" },
+        { "id": "q17d", "text": "Store nutrients" }
+      ],
+      "correctAnswerId": "q17b"
+    },
+    {
+      "id": "q18",
+      "text": "In flowering plants, which structure develops into fruit after fertilization?",
+      "difficulty": "expert",
+      "answers": [
+        { "id": "q18a", "text": "Stigma" },
+        { "id": "q18b", "text": "Ovary" },
+        { "id": "q18c", "text": "Anther" },
+        { "id": "q18d", "text": "Sepal" }
+      ],
+      "correctAnswerId": "q18b"
+    },
+    {
+      "id": "q19",
+      "text": "Which plant growth form is characterized by woody stems that branch near ground level rather than forming a single trunk?",
+      "difficulty": "expert",
+      "answers": [
+        { "id": "q19a", "text": "Tree" },
+        { "id": "q19b", "text": "Shrub" },
+        { "id": "q19c", "text": "Vine" },
+        { "id": "q19d", "text": "Herb" }
+      ],
+      "correctAnswerId": "q19b"
+    },
+    {
+      "id": "q20",
+      "text": "Some seeds disperse by attaching to animal fur using small hooks or barbs. This strategy primarily helps the plant accomplish what?",
+      "difficulty": "expert",
+      "answers": [
+        { "id": "q20a", "text": "Increase photosynthesis" },
+        { "id": "q20b", "text": "Travel to new growing locations" },
+        { "id": "q20c", "text": "Prevent herbivory" },
+        { "id": "q20d", "text": "Improve pollination" }
+      ],
+      "correctAnswerId": "q20b"
+    }
+  ]
+}

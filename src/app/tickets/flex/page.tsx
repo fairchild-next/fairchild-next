@@ -1,25 +1,119 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import TicketSelector from "@/components/TicketSelector"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import TicketSelector from "@/components/TicketSelector";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+type TicketType = {
+  id: string;
+  name: string;
+  price: number;
+  price_peak: number | null;
+};
 
 export default function FlexTicketPage() {
-  const router = useRouter()
+  const router = useRouter();
+  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isPeak, setIsPeak] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createSupabaseBrowserClient();
+    void supabase
+      .from("ticket_types")
+      .select("id, name, price, price_peak")
+      .eq("is_active", true)
+      .is("event_id", null)
+      .then(({ data, error }: { data: TicketType[] | null; error: unknown }) => {
+        if (cancelled) return;
+        if (!error && data) setTicketTypes(data);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Flex = scheduled + $5 for same day type (weekday/off-peak or weekend/peak)
+  const FLEX_UPCHARGE = 5;
+  const tickets = ticketTypes.map((t) => {
+    const scheduledPrice = isPeak && t.price_peak != null ? t.price_peak : t.price;
+    return {
+      id: t.id,
+      label: t.name,
+      price: scheduledPrice + FLEX_UPCHARGE,
+    };
+  });
 
   return (
-    <TicketSelector
-      title="Flex Ticket"
-      tickets={[
-        { id: "adult", label: "Adult (18–64)", price: 30 },
-        { id: "child", label: "Child (6–17)", price: 20 },
-        { id: "student", label: "Student", price: 25 },
-        { id: "senior", label: "Senior (65+)", price: 22 },
-      ]}
-      onContinue={(total, quantities) => {
-        // In real app we would store cart state here
-        console.log("Flex checkout:", total, quantities)
-        router.push("/tickets/checkout")
-      }}
-    />
-  )
+    <div>
+      <div className="px-6 pt-4">
+        <button
+          onClick={() => router.push("/tickets/daily")}
+          className="text-[var(--primary)] text-sm font-medium"
+        >
+          ← Back
+        </button>
+      </div>
+      {loading ? (
+        <div className="px-6 py-8 text-[var(--text-muted)]">
+          Loading ticket types...
+        </div>
+      ) : ticketTypes.length === 0 ? (
+        <div className="px-6 py-8 space-y-4">
+          <p className="text-[var(--text-muted)]">
+            No ticket types available at the moment.
+          </p>
+          <button
+            onClick={() => router.push("/tickets/daily")}
+            className="text-[var(--primary)] text-sm font-medium"
+          >
+            ← Back to Daily Admission
+          </button>
+        </div>
+      ) : (
+        <div className="pb-8">
+          <h2 className="text-xl font-semibold px-6 pt-4 pb-1">
+            Daily Admission – Flex
+          </h2>
+          <p className="text-[var(--text-muted)] text-sm px-6 pb-3">
+            Choose a ticket type, then select peak or off-peak:
+          </p>
+          <div className="flex gap-2 px-6 pb-4">
+            <button
+              onClick={() => setIsPeak(false)}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition ${
+                !isPeak
+                  ? "bg-[var(--primary)] text-white"
+                  : "bg-[var(--surface)] border border-[var(--surface-border)] text-[var(--text-muted)]"
+              }`}
+            >
+              Off-Peak (Weekdays) Mon–Fri
+            </button>
+            <button
+              onClick={() => setIsPeak(true)}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition ${
+                isPeak
+                  ? "bg-[var(--primary)] text-white"
+                  : "bg-[var(--surface)] border border-[var(--surface-border)] text-[var(--text-muted)]"
+              }`}
+            >
+              Peak (Weekends) Sat–Sun
+            </button>
+          </div>
+          <TicketSelector
+            title=""
+            tickets={tickets}
+            productType="flex"
+            isPeak={isPeak}
+            showPeakPriceStyle={isPeak}
+            inlineSummary
+            onContinue={() => router.push("/tickets/cart")}
+          />
+        </div>
+      )}
+    </div>
+  );
 }

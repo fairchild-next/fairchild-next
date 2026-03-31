@@ -93,7 +93,7 @@ console.log("Quantities:", quantities)
         {ticketTypes.map((type) => (
           <div
             key={type.id}
-            className="border border-gray-700 rounded-2xl p-6 transition hover:border-green-500"
+            className="border border-[var(--surface-border)] rounded-2xl p-6 transition hover:border-[var(--primary)]"
           >
             <div className="flex justify-between items-center">
               <div>
@@ -108,7 +108,7 @@ console.log("Quantities:", quantities)
               <div className="flex items-center gap-4">
   <button
     onClick={() => changeQuantity(type.id, -1)}
-    className="w-10 h-10 rounded-full bg-gray-700 text-white flex items-center justify-center text-lg"
+    className="w-10 h-10 rounded-full bg-[var(--surface-border)] text-[var(--text-primary)] flex items-center justify-center text-lg"
   >
     –
   </button>
@@ -119,7 +119,7 @@ console.log("Quantities:", quantities)
 
   <button
     onClick={() => changeQuantity(type.id, 1)}
-    className="w-10 h-10 rounded-full bg-green-500 text-black flex items-center justify-center text-lg"
+    className="w-10 h-10 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-lg"
   >
     +
   </button>
@@ -130,8 +130,8 @@ console.log("Quantities:", quantities)
       </div>
 
      {/* Bottom CTA */}
-<div className="sticky bottom-0 bg-black border-t border-gray-700 px-6 py-5">
-  <div className="flex justify-between text-sm text-gray-400 mb-3">
+<div className="sticky bottom-0 bg-[var(--surface)] border-t border-[var(--surface-border)] px-6 py-5">
+  <div className="flex justify-between text-sm text-[var(--text-muted)] mb-3">
     <span>{totalItems} Tickets</span>
     <span className="font-medium text-white">${total}</span>
   </div>
@@ -140,8 +140,8 @@ console.log("Quantities:", quantities)
     disabled={totalItems === 0}
     className={`w-full py-4 rounded-2xl font-semibold text-lg transition ${
       totalItems === 0
-        ? "bg-gray-700 text-gray-400"
-        : "bg-green-500 text-black hover:opacity-90"
+        ? "bg-[var(--surface-border)] text-[var(--text-muted)]"
+        : "bg-[var(--primary)] text-white hover:opacity-90"
     }`}
   >
     Continue to Checkout

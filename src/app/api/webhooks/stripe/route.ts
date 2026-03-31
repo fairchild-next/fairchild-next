@@ -87,14 +87,15 @@ const { data: orderItems, error: orderItemsError } =
     for (const item of orderItems) {
       for (let i = 0; i < item.quantity; i++) {
         ticketsToInsert.push({
-  order_id: internalOrderId,
-  order_item_id: item.id,
-  ticket_type_id: item.ticket_type_id,
-  slot_id: item.slot_id,
-  qr_code: generateQRCode(),
-  status: "unused",
-  user_id: order?.user_id ?? null,
-});
+          order_id: internalOrderId,
+          order_item_id: item.id,
+          ticket_type_id: item.ticket_type_id,
+          slot_id: item.slot_id ?? null,
+          event_id: item.event_id ?? null,
+          qr_code: generateQRCode(),
+          status: "unused",
+          user_id: order?.user_id ?? null,
+        });
       }
     }
 

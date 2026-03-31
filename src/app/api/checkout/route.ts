@@ -47,10 +47,12 @@ export async function POST(req: Request) {
     // 2️⃣ Insert order_items
     const orderItemsPayload = body.items.map((item: any) => ({
       order_id: order.id,
-      ticket_type_id: item.id,
+      ticket_type_id: item.productId ?? item.id,
       slot_id: item.slotId,
+      event_id: item.eventId ?? null,
       quantity: item.quantity,
       unit_price: Math.round(item.price * 100),
+      is_peak: item.isPeak ?? null,
     }));
 
     const { error: itemsError } = await supabase
@@ -71,7 +73,8 @@ export async function POST(req: Request) {
     const session = await provider.createCheckoutSession(
       body.items,
       body.donation,
-      order.id
+      order.id,
+      customerEmail
     );
 
     return NextResponse.json(session);

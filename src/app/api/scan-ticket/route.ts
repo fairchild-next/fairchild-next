@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireStaff } from "@/lib/staff";
 
 // If someone opens the scan URL in a browser (e.g. from an old QR), redirect to home
 export async function GET(req: Request) {
@@ -10,6 +10,11 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const staff = await requireStaff(req);
+  if (!staff.ok) {
+    return NextResponse.json({ status: "error" }, { status: staff.status });
+  }
+
   try {
     const { qr_code } = await req.json();
 
@@ -20,7 +25,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = staff.supabase;
 
     // 1️⃣ Find ticket
     const { data: ticket, error } = await supabase
@@ -47,11 +52,11 @@ export async function POST(req: Request) {
       .update({ status: "used" })
       .eq("id", ticket.id);
 
-      await supabase.from("visits").insert({
-  user_id: ticket.user_id,
-  ticket_id: ticket.id,
-  visit_date: new Date().toISOString().split("T")[0],
-});
+    await supabase.from("visits").insert({
+      user_id: ticket.user_id,
+      ticket_id: ticket.id,
+      visit_date: new Date().toISOString().split("T")[0],
+    });
 
     return NextResponse.json({
       status: "valid",

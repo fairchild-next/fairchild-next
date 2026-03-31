@@ -1,0 +1,8 @@
+-- Example: Add a member record for testing
+-- Run AFTER creating a user account. Replace 'your@email.com' with the user's email.
+--
+-- insert into members (user_id, member_id, membership_type, display_name, expires_at)
+-- select id, '2457893', 'Dual Membership', 'John Doe', '2025-08-25'
+-- from auth.users
+-- where email = 'your@email.com'
+-- limit 1;

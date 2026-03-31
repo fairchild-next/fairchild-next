@@ -1,0 +1,200 @@
+{
+  "id": "garden-quiz-kids",
+  "slug": "garden-kids",
+  "title": "Garden Quiz",
+  "description": "Test your knowledge of plants and the garden!",
+  "questions": [
+    {
+      "id": "q1",
+      "text": "What do plants need to grow?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q1a", "text": "Candy 🍭" },
+        { "id": "q1b", "text": "Sunlight ☀️" },
+        { "id": "q1c", "text": "Toys 🧸" },
+        { "id": "q1d", "text": "Music 🎧" }
+      ],
+      "correctAnswerId": "q1b"
+    },
+    {
+      "id": "q2",
+      "text": "What part of the plant drinks water from the ground?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q2a", "text": "Leaves 🍃" },
+        { "id": "q2b", "text": "Roots 🌱" },
+        { "id": "q2c", "text": "Flowers 🌸" },
+        { "id": "q2d", "text": "Seeds 🌰" }
+      ],
+      "correctAnswerId": "q2b"
+    },
+    {
+      "id": "q3",
+      "text": "What color are most leaves?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q3a", "text": "Blue 🔵" },
+        { "id": "q3b", "text": "Purple 🟣" },
+        { "id": "q3c", "text": "Green 🟢" },
+        { "id": "q3d", "text": "Red 🔴" }
+      ],
+      "correctAnswerId": "q3c"
+    },
+    {
+      "id": "q4",
+      "text": "Who helps flowers grow by moving pollen around?",
+      "difficulty": "easy",
+      "answers": [
+        { "id": "q4a", "text": "Dogs 🐶" },
+        { "id": "q4b", "text": "Bees 🐝" },
+        { "id": "q4c", "text": "Fish 🐟" },
+        { "id": "q4d", "text": "Lizards 🦎" }
+      ],
+      "correctAnswerId": "q4b"
+    },
+    {
+      "id": "q5",
+      "text": "Why do plants need sunlight?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q5a", "text": "To stay warm" },
+        { "id": "q5b", "text": "To make their own food" },
+        { "id": "q5c", "text": "To grow taller than people" },
+        { "id": "q5d", "text": "To look pretty" }
+      ],
+      "correctAnswerId": "q5b"
+    },
+    {
+      "id": "q6",
+      "text": "What is a seed?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q6a", "text": "A baby plant 🌱" },
+        { "id": "q6b", "text": "A bug 🐞" },
+        { "id": "q6c", "text": "A rock 🪨" },
+        { "id": "q6d", "text": "A flower petal 🌸" }
+      ],
+      "correctAnswerId": "q6a"
+    },
+    {
+      "id": "q7",
+      "text": "What do we call plants that live in very dry places?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q7a", "text": "Jungle plants 🌴" },
+        { "id": "q7b", "text": "Water plants 💧" },
+        { "id": "q7c", "text": "Desert plants 🌵" },
+        { "id": "q7d", "text": "Snow plants ❄️" }
+      ],
+      "correctAnswerId": "q7c"
+    },
+    {
+      "id": "q8",
+      "text": "Why are butterflies important to gardens?",
+      "difficulty": "medium",
+      "answers": [
+        { "id": "q8a", "text": "They eat leaves" },
+        { "id": "q8b", "text": "They help flowers grow" },
+        { "id": "q8c", "text": "They make shade" },
+        { "id": "q8d", "text": "They water plants" }
+      ],
+      "correctAnswerId": "q8b"
+    },
+    {
+      "id": "q9",
+      "text": "What might happen if a plant doesn't get enough water?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q9a", "text": "It grows faster" },
+        { "id": "q9b", "text": "It wilts or dries out" },
+        { "id": "q9c", "text": "It changes color" },
+        { "id": "q9d", "text": "It turns into a tree" }
+      ],
+      "correctAnswerId": "q9b"
+    },
+    {
+      "id": "q10",
+      "text": "Why do some plants have big leaves?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q10a", "text": "To catch more sunlight" },
+        { "id": "q10b", "text": "To hide animals" },
+        { "id": "q10c", "text": "To store toys" },
+        { "id": "q10d", "text": "To make noise" }
+      ],
+      "correctAnswerId": "q10a"
+    },
+    {
+      "id": "q11",
+      "text": "What is pollination?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q11a", "text": "Plants drinking water" },
+        { "id": "q11b", "text": "Moving pollen from one flower to another" },
+        { "id": "q11c", "text": "Plants growing taller" },
+        { "id": "q11d", "text": "Leaves falling off" }
+      ],
+      "correctAnswerId": "q11b"
+    },
+    {
+      "id": "q12",
+      "text": "Why do plants have roots?",
+      "difficulty": "hard",
+      "answers": [
+        { "id": "q12a", "text": "To fly" },
+        { "id": "q12b", "text": "To hold the plant in place and get water" },
+        { "id": "q12c", "text": "To make flowers colorful" },
+        { "id": "q12d", "text": "To talk to animals" }
+      ],
+      "correctAnswerId": "q12b"
+    },
+    {
+      "id": "q13",
+      "text": "What is a rainforest?",
+      "difficulty": "expert",
+      "answers": [
+        { "id": "q13a", "text": "A place with lots of snow" },
+        { "id": "q13b", "text": "A place with lots of rain and plants" },
+        { "id": "q13c", "text": "A desert with no water" },
+        { "id": "q13d", "text": "A city park" }
+      ],
+      "correctAnswerId": "q13b"
+    },
+    {
+      "id": "q14",
+      "text": "Why are plants important for people and animals?",
+      "difficulty": "expert",
+      "answers": [
+        { "id": "q14a", "text": "They give us oxygen and food" },
+        { "id": "q14b", "text": "They make noise" },
+        { "id": "q14c", "text": "They chase animals" },
+        { "id": "q14d", "text": "They glow at night" }
+      ],
+      "correctAnswerId": "q14a"
+    },
+    {
+      "id": "q15",
+      "text": "What helps seeds travel to new places?",
+      "difficulty": "expert",
+      "answers": [
+        { "id": "q15a", "text": "Wind and animals" },
+        { "id": "q15b", "text": "Cars only" },
+        { "id": "q15c", "text": "Rocks" },
+        { "id": "q15d", "text": "Shadows" }
+      ],
+      "correctAnswerId": "q15a"
+    },
+    {
+      "id": "q16",
+      "text": "Why should we protect gardens and nature?",
+      "difficulty": "expert",
+      "answers": [
+        { "id": "q16a", "text": "So plants and animals can live safely" },
+        { "id": "q16b", "text": "So we can build more buildings" },
+        { "id": "q16c", "text": "So plants grow faster than people" },
+        { "id": "q16d", "text": "So we can remove all insects" }
+      ],
+      "correctAnswerId": "q16a"
+    }
+  ]
+}

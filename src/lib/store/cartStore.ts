@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type ProductType =
   | "scheduled-daily"
@@ -17,6 +18,10 @@ export interface CartItem {
   price: number;
   quantity: number;
   slotId?: string;
+  /** For flex tickets: true = weekend/peak, false = weekday/off-peak */
+  isPeak?: boolean;
+  /** For special-event: event uuid */
+  eventId?: string;
 }
 
 interface CartState {
@@ -28,22 +33,47 @@ interface CartState {
   clearCart: () => void;
 }
 
-export const useCartStore = create<CartState>((set) => ({
-  items: [],
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      items: [],
 
-  // Replace items for same slot instead of blindly appending
-  addItems: (newItems) =>
-    set((state) => {
-      const slotId = newItems[0]?.slotId;
+      // Scheduled: replace items for same slot. Event: replace items for same event.
+      // General-daily/flex: merge into existing item if same product, else append.
+      addItems: (newItems) =>
+        set((state) => {
+          const slotId = newItems[0]?.slotId;
+          const eventId = newItems[0]?.eventId;
 
-      const filtered = state.items.filter(
-        (item) => item.slotId !== slotId
-      );
+          let result =
+            slotId !== undefined
+              ? state.items.filter((item) => item.slotId !== slotId)
+              : eventId !== undefined
+                ? state.items.filter((item) => item.eventId !== eventId)
+                : [...state.items];
 
-      return {
-        items: [...filtered, ...newItems],
-      };
-    }),
+          for (const newItem of newItems) {
+            const match = result.find(
+              (i) =>
+                i.productId === newItem.productId &&
+                i.productType === newItem.productType &&
+                (newItem.productType !== "flex" || i.isPeak === newItem.isPeak) &&
+                (newItem.productType !== "special-event" || i.eventId === newItem.eventId) &&
+                (newItem.slotId == null || i.slotId === newItem.slotId)
+            );
+            if (match) {
+              result = result.map((r) =>
+                r.id === match.id
+                  ? { ...r, quantity: r.quantity + newItem.quantity }
+                  : r
+              );
+            } else {
+              result.push(newItem);
+            }
+          }
+
+          return { items: result };
+        }),
 
   updateQuantity: (id, quantity) =>
     set((state) => ({
@@ -58,4 +88,7 @@ export const useCartStore = create<CartState>((set) => ({
     })),
 
   clearCart: () => set({ items: [] }),
-}));
+    }),
+    { name: "fairchild-cart" }
+  )
+);

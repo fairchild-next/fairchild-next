@@ -9,7 +9,8 @@ export class StripeProvider implements CommerceProvider {
   async createCheckoutSession(
   items: CartLineItem[],
   donation?: number,
-  orderId?: string
+  orderId?: string,
+  customerEmail?: string | null
 ): Promise<CheckoutSession> {
     const line_items = items.map((item) => ({
       price_data: {
@@ -44,6 +45,7 @@ export class StripeProvider implements CommerceProvider {
       success_url: `${baseUrl}/tickets/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/tickets/cart`,
       metadata: orderId ? { order_id: orderId } : undefined,
+      ...(customerEmail && { customer_email: customerEmail }),
     });
 
     return {

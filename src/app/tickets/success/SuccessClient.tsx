@@ -3,11 +3,13 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/lib/store/cartStore";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function SuccessClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const orderId = searchParams.get("order");
 
   const clearCart = useCartStore((state) => state.clearCart);
 
@@ -16,12 +18,23 @@ export default function SuccessClient() {
   >("loading");
 
   useEffect(() => {
+    // Member reserve: orderId in URL, no Stripe session
+    if (orderId) {
+      clearCart();
+      setStatus("paid");
+      setTimeout(() => router.push("/tickets/my"), 1500);
+      return;
+    }
+
     if (!sessionId) {
       router.replace("/tickets");
       return;
     }
 
     const verify = async () => {
+      // Refresh session after returning from Stripe so auth persists
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.refreshSession();
       const response = await fetch("/api/verify-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,7 +61,7 @@ export default function SuccessClient() {
     };
 
     verify();
-  }, [sessionId, router, clearCart]);
+  }, [sessionId, orderId, router, clearCart]);
 
   if (status === "loading") {
     return (

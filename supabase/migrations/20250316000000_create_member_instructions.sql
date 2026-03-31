@@ -1,0 +1,27 @@
+-- ============================================
+-- Create a member account (manual method)
+-- ============================================
+--
+-- STEP 1: Create auth user in Supabase Dashboard
+--   Authentication > Users > Add user
+--   Enter email + password, click Create
+--   Copy the user's UUID from the table
+--
+-- STEP 2: Run this SQL (replace YOUR_USER_UUID and other values)
+--
+-- insert into members (user_id, member_id, membership_type, display_name, expires_at)
+-- values (
+--   'YOUR_USER_UUID',
+--   '2457893',
+--   'Individual Membership',
+--   'Your Name',
+--   '2026-12-31'
+-- );
+--
+-- Or use a subquery if you know the email:
+--
+-- insert into members (user_id, member_id, membership_type, display_name, expires_at)
+-- select id, '2457893', 'Individual Membership', 'Your Name', '2026-12-31'
+-- from auth.users
+-- where email = 'your@email.com'
+-- limit 1;
