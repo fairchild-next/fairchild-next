@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/store/cartStore";
-import { createClient } from "@supabase/supabase-js";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 
 interface TicketType {
   id: string;
@@ -19,11 +19,6 @@ interface Slot {
   end_time: string;
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 function formatGuaranteedDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   return d.toLocaleDateString("en-US", {
@@ -37,6 +32,7 @@ export default function ScheduledTicketSelectionPage() {
   const router = useRouter();
   const params = useParams();
   const slotId = params?.slotId as string;
+  const supabase = useSupabaseBrowserClient();
 
   const addItems = useCartStore((state) => state.addItems);
 
@@ -45,6 +41,7 @@ export default function ScheduledTicketSelectionPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    if (!slotId || !supabase) return;
     const fetchSlot = async () => {
       const { data } = await supabase
         .from("time_slots")
@@ -53,10 +50,11 @@ export default function ScheduledTicketSelectionPage() {
         .single();
       if (data) setSlot(data as Slot);
     };
-    if (slotId) fetchSlot();
-  }, [slotId]);
+    void fetchSlot();
+  }, [slotId, supabase]);
 
   useEffect(() => {
+    if (!supabase) return;
     const fetchTicketTypes = async () => {
       const { data, error } = await supabase
         .from("ticket_types")
@@ -74,8 +72,8 @@ export default function ScheduledTicketSelectionPage() {
       }
     };
 
-    fetchTicketTypes();
-  }, []);
+    void fetchTicketTypes();
+  }, [supabase]);
 
   // Sat/Sun = peak; Mon–Fri = off-peak
   const isPeak = slot
