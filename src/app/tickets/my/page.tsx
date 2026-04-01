@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
+import { useSupabaseBrowser } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { siteConfig } from "@/lib/siteConfig";
@@ -47,16 +47,25 @@ type MyTicketsData = {
 
 export default function MyTicketsPage() {
   const router = useRouter();
-  const supabase = useSupabaseBrowserClient();
+  const { client: supabase, initialized } = useSupabaseBrowser();
   const { member } = useMember();
 
   const [data, setData] = useState<MyTicketsData | null>(null);
   const [user, setUser] = useState<{ id: string } | null>(null);
+  /** True once we know whether there is a session (avoids infinite loading before client init). */
+  const [sessionResolved, setSessionResolved] = useState(false);
   const [tab, setTab] = useState<"current" | "past">("current");
   const [membershipExpanded, setMembershipExpanded] = useState(false);
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!initialized) return;
+
+    if (!supabase) {
+      router.replace("/login?redirect=" + encodeURIComponent("/tickets/my"));
+      setSessionResolved(true);
+      return;
+    }
+
     const load = async () => {
       const {
         data: { session },
@@ -64,10 +73,12 @@ export default function MyTicketsPage() {
 
       if (!session?.user) {
         router.replace("/login?redirect=" + encodeURIComponent("/tickets/my"));
+        setSessionResolved(true);
         return;
       }
 
       setUser(session.user);
+      setSessionResolved(true);
 
       const res = await fetch("/api/my-tickets", { credentials: "include" });
       if (!res.ok) {
@@ -87,12 +98,20 @@ export default function MyTicketsPage() {
     };
 
     void load();
-  }, [router, supabase]);
+  }, [router, supabase, initialized]);
+
+  if (!initialized || !sessionResolved) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">Loading…</p>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">Loading…</p>
+        <p className="text-gray-500">Redirecting…</p>
       </div>
     );
   }

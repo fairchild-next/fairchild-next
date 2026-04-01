@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
+import { useSupabaseBrowser } from "@/lib/supabase/SupabaseBrowserProvider";
 
 export type MemberInfo = {
   id: string;
@@ -41,7 +41,7 @@ export function MemberProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [hasSession, setHasSession] = useState(false);
   const [authReady, setAuthReady] = useState(false);
-  const supabase = useSupabaseBrowserClient();
+  const { client: supabase, initialized } = useSupabaseBrowser();
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -60,12 +60,18 @@ export function MemberProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!initialized) return;
+    if (!supabase) {
+      setLoading(false);
+      setHasSession(false);
+      setAuthReady(true);
+      return;
+    }
     refetch();
-  }, [supabase, refetch]);
+  }, [initialized, supabase, refetch]);
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!initialized || !supabase) return;
     let cancelled = false;
     void supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
       if (!cancelled) {
@@ -84,7 +90,7 @@ export function MemberProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [supabase, refetch]);
+  }, [initialized, supabase, refetch]);
 
   return (
     <MemberContext.Provider

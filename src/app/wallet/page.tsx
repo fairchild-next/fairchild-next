@@ -1,18 +1,44 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSupabaseBrowser } from "@/lib/supabase/SupabaseBrowserProvider";
 
 export default function WalletPage() {
   const router = useRouter();
+  const { client: supabase, initialized } = useSupabaseBrowser();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    router.replace("/tickets/my");
-  }, [router]);
+    if (!initialized) return;
+
+    if (!supabase) {
+      router.replace("/login?redirect=" + encodeURIComponent("/wallet"));
+      setReady(true);
+      return;
+    }
+
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) {
+        router.replace("/login?redirect=" + encodeURIComponent("/wallet"));
+      } else {
+        router.replace("/tickets/my");
+      }
+      setReady(true);
+    });
+  }, [initialized, supabase, router]);
+
+  if (!initialized || !ready) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">Loading…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 flex items-center justify-center min-h-[200px]">
-      <p className="text-gray-500">Redirecting to your tickets…</p>
+      <p className="text-gray-500">Redirecting…</p>
     </div>
   );
 }

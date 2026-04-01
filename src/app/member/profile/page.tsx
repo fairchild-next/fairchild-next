@@ -27,16 +27,37 @@ function formatExpiry(dateStr: string) {
 export default function MemberProfilePage() {
   const router = useRouter();
   const supabase = useSupabaseBrowserClient();
-  const { member, loading } = useMember();
+  const { member, loading, authReady, hasSession } = useMember();
   const { isKidsMode, setKidsMode } = useKidsMode();
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
   const { isEventsMode, setEventsMode } = useEventsMode();
 
   useEffect(() => {
+    if (!authReady) return;
+    if (!hasSession) {
+      router.replace("/login?redirect=" + encodeURIComponent("/member/profile"));
+      return;
+    }
     if (!loading && !member) {
       router.replace("/login?redirect=" + encodeURIComponent("/member/profile"));
     }
-  }, [member, loading, router]);
+  }, [authReady, hasSession, member, loading, router]);
+
+  if (!authReady) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[200px]">
+        <p className="text-[var(--text-muted)]">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!hasSession) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[200px]">
+        <p className="text-[var(--text-muted)]">Redirecting…</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -47,7 +68,11 @@ export default function MemberProfilePage() {
   }
 
   if (!member) {
-    return null;
+    return (
+      <div className="p-6 flex items-center justify-center min-h-[200px]">
+        <p className="text-[var(--text-muted)]">Redirecting…</p>
+      </div>
+    );
   }
 
   const eventAccent = getCurrentEventAccentColor();
