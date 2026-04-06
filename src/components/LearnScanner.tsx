@@ -43,12 +43,14 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
   const [status, setStatus] = useState<ScanStatus>("idle");
+  const [debugText, setDebugText] = useState<string | null>(null);
 
   const handleScannedCode = useCallback(
     async (rawText: string) => {
       if (lastScannedRef.current === rawText) return;
       lastScannedRef.current = rawText;
 
+      setDebugText(rawText);
       const slug = extractPlantSlug(rawText);
       if (!slug) {
         setStatus("invalid");
@@ -246,6 +248,11 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
             <><p className="text-2xl mb-1">🤔</p><p className="text-sm font-bold text-amber-800">That&apos;s not a plant code!</p><p className="text-xs text-amber-700 mt-1">Look for the QR code on a green plant sign and try again.</p></>
           ) : (
             <><p className="text-sm font-medium text-amber-800">Not a garden code</p><p className="text-xs text-amber-700 mt-1">Scan a QR code from a Fairchild plant sign.</p></>
+          )}
+          {debugText && (
+            <p className="mt-2 text-xs text-gray-500 break-all">
+              <span className="font-semibold">Scanned:</span> {debugText}
+            </p>
           )}
         </div>
       )}
