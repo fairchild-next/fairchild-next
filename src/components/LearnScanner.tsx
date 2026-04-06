@@ -130,130 +130,14 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
     };
   }, []);
 
-  if (status === "idle") {
-    if (kidsMode) {
-      return (
-        <button
-          type="button"
-          onClick={startScanning}
-          className="w-full py-5 rounded-2xl bg-[#193521] text-white font-bold text-xl active:opacity-90 shadow-lg flex items-center justify-center gap-3"
-        >
-          <span className="text-3xl">📷</span>
-          Start Scanning!
-        </button>
-      );
-    }
-    return (
-      <div className="space-y-6">
-        <div className="rounded-2xl overflow-hidden bg-black/5 aspect-[4/3] flex items-center justify-center border border-[var(--surface-border)]">
-          <div className="text-center px-6">
-            <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-[var(--primary)]/20 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-[var(--primary)]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v1m6 11h2m-6 0h-2v4m0-2v2m0-2v-2m-2 0h2M4 7a2 2 0 012-2h2V3h4v2h2a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"
-                />
-              </svg>
-            </div>
-            <p className="text-sm text-[var(--text-muted)] mb-4">
-              Point your camera at QR codes on plant signs to discover species.
-            </p>
-            <button
-              type="button"
-              onClick={startScanning}
-              className="px-6 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm active:opacity-90"
-            >
-              Start scanning
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "permission_denied") {
-    if (kidsMode) {
-      return (
-        <div className="rounded-2xl p-6 bg-amber-50 border-2 border-amber-300 text-center space-y-3">
-          <div className="text-4xl">😬</div>
-          <p className="text-[#193521] font-bold text-lg">We need your camera!</p>
-          <p className="text-amber-800 text-sm">
-            Ask a grown-up to allow camera access in the browser settings.
-          </p>
-          <button
-            type="button"
-            onClick={() => setStatus("idle")}
-            className="mt-2 px-6 py-3 rounded-2xl bg-[#193521] text-white font-bold text-sm active:opacity-90"
-          >
-            Try Again
-          </button>
-        </div>
-      );
-    }
-    return (
-      <div className="rounded-2xl p-6 bg-amber-50 border border-amber-200 text-center">
-        <p className="text-[var(--text-primary)] font-medium mb-2">Camera access needed</p>
-        <p className="text-sm text-[var(--text-muted)] mb-4">
-          Allow camera access to scan QR codes. You can enable it in your browser settings.
-        </p>
-        <button
-          type="button"
-          onClick={() => setStatus("idle")}
-          className="text-sm font-medium text-[var(--primary)]"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
-
-  if (status === "error") {
-    if (kidsMode) {
-      return (
-        <div className="rounded-2xl p-6 bg-red-50 border-2 border-red-200 text-center space-y-3">
-          <div className="text-4xl">😕</div>
-          <p className="text-[#193521] font-bold text-lg">Camera didn&apos;t open</p>
-          <p className="text-red-700 text-sm">
-            Ask a grown-up to check the camera. Or try Browse Plants instead!
-          </p>
-          <button
-            type="button"
-            onClick={() => setStatus("idle")}
-            className="mt-2 px-6 py-3 rounded-2xl bg-[#193521] text-white font-bold text-sm active:opacity-90"
-          >
-            Try Again
-          </button>
-        </div>
-      );
-    }
-    return (
-      <div className="rounded-2xl p-6 bg-red-50 border border-red-200 text-center">
-        <p className="text-[var(--text-primary)] font-medium mb-2">Camera unavailable</p>
-        <p className="text-sm text-[var(--text-muted)] mb-4">
-          We couldn&apos;t access your camera. Try again or use Browse Plants.
-        </p>
-        <button
-          type="button"
-          onClick={() => setStatus("idle")}
-          className="text-sm font-medium text-[var(--primary)]"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
+  const isActive = status !== "idle" && status !== "permission_denied" && status !== "error";
 
   return (
     <div className="space-y-4">
-      <div className="relative rounded-2xl overflow-hidden bg-black aspect-[4/3]">
+
+      {/* ── Video element is ALWAYS in the DOM so videoRef.current is never null
+           when startScanning runs. Visibility is toggled with CSS only. ── */}
+      <div className={`relative rounded-2xl overflow-hidden bg-black aspect-[4/3] ${isActive ? "block" : "hidden"}`}>
         <video
           ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
@@ -261,12 +145,11 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
           playsInline
           aria-label="Camera feed for QR scanning"
         />
-        {/* Viewfinder overlay – AR INTEGRATION: AR canvas/overlay would render here, above video */}
+        {/* Viewfinder – AR INTEGRATION: AR canvas/overlay would render here, above video */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-48 h-48 rounded-2xl border-2 border-white/60 bg-transparent" />
         </div>
 
-        {/* Status badge inside the video frame */}
         {status === "loading" && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm">
             <span className="text-sm text-white">
@@ -275,7 +158,6 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
           </div>
         )}
 
-        {/* Kids mode: hint label inside the viewfinder */}
         {kidsMode && status === "scanning" && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#193521]/80 backdrop-blur-sm">
             <span className="text-xs text-white font-semibold">Point at the QR code 🎯</span>
@@ -283,51 +165,114 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
         )}
       </div>
 
+      {/* ── Idle state ── */}
+      {status === "idle" && (
+        kidsMode ? (
+          <button
+            type="button"
+            onClick={startScanning}
+            className="w-full py-5 rounded-2xl bg-[#193521] text-white font-bold text-xl active:opacity-90 shadow-lg flex items-center justify-center gap-3"
+          >
+            <span className="text-3xl">📷</span>
+            Start Scanning!
+          </button>
+        ) : (
+          <div className="rounded-2xl overflow-hidden bg-black/5 aspect-[4/3] flex items-center justify-center border border-[var(--surface-border)]">
+            <div className="text-center px-6">
+              <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-[var(--primary)]/20 flex items-center justify-center">
+                <svg className="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-2v2m0-2v-2m-2 0h2M4 7a2 2 0 012-2h2V3h4v2h2a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
+                </svg>
+              </div>
+              <p className="text-sm text-[var(--text-muted)] mb-4">
+                Point your camera at QR codes on plant signs to discover species.
+              </p>
+              <button
+                type="button"
+                onClick={startScanning}
+                className="px-6 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm active:opacity-90"
+              >
+                Start scanning
+              </button>
+            </div>
+          </div>
+        )
+      )}
+
+      {/* ── Permission denied ── */}
+      {status === "permission_denied" && (
+        kidsMode ? (
+          <div className="rounded-2xl p-6 bg-amber-50 border-2 border-amber-300 text-center space-y-3">
+            <div className="text-4xl">😬</div>
+            <p className="text-[#193521] font-bold text-lg">We need your camera!</p>
+            <p className="text-amber-800 text-sm">Ask a grown-up to allow camera access in the browser settings.</p>
+            <button type="button" onClick={() => setStatus("idle")} className="mt-2 px-6 py-3 rounded-2xl bg-[#193521] text-white font-bold text-sm active:opacity-90">
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-2xl p-6 bg-amber-50 border border-amber-200 text-center">
+            <p className="text-[var(--text-primary)] font-medium mb-2">Camera access needed</p>
+            <p className="text-sm text-[var(--text-muted)] mb-4">Allow camera access to scan QR codes. You can enable it in your browser settings.</p>
+            <button type="button" onClick={() => setStatus("idle")} className="text-sm font-medium text-[var(--primary)]">Try again</button>
+          </div>
+        )
+      )}
+
+      {/* ── Camera error ── */}
+      {status === "error" && (
+        kidsMode ? (
+          <div className="rounded-2xl p-6 bg-red-50 border-2 border-red-200 text-center space-y-3">
+            <div className="text-4xl">😕</div>
+            <p className="text-[#193521] font-bold text-lg">Camera didn&apos;t open</p>
+            <p className="text-red-700 text-sm">Ask a grown-up to check the camera. Or try Browse Plants instead!</p>
+            <button type="button" onClick={() => setStatus("idle")} className="mt-2 px-6 py-3 rounded-2xl bg-[#193521] text-white font-bold text-sm active:opacity-90">
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-2xl p-6 bg-red-50 border border-red-200 text-center">
+            <p className="text-[var(--text-primary)] font-medium mb-2">Camera unavailable</p>
+            <p className="text-sm text-[var(--text-muted)] mb-4">We couldn&apos;t access your camera. Try again or use Browse Plants.</p>
+            <button type="button" onClick={() => setStatus("idle")} className="text-sm font-medium text-[var(--primary)]">Try again</button>
+          </div>
+        )
+      )}
+
+      {/* ── Scan result messages (shown below active video) ── */}
       {status === "invalid" && (
         <div className={`rounded-xl p-4 ${kidsMode ? "bg-amber-50 border-2 border-amber-300 text-center" : "bg-amber-50 border border-amber-200"}`}>
           {kidsMode ? (
-            <>
-              <p className="text-2xl mb-1">🤔</p>
-              <p className="text-sm font-bold text-amber-800">That&apos;s not a plant code!</p>
-              <p className="text-xs text-amber-700 mt-1">Look for the QR code on a green plant sign and try again.</p>
-            </>
+            <><p className="text-2xl mb-1">🤔</p><p className="text-sm font-bold text-amber-800">That&apos;s not a plant code!</p><p className="text-xs text-amber-700 mt-1">Look for the QR code on a green plant sign and try again.</p></>
           ) : (
-            <>
-              <p className="text-sm font-medium text-amber-800">Not a garden code</p>
-              <p className="text-xs text-amber-700 mt-1">Scan a QR code from a Fairchild plant sign.</p>
-            </>
+            <><p className="text-sm font-medium text-amber-800">Not a garden code</p><p className="text-xs text-amber-700 mt-1">Scan a QR code from a Fairchild plant sign.</p></>
           )}
         </div>
       )}
       {status === "not_found" && (
         <div className={`rounded-xl p-4 ${kidsMode ? "bg-amber-50 border-2 border-amber-300 text-center" : "bg-amber-50 border border-amber-200"}`}>
           {kidsMode ? (
-            <>
-              <p className="text-2xl mb-1">🌱</p>
-              <p className="text-sm font-bold text-amber-800">We can&apos;t find this plant yet!</p>
-              <p className="text-xs text-amber-700 mt-1">Try scanning a different sign.</p>
-            </>
+            <><p className="text-2xl mb-1">🌱</p><p className="text-sm font-bold text-amber-800">We can&apos;t find this plant yet!</p><p className="text-xs text-amber-700 mt-1">Try scanning a different sign.</p></>
           ) : (
-            <>
-              <p className="text-sm font-medium text-amber-800">Plant not found</p>
-              <p className="text-xs text-amber-700 mt-1">This code may be outdated. Try Browse Plants.</p>
-            </>
+            <><p className="text-sm font-medium text-amber-800">Plant not found</p><p className="text-xs text-amber-700 mt-1">This code may be outdated. Try Browse Plants.</p></>
           )}
         </div>
       )}
 
-      {/* Stop button */}
-      <button
-        type="button"
-        onClick={stopScanning}
-        className={
-          kidsMode
-            ? "w-full py-4 rounded-2xl border-2 border-[#193521] bg-white text-[#193521] font-bold text-base active:opacity-80 transition"
-            : "w-full py-3.5 rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] text-[var(--text-primary)] font-medium text-sm active:opacity-80 transition"
-        }
-      >
-        {kidsMode ? "✋ Done Scanning" : "Stop scanning"}
-      </button>
+      {/* ── Stop button — only shown while scanner is active ── */}
+      {isActive && (
+        <button
+          type="button"
+          onClick={stopScanning}
+          className={
+            kidsMode
+              ? "w-full py-4 rounded-2xl border-2 border-[#193521] bg-white text-[#193521] font-bold text-base active:opacity-80 transition"
+              : "w-full py-3.5 rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] text-[var(--text-primary)] font-medium text-sm active:opacity-80 transition"
+          }
+        >
+          {kidsMode ? "✋ Done Scanning" : "Stop scanning"}
+        </button>
+      )}
     </div>
   );
 }
