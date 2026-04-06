@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import Fuse from "fuse.js";
 import { getPinIcon } from "@/lib/map-icons";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
 import { MapTrifold, List } from "@phosphor-icons/react";
@@ -104,33 +105,39 @@ export default function GardenMapLeaflet({
     load().finally(() => setLoading(false));
   }, [load]);
 
+  const fuse = useMemo(() => {
+    if (!data?.pois) return null;
+    return new Fuse(data.pois, {
+      keys: [
+        { name: "name", weight: 3 },
+        { name: "description", weight: 1 },
+        { name: "details", weight: 1 },
+      ],
+      threshold: 0.4,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+    });
+  }, [data?.pois]);
+
   const filteredPois = useMemo(() => {
     if (!data?.pois) return [];
-    let list = filter === "all" ? data.pois : data.pois.filter((p) => (p.category ?? "exhibit") === filter);
-    const q = search.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          (p.description?.toLowerCase().includes(q)) ||
-          (p.details?.toLowerCase().includes(q))
-      );
+    const q = search.trim();
+    let list: Poi[];
+    if (q && fuse) {
+      list = fuse.search(q).map((r) => r.item);
+    } else {
+      list = data.pois;
+    }
+    if (filter !== "all") {
+      list = list.filter((p) => (p.category ?? "exhibit") === filter);
     }
     return list;
-  }, [data?.pois, filter, search]);
+  }, [data?.pois, filter, search, fuse]);
 
   const searchResults = useMemo(() => {
-    if (!search.trim() || !data?.pois) return [];
-    const q = search.trim().toLowerCase();
-    return data.pois
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description?.toLowerCase().includes(q) ||
-          p.details?.toLowerCase().includes(q)
-      )
-      .slice(0, 6);
-  }, [data?.pois, search]);
+    if (!search.trim() || !fuse) return [];
+    return fuse.search(search.trim(), { limit: 6 }).map((r) => r.item);
+  }, [fuse, search]);
 
   const boundaryGeoJson = useMemo(() => {
     if (!data?.zones?.length) return null;

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Fuse from "fuse.js";
 import { CaretDown } from "@phosphor-icons/react";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
 
@@ -25,7 +26,7 @@ const EXHIBIT_OPTIONS = ["Palm Grove", "Rainforest Exhibit"] as const;
 type FilterCategory = "type" | "exhibit";
 
 export default function BrowsePlantsPage() {
-  const [plants, setPlants] = useState<Plant[]>([]);
+  const [allPlants, setAllPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState<FilterCategory>("type");
@@ -35,38 +36,49 @@ export default function BrowsePlantsPage() {
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Load all plants once. Filtering and search happen entirely client-side
+  // so the user gets instant results with no extra network calls.
   useEffect(() => {
     let cancelled = false;
     fetch("/api/plants")
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && data.plants) {
+          setAllPlants(data.plants);
           const locs = [...new Set(data.plants.map((p: Plant) => p.location).filter(Boolean))].sort() as string[];
           setAllExhibits(locs.length > 0 ? locs : [...EXHIBIT_OPTIONS]);
         }
       })
-      .catch(() => setAllExhibits([...EXHIBIT_OPTIONS]));
+      .catch(() => setAllExhibits([...EXHIBIT_OPTIONS]))
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    const params = new URLSearchParams();
-    if (search.trim()) params.set("search", search.trim());
-    if (filterCategory === "type" && typeFilter) params.set("type", typeFilter);
-    if (filterCategory === "exhibit" && exhibitFilter) params.set("location", exhibitFilter);
+  const fuse = useMemo(
+    () =>
+      new Fuse(allPlants, {
+        keys: [
+          { name: "common_name", weight: 3 },
+          { name: "scientific_name", weight: 3 },
+          { name: "description", weight: 1 },
+        ],
+        threshold: 0.4,
+        minMatchCharLength: 2,
+        ignoreLocation: true,
+      }),
+    [allPlants]
+  );
 
-    fetch(`/api/plants?${params}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled && data.plants) setPlants(data.plants);
-      })
-      .catch(() => setPlants([]))
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [search, filterCategory, typeFilter, exhibitFilter]);
+  const plants = useMemo(() => {
+    let list = search.trim() ? fuse.search(search.trim()).map((r) => r.item) : allPlants;
+    if (filterCategory === "type" && typeFilter) {
+      list = list.filter((p) => p.plant_type === typeFilter);
+    }
+    if (filterCategory === "exhibit" && exhibitFilter) {
+      list = list.filter((p) => p.location === exhibitFilter);
+    }
+    return list;
+  }, [allPlants, fuse, search, filterCategory, typeFilter, exhibitFilter]);
 
   const displayExhibits = allExhibits.length > 0 ? allExhibits : [...EXHIBIT_OPTIONS];
 

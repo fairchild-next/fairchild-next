@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
+import {
+  useSupabaseBrowser,
+} from "@/lib/supabase/SupabaseBrowserProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const supabase = useSupabaseBrowserClient();
+  const { client: supabase, initialized } = useSupabaseBrowser();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -19,10 +21,18 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }: { data: { session: { user?: { email?: string } } | null } }) => {
-      const session = data.session;
-      setCurrentUserEmail(session?.user?.email ?? null);
-    });
+    supabase.auth
+      .getSession()
+      .then(
+        ({
+          data,
+        }: {
+          data: { session: { user?: { email?: string } } | null };
+        }) => {
+          const session = data.session;
+          setCurrentUserEmail(session?.user?.email ?? null);
+        }
+      );
   }, [supabase]);
 
   const handleSignOut = async () => {
@@ -32,18 +42,22 @@ export default function LoginPage() {
     try {
       await supabase.auth.signOut();
       setCurrentUserEmail(null);
-      // Full page reload ensures session/cookies are fully cleared and no stale state remains.
-      // Especially important on mobile when switching between guest and member accounts.
       window.location.href = "/login";
     } catch {
       setMessage("Could not sign out.");
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!supabase) return;
+    if (!supabase) {
+      setMessage(
+        "Sign-in isn’t ready yet. Refresh the page, or check that this deployment has NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
+      );
+      return;
+    }
     setMessage(null);
     setLoading(true);
     setResetSent(false);
@@ -54,15 +68,22 @@ export default function LoginPage() {
           email,
           password,
           options: {
-            emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+            emailRedirectTo:
+              typeof window !== "undefined" ? window.location.origin : undefined,
           },
         });
         if (error) throw error;
         setMessage("Check your email to confirm your account, then sign in.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (error) throw error;
-        const redirect = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirect") : null;
+        const redirect =
+          typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("redirect")
+            : null;
         const target = redirect || "/";
         window.location.href = target;
       }
@@ -74,7 +95,10 @@ export default function LoginPage() {
   };
 
   const handleForgotPassword = async () => {
-    if (!supabase) return;
+    if (!supabase) {
+      setMessage("Sign-in isn’t ready yet. Check environment configuration.");
+      return;
+    }
     if (!email.trim()) {
       setMessage("Enter your email first, then click Forgot password.");
       return;
@@ -83,7 +107,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: typeof window !== "undefined" ? `${window.location.origin}/login` : undefined,
+        redirectTo:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/login`
+            : undefined,
       });
       if (error) throw error;
       setResetSent(true);
@@ -101,6 +128,40 @@ export default function LoginPage() {
     }
   };
 
+  if (!initialized) {
+    return (
+      <div className="p-6 pb-28 max-w-md mx-auto">
+        <h1 className="text-xl font-semibold mb-6">Sign In</h1>
+        <div className="p-6 rounded-lg bg-gray-900 border border-gray-700">
+          <p className="text-gray-300 text-sm">Loading sign-in…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!supabase) {
+    return (
+      <div className="p-6 pb-28 max-w-md mx-auto">
+        <h1 className="text-xl font-semibold mb-6">Sign In</h1>
+        <div className="p-4 rounded-lg bg-amber-950/40 border border-amber-700/50">
+          <p className="text-amber-200 text-sm font-medium mb-2">
+            Sign-in is not configured
+          </p>
+          <p className="text-gray-400 text-sm">
+            This deployment is missing <code className="text-gray-300">NEXT_PUBLIC_SUPABASE_URL</code>{" "}
+            or <code className="text-gray-300">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in Vercel project
+            settings. Add them, redeploy, then try again.
+          </p>
+        </div>
+        <div className="mt-8 pt-6 border-t border-gray-800">
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-300">
+            ← Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 pb-28 max-w-md mx-auto">
       <h1 className="text-xl font-semibold mb-6">Sign In</h1>
@@ -109,7 +170,9 @@ export default function LoginPage() {
         <div className="mb-6 p-4 rounded-lg bg-gray-800 border border-gray-700">
           <p className="text-sm text-gray-300 mb-2">Currently signed in as:</p>
           <p className="font-medium text-white">{currentUserEmail}</p>
-          <p className="text-xs text-gray-400 mt-1">Sign out to use a different account (e.g. member account)</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Sign out to use a different account (e.g. member account)
+          </p>
           <button
             type="button"
             onClick={handleSignOut}
@@ -123,6 +186,7 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
+          name="email"
           type="email"
           placeholder="Email"
           className="w-full border border-gray-600 bg-gray-900 p-3 rounded-lg text-white placeholder-gray-500"
@@ -132,6 +196,7 @@ export default function LoginPage() {
           autoComplete="email"
         />
         <input
+          name="password"
           type="password"
           placeholder="Password"
           className="w-full border border-gray-600 bg-gray-900 p-3 rounded-lg text-white placeholder-gray-500"
@@ -169,7 +234,9 @@ export default function LoginPage() {
         onClick={() => setIsSignUp(!isSignUp)}
         className="mt-6 text-sm text-gray-400 hover:text-green-400 underline"
       >
-        {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+        {isSignUp
+          ? "Already have an account? Sign in"
+          : "Don't have an account? Sign up"}
       </button>
 
       <div className="mt-8 pt-6 border-t border-gray-800">
