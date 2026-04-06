@@ -2,8 +2,73 @@
 
 import Link from "next/link";
 import LearnScanner from "@/components/LearnScanner";
+import { useKidsMode } from "@/lib/kidsModeContext";
 
 export default function ScanQRPage() {
+  const { isKidsMode } = useKidsMode();
+
+  if (isKidsMode) {
+    return (
+      <div className="min-h-screen bg-[#F3EFEE] pb-28">
+
+        {/* Header banner */}
+        <div className="bg-[#193521] px-6 pt-10 pb-8 text-center">
+          <div className="text-5xl mb-3">🔍</div>
+          <h1 className="text-3xl font-bold text-white drop-shadow">
+            Scan a Plant!
+          </h1>
+          <p className="text-green-200 mt-2 text-sm font-medium">
+            Find the secret code on a plant sign
+          </p>
+        </div>
+
+        {/* How it works steps */}
+        <div className="px-6 py-6 space-y-3">
+          <h2 className="text-[#193521] font-bold text-lg mb-4">
+            Here&apos;s how to do it:
+          </h2>
+
+          {[
+            { emoji: "📱", step: "1", text: "Tap the big green button below" },
+            { emoji: "🎯", step: "2", text: "Point your camera at the QR code on a plant sign" },
+            { emoji: "✅", step: "3", text: "Hold still for a second..." },
+            { emoji: "🌿", step: "4", text: "Learn all about that plant!" },
+          ].map(({ emoji, step, text }) => (
+            <div
+              key={step}
+              className="flex items-center gap-4 bg-white rounded-2xl px-4 py-3 border-2 border-[#193521]/10 shadow-sm"
+            >
+              <span className="text-2xl shrink-0">{emoji}</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="shrink-0 w-6 h-6 rounded-full bg-[#193521] text-white text-xs font-bold flex items-center justify-center">
+                  {step}
+                </span>
+                <p className="text-[#193521] font-semibold text-sm leading-snug">
+                  {text}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Scanner */}
+        <div className="px-6">
+          <LearnScanner kidsMode />
+        </div>
+
+        {/* Browse link */}
+        <div className="px-6 mt-6 text-center">
+          <Link
+            href="/learn/plants"
+            className="text-[#193521] font-semibold text-sm underline"
+          >
+            Browse plants instead →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-6 pt-6 pb-24">
       <Link
