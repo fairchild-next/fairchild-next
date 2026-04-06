@@ -17,7 +17,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 
 type ScanStatus = "idle" | "scanning" | "loading" | "success" | "not_found" | "invalid" | "error" | "permission_denied";
 
@@ -30,7 +30,7 @@ function extractPlantSlug(text: string): string | null {
   const urlMatch = t.match(/\/(?:learn\/)?plants\/([a-zA-Z0-9-]+)/);
   if (urlMatch) return urlMatch[1].toLowerCase();
 
-  // Bare slug: lowercase alphanumeric + hyphens
+  // Bare slug: lowercase alphanumeric + hyphens only
   if (/^[a-z0-9-]+$/i.test(t)) return t.toLowerCase();
   return null;
 }
@@ -38,7 +38,7 @@ function extractPlantSlug(text: string): string | null {
 export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
   const lastScannedRef = useRef<string | null>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
@@ -84,28 +84,23 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
 
   const startScanning = useCallback(async () => {
     setStatus("scanning");
-
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
       const codeReader = new BrowserMultiFormatReader();
       codeReaderRef.current = codeReader;
 
-      codeReader.decodeFromVideoElement(videoRef.current!, (result) => {
-        if (result) {
-          const text = result.getText();
-          handleScannedCode(text);
+      // decodeFromConstraints handles getUserMedia + video attachment internally.
+      // It returns IScannerControls so we can cleanly stop the loop later.
+      const controls = await codeReader.decodeFromConstraints(
+        { video: { facingMode: "environment" } },
+        videoRef.current!,
+        (result) => {
+          // ZXing calls this on every frame — result is undefined when no code found
+          if (result) {
+            handleScannedCode(result.getText());
+          }
         }
-      });
+      );
+      controlsRef.current = controls;
     } catch (err) {
       const name = err instanceof Error ? err.name : "";
       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
@@ -113,16 +108,14 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
       } else {
         setStatus("error");
       }
-      console.error("Camera error:", err);
+      console.error("Scanner error:", err);
     }
   }, [handleScannedCode]);
 
   const stopScanning = useCallback(() => {
+    controlsRef.current?.stop();
+    controlsRef.current = null;
     codeReaderRef.current = null;
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
@@ -131,10 +124,8 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
 
   useEffect(() => {
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
-      }
+      controlsRef.current?.stop();
+      controlsRef.current = null;
       codeReaderRef.current = null;
     };
   }, []);
