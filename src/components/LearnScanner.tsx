@@ -51,6 +51,7 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
       lastScannedRef.current = rawText;
 
       setDebugText(rawText);
+      setDebugText(rawText);
       const slug = extractPlantSlug(rawText);
       if (!slug) {
         setStatus("invalid");
@@ -163,6 +164,13 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
         {kidsMode && status === "scanning" && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#193521]/80 backdrop-blur-sm">
             <span className="text-xs text-white font-semibold">Point at the QR code 🎯</span>
+          </div>
+        )}
+
+        {/* DEBUG: shows last raw text ZXing read — remove once scanning is confirmed working */}
+        {debugText && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-3 py-1">
+            <p className="text-[10px] text-green-300 break-all font-mono">Read: {debugText}</p>
           </div>
         )}
       </div>
