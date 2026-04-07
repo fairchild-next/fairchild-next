@@ -207,49 +207,76 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
 
         {/* ── AR reveal overlay — camera feed stays live underneath ── */}
         {kidsMode && status === "ar_reveal" && foundPlant && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/55">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/58">
             <style>{`
               @keyframes arSwoop {
-                0%   { transform: translate(140px, 30px) scale(0.35) rotate(25deg); opacity: 0; }
-                25%  { opacity: 1; }
-                65%  { transform: translate(-8px, -18px) scale(1.08) rotate(-6deg); }
-                82%  { transform: translate(4px, 4px) scale(0.98) rotate(3deg); }
+                0%   { transform: translate(150px, 40px) scale(0.3) rotate(30deg); opacity: 0; }
+                20%  { opacity: 1; }
+                60%  { transform: translate(-12px, -22px) scale(1.12) rotate(-8deg); }
+                78%  { transform: translate(5px, 6px) scale(0.96) rotate(4deg); }
+                90%  { transform: translate(-2px, -3px) scale(1.02) rotate(-1deg); }
                 100% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
               }
+              /* Identical timing to mascotFloat on plant page */
               @keyframes arFloat {
                 0%, 100% { transform: translateY(0px); }
-                50%      { transform: translateY(-8px); }
+                50%      { transform: translateY(-10px); }
               }
-              @keyframes arRevealText {
-                0%   { opacity: 0; transform: translateY(18px); }
-                100% { opacity: 1; transform: translateY(0); }
+              @keyframes arTextPop {
+                0%   { opacity: 0; transform: scale(0.6) translateY(12px); }
+                65%  { transform: scale(1.08) translateY(-3px); }
+                100% { opacity: 1; transform: scale(1) translateY(0); }
               }
-              @keyframes arShimmer {
-                0%, 100% { opacity: 1; }
-                50%      { opacity: 0.65; }
+              @keyframes arNameGlow {
+                0%, 100% { text-shadow: 0 0 8px rgba(134,239,172,0.4); }
+                50%      { text-shadow: 0 0 20px rgba(134,239,172,0.9); }
+              }
+              @keyframes arSparkle {
+                0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
+                35%  { opacity: 1; transform: scale(1.4) rotate(15deg); }
+                100% { transform: scale(0.4) rotate(60deg); opacity: 0; }
               }
             `}</style>
 
-            {/* Character swoop in */}
-            <div style={{ animation: "arSwoop 0.9s cubic-bezier(0.22,1,0.36,1) forwards" }}>
-              <div style={{ animation: "arFloat 2.5s ease-in-out 1s infinite" }}>
+            {/* Sparkle particles scattered around the character */}
+            {([
+              { top:"16%", left:"10%",  delay:0.95, fs:"20px" },
+              { top:"12%", right:"12%", delay:1.10, fs:"16px" },
+              { top:"52%", left:"6%",   delay:1.02, fs:"14px" },
+              { top:"48%", right:"8%",  delay:1.18, fs:"18px" },
+              { top:"28%", left:"28%",  delay:1.06, fs:"12px" },
+              { top:"32%", right:"26%", delay:1.14, fs:"12px" },
+            ] as { top?:string; left?:string; right?:string; bottom?:string; delay:number; fs:string }[]).map((s, i) => (
+              <div key={i} className="absolute pointer-events-none select-none" style={{
+                top: s.top, left: s.left, right: s.right, bottom: s.bottom,
+                fontSize: s.fs,
+                color: "#86efac",
+                animation: `arSparkle 1.3s ease-out ${s.delay}s both`,
+              }}>✦</div>
+            ))}
+
+            {/* Character swoop in, then floats with same timing as plant page mascot */}
+            <div style={{ animation: "arSwoop 0.95s cubic-bezier(0.22,1,0.36,1) forwards" }}>
+              <div style={{ animation: "arFloat 3s ease-in-out 1s infinite" }}>
                 <KidsCharacter type={characterRef.current} />
               </div>
             </div>
 
-            {/* Plant name reveal */}
+            {/* Plant name — pops in with scale, then glows */}
             <div
-              className="mt-2 text-center px-6"
-              style={{ animation: "arRevealText 0.6s ease-out 0.9s both" }}
+              className="mt-1 text-center px-6"
+              style={{ animation: "arTextPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.85s both" }}
             >
-              <p className="text-white text-lg font-bold drop-shadow-lg"
-                 style={{ animation: "arShimmer 2s ease-in-out infinite" }}>
+              <p className="text-white text-base font-bold drop-shadow-lg tracking-wide">
                 🌿 You found a plant!
               </p>
-              <p className="text-green-300 text-2xl font-extrabold mt-1 drop-shadow-lg leading-tight">
+              <p className="text-green-300 text-2xl font-extrabold mt-1 drop-shadow-lg leading-tight"
+                style={{ animation: "arNameGlow 2s ease-in-out 1.4s infinite" }}>
                 {foundPlant.name}
               </p>
-              <p className="text-white/60 text-xs mt-3">Loading your plant page…</p>
+              <p className="text-white/50 text-xs mt-3 tracking-wider uppercase">
+                Loading your page…
+              </p>
             </div>
           </div>
         )}

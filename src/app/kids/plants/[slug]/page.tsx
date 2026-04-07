@@ -13,7 +13,7 @@ const KidsPlantMascot = dynamic(
   { ssr: false, loading: () => <div className="h-24" /> }
 );
 
-const VALID_MASCOTS = new Set<CharacterType>(["butterfly", "flower", "bee", "bird"]);
+const VALID_MASCOTS = new Set<CharacterType>(["butterfly", "flower", "bee", "hummingbird", "frog"]);
 
 type Plant = {
   slug: string;

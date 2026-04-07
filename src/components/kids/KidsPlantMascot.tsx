@@ -21,6 +21,7 @@ export default function KidsPlantMascot({
           50%       { transform: translateY(-10px); }
         }
       `}</style>
+      {/* 3s duration matches arFloat in LearnScanner so character looks identical in both contexts */}
       <div style={{ animation: "mascotFloat 3s ease-in-out infinite" }}>
         <KidsCharacter type={type} />
       </div>
