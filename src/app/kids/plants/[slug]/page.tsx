@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
+import { randomCharacter, type CharacterType } from "@/components/kids/KidsCharacter";
 
 // Lazy-load the mascot so it never blocks the plant data from rendering
 const KidsPlantMascot = dynamic(
   () => import("@/components/kids/KidsPlantMascot"),
   { ssr: false, loading: () => <div className="h-32" /> }
 );
+
+const VALID_MASCOTS = new Set<CharacterType>(["butterfly", "flower", "bee", "bird"]);
 
 type Plant = {
   slug: string;
@@ -34,7 +37,13 @@ function kidSummary(text: string | null): string {
 export default function KidsPlantDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = params?.slug as string | undefined;
+
+  const rawMascot = searchParams.get("mascot") as CharacterType | null;
+  const mascotType: CharacterType = rawMascot && VALID_MASCOTS.has(rawMascot)
+    ? rawMascot
+    : randomCharacter();
 
   const [plant, setPlant] = useState<Plant | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,7 +122,7 @@ export default function KidsPlantDetailPage() {
 
       {/* Butterfly mascot */}
       <div className="mt-6 flex justify-center">
-        <KidsPlantMascot name="Flutter says hi! 🌸" />
+        <KidsPlantMascot type={mascotType} label="Say hi! 👋" />
       </div>
 
       {/* Summary card */}

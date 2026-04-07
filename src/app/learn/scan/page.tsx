@@ -22,17 +22,22 @@ export default function ScanQRPage() {
           </p>
         </div>
 
+        {/* Scanner — on top so kids can start immediately */}
+        <div className="px-6 pt-5">
+          <LearnScanner kidsMode />
+        </div>
+
         {/* How it works steps */}
-        <div className="px-6 py-6 space-y-3">
-          <h2 className="text-[#193521] font-bold text-lg mb-4">
+        <div className="px-6 pt-5 pb-4 space-y-3">
+          <h2 className="text-[#193521] font-bold text-base mb-3">
             Here&apos;s how to do it:
           </h2>
 
           {[
-            { emoji: "📱", step: "1", text: "Tap the big green button below" },
+            { emoji: "📱", step: "1", text: "Tap the big green button above" },
             { emoji: "🎯", step: "2", text: "Point your camera at the QR code on a plant sign" },
             { emoji: "✅", step: "3", text: "Hold still for a second..." },
-            { emoji: "🌿", step: "4", text: "Learn all about that plant!" },
+            { emoji: "🌿", step: "4", text: "Meet your plant friend!" },
           ].map(({ emoji, step, text }) => (
             <div
               key={step}
@@ -51,13 +56,8 @@ export default function ScanQRPage() {
           ))}
         </div>
 
-        {/* Scanner */}
-        <div className="px-6">
-          <LearnScanner kidsMode />
-        </div>
-
         {/* Browse link */}
-        <div className="px-6 mt-6 text-center">
+        <div className="px-6 pb-4 text-center">
           <Link
             href="/learn/plants"
             className="text-[#193521] font-semibold text-sm underline"
