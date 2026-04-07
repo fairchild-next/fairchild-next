@@ -10,7 +10,7 @@ import { randomCharacter, type CharacterType } from "@/components/kids/KidsChara
 // Lazy-load the mascot so it never blocks the plant data from rendering
 const KidsPlantMascot = dynamic(
   () => import("@/components/kids/KidsPlantMascot"),
-  { ssr: false, loading: () => <div className="h-32" /> }
+  { ssr: false, loading: () => <div className="h-24" /> }
 );
 
 const VALID_MASCOTS = new Set<CharacterType>(["butterfly", "flower", "bee", "bird"]);
@@ -26,7 +26,10 @@ type Plant = {
   characteristics: string[];
 };
 
-/** First sentence or first 120 chars of description — kid-readable length */
+/**
+ * First full sentence up to 160 chars, or hard-truncate at 120.
+ * Keeps prose short enough for 5–10 year olds.
+ */
 function kidSummary(text: string | null): string {
   if (!text) return "";
   const firstSentence = text.match(/^[^.!?]+[.!?]/)?.[0];
@@ -41,9 +44,8 @@ export default function KidsPlantDetailPage() {
   const slug = params?.slug as string | undefined;
 
   const rawMascot = searchParams.get("mascot") as CharacterType | null;
-  const mascotType: CharacterType = rawMascot && VALID_MASCOTS.has(rawMascot)
-    ? rawMascot
-    : randomCharacter();
+  const mascotType: CharacterType =
+    rawMascot && VALID_MASCOTS.has(rawMascot) ? rawMascot : randomCharacter();
 
   const [plant, setPlant] = useState<Plant | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,8 +65,8 @@ export default function KidsPlantDetailPage() {
     return (
       <div className="min-h-screen bg-[#F3EFEE] flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="text-5xl animate-bounce">🦋</div>
-          <p className="text-[#193521] font-bold text-lg">Finding your plant…</p>
+          <div className="text-5xl animate-bounce">🌱</div>
+          <p className="text-[#193521] font-bold text-lg">Getting your plant ready…</p>
         </div>
       </div>
     );
@@ -73,8 +75,9 @@ export default function KidsPlantDetailPage() {
   if (!plant) {
     return (
       <div className="min-h-screen bg-[#F3EFEE] flex flex-col items-center justify-center gap-6 px-8 text-center">
-        <div className="text-6xl">🌿</div>
-        <p className="text-[#193521] font-bold text-xl">Hmm, we couldn&apos;t find that plant!</p>
+        <div className="text-6xl">🤔</div>
+        <p className="text-[#193521] font-bold text-xl">Uh oh — we can&apos;t find that plant!</p>
+        <p className="text-[#193521]/60 text-sm">Try scanning a different sign.</p>
         <button
           onClick={() => router.back()}
           className="px-6 py-3 rounded-2xl bg-[#193521] text-white font-bold text-base"
@@ -100,57 +103,67 @@ export default function KidsPlantDetailPage() {
           ← Back
         </button>
         <div className="text-4xl mb-2">🌿</div>
-        <h1 className="text-2xl font-bold text-white leading-tight">
-          {plant.common_name}
-        </h1>
+        <h1 className="text-2xl font-bold text-white leading-tight">{plant.common_name}</h1>
         <p className="text-green-300 italic text-sm mt-1">{plant.scientific_name}</p>
       </div>
 
-      {/* Plant photo */}
+      {/* Plant photo with character overlaid on bottom-right */}
       {plant.image_url && (
-        <div className="mx-6 mt-5 rounded-3xl overflow-hidden shadow-md aspect-[4/3] relative bg-[#dde8da]">
-          <Image
-            src={imgSrc}
-            alt={plant.common_name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 448px) 100vw, 448px"
-            unoptimized={imgSrc.startsWith("http")}
-          />
+        <div className="mx-6 mt-5 relative">
+          {/* Photo */}
+          <div className="rounded-3xl overflow-hidden shadow-md aspect-[4/3] relative bg-[#dde8da]">
+            <Image
+              src={imgSrc}
+              alt={plant.common_name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 448px) 100vw, 448px"
+              unoptimized={imgSrc.startsWith("http")}
+            />
+          </div>
+          {/* Character overlaid on photo — scaled down, bottom-right corner */}
+          <div
+            className="absolute bottom-0 right-0 z-10 pointer-events-none"
+            style={{ transform: "scale(0.52)", transformOrigin: "bottom right" }}
+          >
+            <KidsPlantMascot type={mascotType} />
+          </div>
         </div>
       )}
 
-      {/* Butterfly mascot */}
-      <div className="mt-6 flex justify-center">
-        <KidsPlantMascot type={mascotType} label="Say hi! 👋" />
-      </div>
+      {/* If no photo, show mascot on its own */}
+      {!plant.image_url && (
+        <div className="mt-6 flex justify-center">
+          <KidsPlantMascot type={mascotType} />
+        </div>
+      )}
 
-      {/* Summary card */}
+      {/* What is it? */}
       {summary && (
-        <div className="mx-6 mt-4 bg-white rounded-3xl p-5 shadow-sm border-2 border-[#193521]/10">
+        <div className="mx-6 mt-5 bg-white rounded-3xl p-5 shadow-sm border-2 border-[#193521]/10">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xl">📖</span>
-            <h2 className="text-[#193521] font-bold text-base">About this plant</h2>
+            <span className="text-xl">🌱</span>
+            <h2 className="text-[#193521] font-bold text-base">What is it?</h2>
           </div>
           <p className="text-[#193521] text-sm leading-relaxed">{summary}</p>
         </div>
       )}
 
-      {/* Fun fact card */}
+      {/* Super cool fact */}
       {plant.did_you_know && (
         <div className="mx-6 mt-4 bg-[#193521] rounded-3xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">⚡</span>
-            <h2 className="text-white font-bold text-base">Fun Fact!</h2>
+            <span className="text-2xl">🤯</span>
+            <h2 className="text-white font-bold text-base">Super Cool Fact!</h2>
           </div>
           <p className="text-green-100 text-sm leading-relaxed">{plant.did_you_know}</p>
         </div>
       )}
 
-      {/* Characteristics badges */}
+      {/* Characteristics */}
       {(plant.characteristics?.length ?? 0) > 0 && (
         <div className="mx-6 mt-4">
-          <p className="text-[#193521] font-bold text-sm mb-2">🏷️ Cool things about it:</p>
+          <p className="text-[#193521] font-bold text-sm mb-2">🌟 What makes it special:</p>
           <div className="flex flex-wrap gap-2">
             {plant.characteristics.map((c) => (
               <span
@@ -164,7 +177,7 @@ export default function KidsPlantDetailPage() {
         </div>
       )}
 
-      {/* Scan another CTA */}
+      {/* CTAs */}
       <div className="mx-6 mt-8 text-center space-y-3">
         <button
           onClick={() => router.push("/learn/scan")}
