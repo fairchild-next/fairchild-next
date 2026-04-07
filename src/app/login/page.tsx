@@ -239,8 +239,22 @@ export default function LoginPage() {
           : "Don't have an account? Sign up"}
       </button>
 
-      <div className="mt-8 pt-6 border-t border-gray-800">
-        <Link href="/" className="text-sm text-gray-500 hover:text-gray-300">
+      <div className="mt-8 pt-6 border-t border-gray-800 space-y-4">
+        {/* Wedding portal entry point */}
+        <div className="rounded-lg p-4" style={{ background: "#fdf6e3", border: "1px solid #e8dfd0" }}>
+          <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">💍 Booked your wedding at Fairchild?</p>
+          <p className="text-sm text-stone-600 mb-2">
+            Sign in with your wedding account credentials, then head to your portal.
+          </p>
+          <Link
+            href="/couple/dashboard"
+            className="text-sm font-medium text-amber-700 hover:underline"
+          >
+            Go to Wedding Portal →
+          </Link>
+        </div>
+
+        <Link href="/" className="text-sm text-gray-500 hover:text-gray-300 block">
           ← Back to Home
         </Link>
       </div>
