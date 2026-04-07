@@ -51,8 +51,23 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
       lastScannedRef.current = rawText;
 
       setDebugText(rawText);
-      setDebugText(rawText);
-      const slug = extractPlantSlug(rawText);
+
+      // Try to extract slug directly; if it's a shortened/redirect URL, resolve it first
+      let slug = extractPlantSlug(rawText);
+
+      if (!slug && /^https?:\/\//i.test(rawText)) {
+        try {
+          const res = await fetch(`/api/resolve-url?url=${encodeURIComponent(rawText)}`);
+          const data = await res.json();
+          if (data.finalUrl) {
+            setDebugText(`→ ${data.finalUrl}`);
+            slug = extractPlantSlug(data.finalUrl);
+          }
+        } catch {
+          // fall through to invalid state
+        }
+      }
+
       if (!slug) {
         setStatus("invalid");
         setTimeout(() => {
