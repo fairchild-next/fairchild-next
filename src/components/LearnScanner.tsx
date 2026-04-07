@@ -19,7 +19,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 
-type ScanStatus = "idle" | "scanning" | "loading" | "success" | "not_found" | "invalid" | "error" | "permission_denied";
+type ScanStatus = "idle" | "scanning" | "loading" | "ar_reveal" | "success" | "not_found" | "invalid" | "error" | "permission_denied";
 
 /** Extract plant slug from scanned text: URL path, relative path, or bare slug */
 function extractPlantSlug(text: string): string | null {
@@ -44,6 +44,7 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
 
   const [status, setStatus] = useState<ScanStatus>("idle");
   const [debugText, setDebugText] = useState<string | null>(null);
+  const [foundPlant, setFoundPlant] = useState<{ slug: string; name: string } | null>(null);
 
   const handleScannedCode = useCallback(
     async (rawText: string) => {
@@ -84,9 +85,21 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
         });
         if (!res.ok) {
           setStatus("not_found");
+        } else if (kidsMode) {
+          // Stop the scanner before showing the AR reveal so it doesn't
+          // keep firing handleScannedCode while the overlay is visible.
+          controlsRef.current?.stop();
+          controlsRef.current = null;
+          const plant = await res.json();
+          setFoundPlant({ slug, name: plant.common_name ?? slug });
+          setStatus("ar_reveal");
+          setTimeout(() => {
+            router.push(`/kids/plants/${slug}`);
+          }, 2800);
+          return;
         } else {
           setStatus("success");
-          router.push(kidsMode ? `/kids/plants/${slug}` : `/learn/plants/${slug}`);
+          router.push(`/learn/plants/${slug}`);
           return;
         }
       } catch {
@@ -97,7 +110,7 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
         lastScannedRef.current = null;
       }, 2500);
     },
-    [router]
+    [router, kidsMode]
   );
 
   const startScanning = useCallback(async () => {
@@ -183,9 +196,89 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
         )}
 
         {/* DEBUG: shows last raw text ZXing read — remove once scanning is confirmed working */}
-        {debugText && (
+        {debugText && status !== "ar_reveal" && (
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-3 py-1">
             <p className="text-[10px] text-green-300 break-all font-mono">Read: {debugText}</p>
+          </div>
+        )}
+
+        {/* ── AR reveal overlay — camera feed stays live underneath ── */}
+        {kidsMode && status === "ar_reveal" && foundPlant && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/55">
+            <style>{`
+              @keyframes butterflySwoop {
+                0%   { transform: translate(120px, 40px) scale(0.4) rotate(20deg); opacity: 0; }
+                30%  { opacity: 1; }
+                60%  { transform: translate(-10px, -20px) scale(1.1) rotate(-8deg); }
+                80%  { transform: translate(5px, 5px) scale(1) rotate(4deg); }
+                100% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+              }
+              @keyframes arWingFlapLeft {
+                from { transform: scaleX(1); }
+                to   { transform: scaleX(0.45); }
+              }
+              @keyframes arWingFlapRight {
+                from { transform: scaleX(1); }
+                to   { transform: scaleX(0.45); }
+              }
+              @keyframes arFloat {
+                0%, 100% { transform: translateY(0px); }
+                50%      { transform: translateY(-8px); }
+              }
+              @keyframes revealText {
+                0%   { opacity: 0; transform: translateY(16px); }
+                100% { opacity: 1; transform: translateY(0); }
+              }
+              @keyframes shimmer {
+                0%, 100% { opacity: 1; }
+                50%      { opacity: 0.6; }
+              }
+            `}</style>
+
+            {/* Butterfly */}
+            <div style={{ animation: "butterflySwoop 1s cubic-bezier(0.22,1,0.36,1) forwards" }}>
+              <div style={{ animation: "arFloat 2.5s ease-in-out 1s infinite" }}>
+                <svg viewBox="0 0 120 100" width="180" height="148" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="42" cy="38" rx="34" ry="26" fill="#7ED957"
+                    style={{ transformOrigin: "60px 55px", animation: "arWingFlapLeft 0.6s ease-in-out infinite alternate" }} />
+                  <ellipse cx="46" cy="68" rx="22" ry="16" fill="#5DBF3E"
+                    style={{ transformOrigin: "60px 55px", animation: "arWingFlapLeft 0.6s ease-in-out infinite alternate" }} />
+                  <ellipse cx="78" cy="38" rx="34" ry="26" fill="#7ED957"
+                    style={{ transformOrigin: "60px 55px", animation: "arWingFlapRight 0.6s ease-in-out infinite alternate" }} />
+                  <ellipse cx="74" cy="68" rx="22" ry="16" fill="#5DBF3E"
+                    style={{ transformOrigin: "60px 55px", animation: "arWingFlapRight 0.6s ease-in-out infinite alternate" }} />
+                  <circle cx="38" cy="34" r="6" fill="#FFFDE7" opacity="0.75" />
+                  <circle cx="82" cy="34" r="6" fill="#FFFDE7" opacity="0.75" />
+                  <circle cx="44" cy="66" r="4" fill="#FFFDE7" opacity="0.6" />
+                  <circle cx="76" cy="66" r="4" fill="#FFFDE7" opacity="0.6" />
+                  <ellipse cx="60" cy="55" rx="6" ry="20" fill="#193521" />
+                  <circle cx="60" cy="33" r="8" fill="#193521" />
+                  <circle cx="57" cy="31" r="2" fill="white" />
+                  <circle cx="63" cy="31" r="2" fill="white" />
+                  <circle cx="57.5" cy="31.5" r="1" fill="#193521" />
+                  <circle cx="63.5" cy="31.5" r="1" fill="#193521" />
+                  <path d="M56 36 Q60 39 64 36" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                  <path d="M57 26 Q50 16 44 12" stroke="#193521" strokeWidth="2" fill="none" strokeLinecap="round" />
+                  <circle cx="44" cy="11" r="3" fill="#7ED957" />
+                  <path d="M63 26 Q70 16 76 12" stroke="#193521" strokeWidth="2" fill="none" strokeLinecap="round" />
+                  <circle cx="76" cy="11" r="3" fill="#7ED957" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Plant name reveal */}
+            <div
+              className="mt-4 text-center px-6"
+              style={{ animation: "revealText 0.6s ease-out 0.9s both" }}
+            >
+              <p className="text-white text-lg font-bold drop-shadow-lg" style={{ animation: "shimmer 2s ease-in-out infinite" }}>
+                🌿 You found a plant!
+              </p>
+              <p className="text-green-300 text-2xl font-extrabold mt-1 drop-shadow-lg leading-tight">
+                {foundPlant.name}
+              </p>
+              <p className="text-white/60 text-xs mt-3">Loading your plant page…</p>
+            </div>
           </div>
         )}
       </div>
@@ -289,8 +382,8 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
         </div>
       )}
 
-      {/* ── Stop button — only shown while scanner is active ── */}
-      {isActive && (
+      {/* ── Stop button — hidden during AR reveal so kids don't interrupt it ── */}
+      {isActive && status !== "ar_reveal" && (
         <button
           type="button"
           onClick={stopScanning}
