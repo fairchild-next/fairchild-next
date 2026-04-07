@@ -86,7 +86,7 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
           setStatus("not_found");
         } else {
           setStatus("success");
-          router.push(`/learn/plants/${slug}`);
+          router.push(kidsMode ? `/kids/plants/${slug}` : `/learn/plants/${slug}`);
           return;
         }
       } catch {
