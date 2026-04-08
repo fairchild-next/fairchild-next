@@ -64,9 +64,14 @@ export default function MessagesPage() {
           </div>
         )}
         {!loading && messages.length === 0 && (
-          <div className="rounded-2xl bg-white shadow-sm p-8 text-center">
-            <p className="text-3xl mb-2">💬</p>
-            <p className="text-sm" style={{ color: "#9aab9a" }}>No messages yet. Start the conversation!</p>
+          <div className="rounded-2xl bg-white shadow-sm p-10 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: "#e8efe6" }}>
+              <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+            </div>
+            <p className="text-sm font-semibold" style={{ color: "#5a6e5a" }}>No messages yet</p>
+            <p className="text-xs mt-1" style={{ color: "#9aab9a" }}>Send a note to your coordinator to get started.</p>
           </div>
         )}
         {messages.map((msg) => {

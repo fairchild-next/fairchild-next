@@ -50,7 +50,11 @@ export default function CoupleLayout({ children }: { children: React.ReactNode }
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-8" style={{ background: "#f0f3ee" }}>
         <div className="text-center">
-          <div className="text-5xl mb-4">💍</div>
+          <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 mx-auto" style={{ background: "#e8efe6" }}>
+            <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="#4a6741" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z" /><circle cx="12" cy="10" r="3" />
+            </svg>
+          </div>
           <h1 className="font-serif text-xl text-[#2a3d2a] mb-2">Wedding Portal Access</h1>
           <p className="text-[#7a907a] text-sm leading-relaxed">
             Your account isn't linked to a Fairchild wedding booking yet. Contact your coordinator at{" "}
@@ -78,7 +82,7 @@ export default function CoupleLayout({ children }: { children: React.ReactNode }
       {/* Bottom padding accounts for the fixed nav height */}
       <div
         className="flex-1 overflow-y-auto overflow-x-hidden"
-        style={{ paddingBottom: "calc(56px + env(safe-area-inset-bottom, 0px))" }}
+        style={{ paddingBottom: "calc(62px + env(safe-area-inset-bottom, 0px))" }}
       >
         {children}
       </div>

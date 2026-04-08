@@ -107,7 +107,7 @@ export default function CoupleDashboardPage() {
         </div>
       </div>
 
-      <div className="px-4 pt-4 space-y-3">
+      <div className="px-4 pt-4 flex flex-col gap-3">
 
         {/* ── Countdown card — celebratory ────────────────────────── */}
         <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
@@ -207,6 +207,7 @@ export default function CoupleDashboardPage() {
         ) : null}
 
         {/* ── Message preview ───────────────────────────────────────── */}
+        <div className="mt-1" />
         <Link href="/couple/messages">
           <div className="rounded-2xl px-4 py-3.5 bg-white shadow-sm flex items-center gap-3">
             <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "#e8efe6" }}>
