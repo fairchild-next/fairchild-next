@@ -23,14 +23,13 @@ export default function VendorsPage() {
           <button
             key={cat.id}
             onClick={() => setActiveTab(cat.id)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors shrink-0"
+            className="flex items-center px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors shrink-0"
             style={
               activeTab === cat.id
                 ? { background: "#4a6741", color: "#fff" }
                 : { background: "#fff", color: "#7a8a7a", border: "1.5px solid #e4ebe4" }
             }
           >
-            <span>{cat.emoji}</span>
             <span>{cat.label}</span>
           </button>
         ))}

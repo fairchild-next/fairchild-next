@@ -75,7 +75,11 @@ export default function CoupleLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex-1 flex flex-col min-h-0" style={{ background: "#f0f3ee" }}>
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      {/* Bottom padding accounts for the fixed nav height */}
+      <div
+        className="flex-1 overflow-y-auto overflow-x-hidden"
+        style={{ paddingBottom: "calc(56px + env(safe-area-inset-bottom, 0px))" }}
+      >
         {children}
       </div>
       <CoupleNav role={role} />
