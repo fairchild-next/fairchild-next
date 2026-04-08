@@ -3,6 +3,7 @@ import { Libre_Baskerville } from "next/font/google";
 import Providers from "./providers";
 import ThemeWrapper from "@/components/ThemeWrapper";
 import AppShell from "@/components/AppShell";
+import RootShell from "@/components/RootShell";
 
 const libreBaskerville = Libre_Baskerville({
   weight: ["400", "700"],
@@ -36,9 +37,9 @@ export default function RootLayout({
       <body className={`bg-black text-white ${libreBaskerville.className}`}>
         <Providers>
           <ThemeWrapper>
-            <div className="w-full max-w-[28rem] h-full flex flex-col relative mx-auto overflow-hidden min-w-0 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
+            <RootShell>
               <AppShell>{children}</AppShell>
-            </div>
+            </RootShell>
           </ThemeWrapper>
         </Providers>
       </body>

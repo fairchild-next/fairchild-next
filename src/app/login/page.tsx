@@ -80,12 +80,44 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
+
         const redirect =
           typeof window !== "undefined"
             ? new URLSearchParams(window.location.search).get("redirect")
             : null;
-        const target = redirect || "/";
-        window.location.href = target;
+
+        if (redirect) {
+          window.location.href = redirect;
+          return;
+        }
+
+        // Auto-route based on role
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: staffRow } = await supabase
+            .from("staff")
+            .select("id")
+            .eq("user_id", user.id)
+            .single();
+
+          if (staffRow) {
+            window.location.href = "/staff";
+            return;
+          }
+
+          const { data: weddingRow } = await supabase
+            .from("wedding_bookings")
+            .select("id")
+            .eq("couple_user_id", user.id)
+            .single();
+
+          if (weddingRow) {
+            window.location.href = "/couple/dashboard";
+            return;
+          }
+        }
+
+        window.location.href = "/";
       }
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : "Something went wrong.");
