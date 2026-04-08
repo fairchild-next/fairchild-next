@@ -68,20 +68,20 @@ export default function CoupleDashboardPage() {
   return (
     <div style={{ background: "#f0f3ee" }}>
 
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      <div className="relative w-full" style={{ height: 220 }}>
+      {/* ── Hero — taller so full photo is visible ──────────────── */}
+      <div className="relative w-full" style={{ height: 270 }}>
         <Image
           src="/wedding/couple-hero.png"
           alt="Fairchild Garden Wedding"
           fill
-          className="object-cover object-top"
+          className="object-cover object-center"
           priority
         />
-        {/* Only darken the bottom third for text legibility, top stays bright */}
+        {/* Only gradient on the bottom quarter for text */}
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.25) 70%, rgba(0,0,0,0.68) 100%)",
+            background: "linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.18) 75%, rgba(0,0,0,0.62) 100%)",
           }}
         />
         {/* Message button */}
@@ -99,7 +99,6 @@ export default function CoupleDashboardPage() {
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
         </Link>
-        {/* Text anchored to very bottom */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
           <p className="font-serif text-white text-xl font-bold leading-tight drop-shadow-md">
             Fairchild Garden Wedding
@@ -108,33 +107,45 @@ export default function CoupleDashboardPage() {
         </div>
       </div>
 
-      <div className="px-4 pt-4 space-y-4">
+      <div className="px-4 pt-4 space-y-3">
 
-        {/* ── Countdown card ────────────────────────────────────────── */}
-        <div className="rounded-2xl p-5 bg-white shadow-sm">
-          {countdown !== null && countdown > 0 ? (
-            <>
-              <div className="text-center mb-4">
-                <p className="text-6xl font-serif font-light leading-none" style={{ color: "#4a6741" }}>{countdown}</p>
-                <p className="text-sm mt-2" style={{ color: "#5a6e5a" }}>days until your wedding</p>
-                <p className="text-xs mt-0.5" style={{ color: "#9aab9a" }}>{formatDate(booking.wedding_date)}</p>
-              </div>
-              {/* Constrained progress bar */}
-              {checklist.length > 0 && (
-                <div className="max-w-[200px] mx-auto">
-                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#e4ebe4" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "#4a6741" }} />
-                  </div>
-                  <p className="text-xs mt-1.5 text-center" style={{ color: "#9aab9a" }}>
-                    Wedding Checklist — {completedCount}/{checklist.length} complete
-                  </p>
+        {/* ── Countdown card — celebratory ────────────────────────── */}
+        <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+          <div
+            className="px-5 pt-5 pb-4 text-center"
+            style={{ background: "linear-gradient(135deg, #f7fbf5 0%, #eef5ec 100%)" }}
+          >
+            <p className="text-[11px] font-bold tracking-widest uppercase mb-1" style={{ color: "#9aab9a" }}>
+              Your wedding is in
+            </p>
+            {countdown !== null && countdown > 0 ? (
+              <>
+                <div className="flex items-end justify-center gap-1">
+                  <span className="text-7xl font-serif font-light leading-none" style={{ color: "#4a6741" }}>
+                    {countdown}
+                  </span>
+                  <span className="text-lg font-serif mb-2" style={{ color: "#4a6741" }}>days</span>
                 </div>
-              )}
-            </>
-          ) : countdown === 0 ? (
-            <p className="text-center font-serif text-xl py-2" style={{ color: "#4a6741" }}>Today is the day! 💍</p>
-          ) : (
-            <p className="text-center text-sm py-2" style={{ color: "#9aab9a" }}>{formatDate(booking.wedding_date)}</p>
+                <p className="text-sm font-medium mt-1" style={{ color: "#5a6e5a" }}>
+                  {formatDate(booking.wedding_date)}
+                </p>
+              </>
+            ) : countdown === 0 ? (
+              <p className="text-2xl font-serif py-2" style={{ color: "#4a6741" }}>Today is the day! 💍</p>
+            ) : (
+              <p className="text-sm py-2" style={{ color: "#9aab9a" }}>{formatDate(booking.wedding_date)}</p>
+            )}
+          </div>
+          {checklist.length > 0 && (
+            <div className="px-5 py-3 border-t" style={{ borderColor: "#f0f3ee" }}>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[10px] font-semibold" style={{ color: "#9aab9a" }}>Wedding Checklist</p>
+                <p className="text-[10px] font-bold" style={{ color: "#4a6741" }}>{completedCount}/{checklist.length} complete</p>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#e4ebe4" }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "#4a6741" }} />
+              </div>
+            </div>
           )}
         </div>
 
@@ -156,31 +167,37 @@ export default function CoupleDashboardPage() {
         {/* ── Next Step ─────────────────────────────────────────────── */}
         {nextItem ? (
           <Link href="/couple/timeline">
-            <div className="rounded-2xl p-4 flex items-center gap-3.5 shadow-sm" style={{ background: "#4a6741" }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.15)" }}>
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
+            <div className="rounded-2xl p-4 shadow-sm" style={{ background: "#4a6741" }}>
+              <div className="flex items-start gap-3">
+                <div>
+                  <p className="text-[10px] font-bold tracking-wider uppercase mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>
+                    Next Step
+                  </p>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 mt-6">
+                  <p className="text-white font-bold text-base leading-snug">{nextItem.title}</p>
+                  {nextItem.description && (
+                    <p className="text-xs mt-1 line-clamp-2" style={{ color: "rgba(255,255,255,0.65)" }}>{nextItem.description}</p>
+                  )}
+                  {nextItem.due_date && (
+                    <p className="text-[11px] font-semibold mt-1.5" style={{ color: "#f0c070" }}>Due {formatDate(nextItem.due_date)}</p>
+                  )}
+                </div>
+                <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0 mt-6" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
                 </svg>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold tracking-wider uppercase mb-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>Next Step</p>
-                <p className="text-white font-semibold text-sm leading-snug">{nextItem.title}</p>
-                {nextItem.description && (
-                  <p className="text-xs mt-0.5 line-clamp-2" style={{ color: "rgba(255,255,255,0.65)" }}>{nextItem.description}</p>
-                )}
-                {nextItem.due_date && (
-                  <p className="text-[11px] font-semibold mt-1" style={{ color: "#f0c070" }}>Due {formatDate(nextItem.due_date)}</p>
-                )}
-              </div>
-              <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
             </div>
           </Link>
         ) : checklist.length > 0 ? (
-          <div className="rounded-2xl p-4 flex items-center gap-3.5 shadow-sm" style={{ background: "#4a6741" }}>
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.15)" }}>
+          <div className="rounded-2xl p-4 flex items-center gap-3 shadow-sm" style={{ background: "#4a6741" }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.15)" }}>
               <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
@@ -208,9 +225,7 @@ export default function CoupleDashboardPage() {
                 {latestMessage ? latestMessage.message : "No messages yet — say hello!"}
               </p>
             </div>
-            {latestMessage && (
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#4a6741" }} />
-            )}
+            {latestMessage && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#4a6741" }} />}
             <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="#c4d4c4" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
@@ -218,11 +233,11 @@ export default function CoupleDashboardPage() {
         </Link>
 
         {/* ── Explore ───────────────────────────────────────────────── */}
-        <div>
-          <p className="font-semibold text-base mb-3" style={{ color: "#2a3d2a" }}>Explore</p>
+        <div className="pt-2">
+          <p className="font-bold text-base mb-3" style={{ color: "#2a3d2a" }}>Explore</p>
 
-          {/* Photo + label card tiles (image on top, white label below) */}
-          <div className="grid grid-cols-3 gap-2.5 mb-3">
+          {/* Square-ish photo+label tiles */}
+          <div className="grid grid-cols-3 gap-2 mb-2.5">
             {[
               { href: "/couple/details",   label: "My Wedding",  img: "/wedding/venues-overview.png" },
               { href: "/couple/timeline",  label: "Timeline",    img: "/wedding/package-ceremony.png" },
@@ -233,10 +248,10 @@ export default function CoupleDashboardPage() {
                 href={href}
                 className="rounded-2xl overflow-hidden shadow-sm bg-white flex flex-col"
               >
-                <div className="relative w-full" style={{ aspectRatio: "1/1" }}>
+                <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
                   <Image src={img} alt={label} fill className="object-cover" />
                 </div>
-                <div className="py-2 px-1">
+                <div className="py-2 px-1.5">
                   <p className="text-[11px] font-bold text-center" style={{ color: "#2a3d2a" }}>{label}</p>
                 </div>
               </Link>
@@ -249,22 +264,51 @@ export default function CoupleDashboardPage() {
               {
                 href: "/couple/vendors",
                 label: "Vendors",
-                icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                  </svg>
+                ),
               },
               {
                 href: "/couple/details",
                 label: "Floral Details",
-                icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><circle cx="12" cy="5" r="2" /><circle cx="12" cy="19" r="2" /><circle cx="5" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg>,
+                icon: (
+                  /* Proper flower icon */
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="2.5" />
+                    <ellipse cx="12" cy="6.5" rx="2" ry="3" />
+                    <ellipse cx="12" cy="17.5" rx="2" ry="3" />
+                    <ellipse cx="6.5" cy="12" rx="3" ry="2" />
+                    <ellipse cx="17.5" cy="12" rx="3" ry="2" />
+                    <ellipse cx="8.1" cy="8.1" rx="2" ry="3" transform="rotate(-45 8.1 8.1)" />
+                    <ellipse cx="15.9" cy="15.9" rx="2" ry="3" transform="rotate(-45 15.9 15.9)" />
+                    <ellipse cx="15.9" cy="8.1" rx="2" ry="3" transform="rotate(45 15.9 8.1)" />
+                    <ellipse cx="8.1" cy="15.9" rx="2" ry="3" transform="rotate(45 8.1 15.9)" />
+                  </svg>
+                ),
               },
               {
                 href: "/couple/documents",
                 label: "Upload Files",
-                icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                ),
               },
               {
                 href: "/couple/gallery",
                 label: "Photo Gallery",
-                icon: <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                ),
               },
             ].map(({ href, label, icon }) => (
               <Link key={label} href={href} className="rounded-2xl flex flex-col items-center justify-center gap-1.5 py-3.5 bg-white shadow-sm">
