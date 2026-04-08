@@ -1,15 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import type { WeddingBooking } from "@/lib/couple/types";
 import { formatDate, formatTime } from "@/lib/couple/types";
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-center py-3 border-b" style={{ borderColor: "#f0f3ee" }}>
+      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9aab9a" }}>{label}</span>
+      <span className="text-sm font-medium text-right" style={{ color: "#2a3d2a" }}>{value}</span>
+    </div>
+  );
+}
 
 export default function DetailsPage() {
   const [booking, setBooking] = useState<WeddingBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
   const [guestCount, setGuestCount] = useState("");
   const [cateringNotes, setCateringNotes] = useState("");
 
@@ -31,7 +40,7 @@ export default function DetailsPage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const res = await fetch("/api/couple/booking", {
+    await fetch("/api/couple/booking", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -39,113 +48,109 @@ export default function DetailsPage() {
         catering_notes: cateringNotes || null,
       }),
     });
-    if (res.ok) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
     setSaving(false);
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 rounded-full border-2 border-amber-300 border-t-transparent animate-spin" />
+      <div className="flex items-center justify-center py-24" style={{ background: "#f0f3ee" }}>
+        <div className="w-6 h-6 rounded-full border-2 border-[#4a6741] border-t-transparent animate-spin" />
       </div>
     );
   }
 
   if (!booking) {
     return (
-      <div className="text-center py-20">
-        <p className="text-stone-400">No booking found. Contact your coordinator.</p>
+      <div className="px-4 py-20 text-center" style={{ background: "#f0f3ee" }}>
+        <p style={{ color: "#9aab9a" }} className="text-sm">No booking found.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-serif text-3xl text-stone-700">My Wedding Details</h1>
-
-      {/* Venue & Event info */}
-      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #e8dfd0" }}>
-        <div className="px-5 py-3" style={{ background: "#fdf6e3" }}>
-          <h2 className="font-serif text-stone-600 text-base">Event Information</h2>
+    <div style={{ background: "#f0f3ee", minHeight: "100%" }}>
+      {/* Venue hero */}
+      <div className="relative w-full" style={{ height: 180 }}>
+        <Image src="/wedding/venues-overview.png" alt="Venue" fill className="object-cover" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.65) 100%)" }} />
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+          <p className="font-serif text-white text-lg font-bold">{booking.venue ?? "Your Venue"}</p>
+          <p className="text-white/70 text-xs mt-0.5">{booking.package ?? ""}</p>
         </div>
-        <div className="divide-y" style={{ background: "#fff", borderColor: "#f0e9dc" }}>
-          {[
-            { label: "Venue",           value: booking.venue },
-            { label: "Package",         value: booking.package },
-            { label: "Wedding Date",    value: formatDate(booking.wedding_date) },
-            { label: "Ceremony",        value: formatTime(booking.ceremony_time) },
-            { label: "Cocktail Hour",   value: formatTime(booking.cocktail_time) },
-            { label: "Reception",       value: formatTime(booking.reception_time) },
-          ].map(({ label, value }) => (
-            <div key={label} className="px-5 py-3.5 flex justify-between gap-4">
-              <span className="text-stone-400 text-sm">{label}</span>
-              <span className="text-stone-700 text-sm font-medium text-right">{value || "TBD"}</span>
+      </div>
+
+      <div className="px-4 py-4 space-y-3">
+        {/* Event info card */}
+        <div className="rounded-2xl bg-white shadow-sm p-4">
+          <p className="font-serif text-sm font-semibold mb-1" style={{ color: "#4a6741" }}>Event Information</p>
+          <Row label="Wedding Date"  value={formatDate(booking.wedding_date)} />
+          <Row label="Ceremony"      value={formatTime(booking.ceremony_time)} />
+          <Row label="Cocktail Hour" value={formatTime(booking.cocktail_time)} />
+          <Row label="Reception"     value={formatTime(booking.reception_time)} />
+          <Row label="Venue"         value={booking.venue ?? "TBD"} />
+          <div className="pt-1">
+            <Row label="Package" value={booking.package ?? "TBD"} />
+          </div>
+        </div>
+
+        {/* Editable card */}
+        <div className="rounded-2xl bg-white shadow-sm p-4">
+          <p className="font-serif text-sm font-semibold mb-3" style={{ color: "#4a6741" }}>Guest Count &amp; Catering</p>
+          <form onSubmit={handleSave} className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#9aab9a" }}>
+                Estimated Guest Count
+              </label>
+              <input
+                type="number" min="1" max="2000"
+                value={guestCount}
+                onChange={(e) => setGuestCount(e.target.value)}
+                placeholder="e.g. 150"
+                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2"
+                style={{ border: "1.5px solid #e4ebe4", background: "#f7faf7", color: "#2a3d2a", focusRingColor: "#4a6741" }}
+              />
             </div>
-          ))}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#9aab9a" }}>
+                Dietary &amp; Catering Notes
+              </label>
+              <textarea
+                value={cateringNotes}
+                onChange={(e) => setCateringNotes(e.target.value)}
+                rows={4}
+                placeholder="Dietary restrictions, allergy info, special requests…"
+                className="w-full rounded-xl px-3 py-2.5 text-sm resize-none outline-none focus:ring-2"
+                style={{ border: "1.5px solid #e4ebe4", background: "#f7faf7", color: "#2a3d2a" }}
+              />
+            </div>
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="submit" disabled={saving}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-50"
+                style={{ background: "#4a6741" }}
+              >
+                {saving ? "Saving…" : "Save Changes"}
+              </button>
+              {saved && <span className="text-sm font-medium" style={{ color: "#4a6741" }}>Saved ✓</span>}
+            </div>
+          </form>
         </div>
-      </div>
 
-      {/* Editable fields */}
-      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #e8dfd0" }}>
-        <div className="px-5 py-3" style={{ background: "#fdf6e3" }}>
-          <h2 className="font-serif text-stone-600 text-base">Guest Count &amp; Catering</h2>
+        {/* Contact */}
+        <div className="rounded-2xl bg-white shadow-sm p-4">
+          <p className="font-serif text-sm font-semibold mb-2" style={{ color: "#4a6741" }}>Questions?</p>
+          <p className="text-sm" style={{ color: "#7a8a7a" }}>
+            Reach your coordinator at{" "}
+            <a href="mailto:weddings@fairchildgarden.org" className="hover:underline" style={{ color: "#4a6741" }}>
+              weddings@fairchildgarden.org
+            </a>
+            {" "}or use the{" "}
+            <a href="/couple/messages" className="hover:underline" style={{ color: "#4a6741" }}>Messages tab</a>.
+          </p>
         </div>
-        <form onSubmit={handleSave} className="p-5 space-y-4" style={{ background: "#fff" }}>
-          <div>
-            <label className="block text-xs text-stone-400 uppercase tracking-wide mb-1.5">
-              Estimated Guest Count
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="2000"
-              value={guestCount}
-              onChange={(e) => setGuestCount(e.target.value)}
-              placeholder="e.g. 150"
-              className="w-full rounded-lg px-3 py-2 text-sm text-stone-700 outline-none focus:ring-2 focus:ring-amber-300"
-              style={{ border: "1px solid #e8dfd0", background: "#faf7f2" }}
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-stone-400 uppercase tracking-wide mb-1.5">
-              Dietary &amp; Catering Notes
-            </label>
-            <textarea
-              value={cateringNotes}
-              onChange={(e) => setCateringNotes(e.target.value)}
-              rows={4}
-              placeholder="Any dietary restrictions, allergy info, or catering requests…"
-              className="w-full rounded-lg px-3 py-2 text-sm text-stone-700 resize-none outline-none focus:ring-2 focus:ring-amber-300"
-              style={{ border: "1px solid #e8dfd0", background: "#faf7f2" }}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 transition-colors"
-            >
-              {saving ? "Saving…" : "Save Changes"}
-            </button>
-            {saved && <span className="text-emerald-600 text-sm">Saved ✓</span>}
-          </div>
-        </form>
-      </div>
-
-      {/* Contact */}
-      <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid #e8dfd0" }}>
-        <h2 className="font-serif text-stone-600 text-base mb-3">Questions?</h2>
-        <p className="text-stone-400 text-sm">
-          Reach your coordinator any time at{" "}
-          <a href="mailto:weddings@fairchildgarden.org" className="text-amber-700 hover:underline">
-            weddings@fairchildgarden.org
-          </a>
-          {" "}or use the{" "}
-          <a href="/couple/messages" className="text-amber-700 hover:underline">Messages tab</a>.
-        </p>
+        <div className="h-2" />
       </div>
     </div>
   );

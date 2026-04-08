@@ -4,25 +4,25 @@ import { useEffect, useState, useCallback } from "react";
 import type { ChecklistItem } from "@/lib/couple/types";
 import { formatDate, daysUntil } from "@/lib/couple/types";
 
-function itemColor(item: ChecklistItem): string {
-  if (item.completed) return "border-l-emerald-400";
-  if (!item.due_date) return "border-l-stone-200";
-  const days = daysUntil(item.due_date);
-  if (days === null) return "border-l-stone-200";
-  if (days < 0) return "border-l-red-400";
-  if (days <= 14) return "border-l-amber-400";
-  return "border-l-sky-300";
+function getItemStyle(item: ChecklistItem): { bar: string; badge: string; badgeText: string } {
+  if (item.completed) return { bar: "#4a6741", badge: "#e8efe6", badgeText: "#4a6741" };
+  if (!item.due_date)  return { bar: "#d4dcd4", badge: "#f0f3ee", badgeText: "#9aab9a" };
+  const d = daysUntil(item.due_date);
+  if (d === null)  return { bar: "#d4dcd4", badge: "#f0f3ee",  badgeText: "#9aab9a" };
+  if (d < 0)       return { bar: "#e05a5a", badge: "#fdeaea",  badgeText: "#c44" };
+  if (d <= 14)     return { bar: "#d4a843", badge: "#fdf6e3",  badgeText: "#9a7020" };
+  return           { bar: "#6aaed6", badge: "#e8f3fb",  badgeText: "#2a6a9a" };
 }
 
-function itemBadge(item: ChecklistItem): { label: string; cls: string } | null {
-  if (item.completed) return { label: "Done", cls: "bg-emerald-50 text-emerald-700" };
+function getBadgeLabel(item: ChecklistItem): string | null {
+  if (item.completed) return "Done";
   if (!item.due_date) return null;
-  const days = daysUntil(item.due_date);
-  if (days === null) return null;
-  if (days < 0) return { label: "Overdue", cls: "bg-red-50 text-red-600" };
-  if (days === 0) return { label: "Due today", cls: "bg-amber-50 text-amber-700" };
-  if (days <= 14) return { label: `${days}d left`, cls: "bg-amber-50 text-amber-700" };
-  return { label: "Upcoming", cls: "bg-sky-50 text-sky-700" };
+  const d = daysUntil(item.due_date);
+  if (d === null) return null;
+  if (d < 0)  return "Overdue";
+  if (d === 0) return "Today";
+  if (d <= 14) return `${d}d left`;
+  return "Upcoming";
 }
 
 export default function TimelinePage() {
@@ -45,102 +45,84 @@ export default function TimelinePage() {
       body: JSON.stringify({ itemId: item.id, completed: !item.completed }),
     });
     const data = await res.json();
-    if (data.item) {
-      setItems((prev) => prev.map((i) => (i.id === item.id ? data.item : i)));
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 rounded-full border-2 border-amber-300 border-t-transparent animate-spin" />
-      </div>
-    );
+    if (data.item) setItems((p) => p.map((i) => (i.id === item.id ? data.item : i)));
   }
 
   const pending = items.filter((i) => !i.completed);
   const done = items.filter((i) => i.completed);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl text-stone-700 mb-1">Your Timeline</h1>
-        <p className="text-stone-400 text-sm">
+    <div style={{ background: "#f0f3ee", minHeight: "100%" }}>
+      {/* Header */}
+      <div className="px-4 pt-5 pb-3">
+        <h1 className="font-serif text-2xl font-bold" style={{ color: "#2a3d2a" }}>Timeline</h1>
+        <p className="text-sm mt-0.5" style={{ color: "#9aab9a" }}>
           {pending.length} remaining · {done.length} complete
         </p>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 text-xs">
-        {[
-          { color: "bg-emerald-400", label: "Complete" },
-          { color: "bg-sky-300",     label: "Upcoming" },
-          { color: "bg-amber-400",   label: "Due soon" },
-          { color: "bg-red-400",     label: "Overdue" },
-        ].map(({ color, label }) => (
-          <span key={label} className="flex items-center gap-1.5 text-stone-500">
-            <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
-            {label}
-          </span>
-        ))}
-      </div>
-
-      {items.length === 0 && (
-        <div
-          className="rounded-2xl p-8 text-center"
-          style={{ background: "#fff", border: "1px solid #e8dfd0" }}
-        >
-          <p className="text-stone-400 text-sm">
-            No milestones yet. Your coordinator will add items as planning begins.
-          </p>
+      {loading && (
+        <div className="flex justify-center py-16">
+          <div className="w-6 h-6 rounded-full border-2 border-[#4a6741] border-t-transparent animate-spin" />
         </div>
       )}
 
-      <div className="space-y-3">
+      {!loading && items.length === 0 && (
+        <div className="mx-4 rounded-2xl p-8 bg-white text-center shadow-sm">
+          <p className="text-[#9aab9a] text-sm">No milestones yet. Your coordinator will add them soon.</p>
+        </div>
+      )}
+
+      <div className="px-4 space-y-2.5 pb-4">
         {[...pending, ...done].map((item) => {
-          const badge = itemBadge(item);
+          const style = getItemStyle(item);
+          const badge = getBadgeLabel(item);
           return (
             <div
               key={item.id}
-              className={`rounded-xl p-4 border-l-4 flex items-start gap-4 ${itemColor(item)}`}
-              style={{ background: "#fff", border: "1px solid #e8dfd0", borderLeftWidth: 4 }}
+              className="rounded-2xl bg-white shadow-sm overflow-hidden flex"
             >
-              {/* Checkbox */}
-              <button
-                onClick={() => toggle(item)}
-                className={`
-                  w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors
-                  ${item.completed
-                    ? "bg-emerald-400 border-emerald-400 text-white"
-                    : "border-stone-300 hover:border-amber-400"
-                  }
-                `}
-                aria-label={item.completed ? "Mark incomplete" : "Mark complete"}
-              >
-                {item.completed && (
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12">
-                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </button>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className={`font-medium text-sm ${item.completed ? "line-through text-stone-400" : "text-stone-700"}`}>
-                    {item.title}
-                  </p>
-                  {badge && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${badge.cls}`}>
-                      {badge.label}
-                    </span>
+              {/* Color bar */}
+              <div className="w-1 shrink-0" style={{ background: style.bar }} />
+              <div className="flex items-start gap-3 px-4 py-3.5 flex-1">
+                {/* Checkbox */}
+                <button
+                  onClick={() => toggle(item)}
+                  className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors"
+                  style={{
+                    background: item.completed ? "#4a6741" : "transparent",
+                    borderColor: item.completed ? "#4a6741" : "#c4d4c4",
+                  }}
+                  aria-label={item.completed ? "Mark incomplete" : "Mark complete"}
+                >
+                  {item.completed && (
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 12 12">
+                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={`text-sm font-semibold leading-snug ${item.completed ? "line-through" : ""}`}
+                       style={{ color: item.completed ? "#9aab9a" : "#2a3d2a" }}>
+                      {item.title}
+                    </p>
+                    {badge && (
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                        style={{ background: style.badge, color: style.badgeText }}
+                      >
+                        {badge}
+                      </span>
+                    )}
+                  </div>
+                  {item.description && (
+                    <p className="text-xs mt-0.5" style={{ color: "#7a8a7a" }}>{item.description}</p>
+                  )}
+                  {item.due_date && (
+                    <p className="text-xs mt-1" style={{ color: "#9aab9a" }}>Due {formatDate(item.due_date)}</p>
                   )}
                 </div>
-                {item.description && (
-                  <p className="text-stone-400 text-xs mt-1">{item.description}</p>
-                )}
-                {item.due_date && (
-                  <p className="text-stone-400 text-xs mt-1">Due {formatDate(item.due_date)}</p>
-                )}
               </div>
             </div>
           );

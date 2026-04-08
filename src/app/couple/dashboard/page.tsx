@@ -2,24 +2,29 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { WeddingBooking, ChecklistItem } from "@/lib/couple/types";
-import { daysUntil, formatDate, formatTime, STATUS_LABELS, STATUS_COLORS } from "@/lib/couple/types";
+import Image from "next/image";
+import type { WeddingBooking, ChecklistItem, WeddingMessage } from "@/lib/couple/types";
+import { daysUntil, formatDate, formatTime } from "@/lib/couple/types";
 
 export default function CoupleDashboardPage() {
   const [booking, setBooking] = useState<WeddingBooking | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [messages, setMessages] = useState<WeddingMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [bRes, cRes] = await Promise.all([
+      const [bRes, cRes, mRes] = await Promise.all([
         fetch("/api/couple/booking"),
         fetch("/api/couple/checklist"),
+        fetch("/api/couple/messages"),
       ]);
       const bData = await bRes.json();
       const cData = await cRes.json();
+      const mData = await mRes.json();
       setBooking(bData.booking ?? null);
       setChecklist(cData.items ?? []);
+      setMessages(mData.messages ?? []);
       setLoading(false);
     }
     load();
@@ -27,149 +32,276 @@ export default function CoupleDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 rounded-full border-2 border-amber-300 border-t-transparent animate-spin" />
+      <div className="flex items-center justify-center py-24" style={{ background: "#f0f3ee" }}>
+        <div className="w-6 h-6 rounded-full border-2 border-[#4a6741] border-t-transparent animate-spin" />
       </div>
     );
   }
 
   if (!booking) {
     return (
-      <div className="text-center py-20">
-        <p className="text-stone-400">No booking found. Contact your coordinator.</p>
+      <div className="flex flex-col items-center justify-center py-20 px-6" style={{ background: "#f0f3ee" }}>
+        <p className="text-[#7a907a] text-sm text-center">No booking found. Contact your coordinator.</p>
       </div>
     );
   }
 
   const countdown = daysUntil(booking.wedding_date);
-  const nextItem = checklist.find((i) => !i.completed && i.due_date);
-  const incompleteCount = checklist.filter((i) => !i.completed).length;
   const completedCount = checklist.filter((i) => i.completed).length;
+  const progress = checklist.length ? Math.round((completedCount / checklist.length) * 100) : 0;
+  const nextItem = checklist.find((i) => !i.completed && i.due_date);
+  const latestMessage = messages[messages.length - 1] ?? null;
+
+  const coupleDisplay = booking.partner_name
+    ? `${booking.couple_name} & ${booking.partner_name}`
+    : booking.couple_name;
+
+  const firstNames = (() => {
+    const first = booking.couple_name.split(" ")[0];
+    const second = booking.partner_name?.split(" ")[0];
+    return second ? `${first} & ${second}` : first;
+  })();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="font-serif text-3xl text-stone-700 mb-1">
-          {booking.couple_name} &amp; {booking.partner_name}
-        </h1>
-        <span className={`inline-flex text-xs px-2.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[booking.status]}`}>
-          {STATUS_LABELS[booking.status]}
-        </span>
+    <div style={{ background: "#f0f3ee" }}>
+
+      {/* ── Hero ─────────────────────────────────────────────────── */}
+      <div className="relative w-full" style={{ height: 220 }}>
+        <Image
+          src="/wedding/hero-home.png"
+          alt="Fairchild Garden Wedding"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Gradient overlay */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.55) 100%)" }}
+        />
+        {/* Message button */}
+        <Link
+          href="/couple/messages"
+          className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: "rgba(255,255,255,0.2)", backdropFilter: "blur(6px)" }}
+        >
+          {messages.length > 0 && (
+            <span
+              className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center"
+              style={{ background: "#4a6741" }}
+            >
+              {messages.length > 9 ? "9+" : messages.length}
+            </span>
+          )}
+          <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          </svg>
+        </Link>
+        {/* Text */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+          <p className="font-serif text-white text-xl font-bold leading-tight drop-shadow">
+            Fairchild Garden Wedding
+          </p>
+          <p className="text-white/80 text-sm mt-0.5 drop-shadow">
+            Welcome back, {firstNames}
+          </p>
+        </div>
       </div>
 
-      {/* Countdown hero card */}
-      <div
-        className="rounded-2xl p-6 text-center"
-        style={{
-          background: "linear-gradient(135deg, #fdf6e3 0%, #fef9ec 100%)",
-          border: "1px solid #e8dfd0",
-        }}
-      >
-        {countdown !== null ? (
-          countdown > 0 ? (
+      <div className="px-4 py-4 space-y-3">
+
+        {/* ── Countdown card ───────────────────────────────────────── */}
+        <div className="rounded-2xl p-4 bg-white shadow-sm">
+          {countdown !== null && countdown > 0 ? (
             <>
-              <p className="text-6xl font-serif text-amber-700 font-light">{countdown}</p>
-              <p className="text-stone-500 mt-1">days until your wedding</p>
+              <div className="text-center mb-3">
+                <p className="text-5xl font-serif font-light" style={{ color: "#4a6741" }}>{countdown}</p>
+                <p className="text-[#5a6e5a] text-sm mt-0.5">days until your wedding</p>
+                <p className="text-[#9aab9a] text-xs mt-0.5">{formatDate(booking.wedding_date)}</p>
+              </div>
+              <div className="space-y-1">
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#e4ebe4" }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${progress}%`, background: "#4a6741" }}
+                  />
+                </div>
+                <p className="text-[#9aab9a] text-xs text-right">
+                  Wedding Checklist — {completedCount}/{checklist.length} complete
+                </p>
+              </div>
             </>
           ) : countdown === 0 ? (
-            <>
-              <p className="text-4xl">💍</p>
-              <p className="text-2xl font-serif text-amber-700 mt-2">Today is the day!</p>
-            </>
+            <p className="text-center font-serif text-[#4a6741] text-xl">Today is the day! 💍</p>
           ) : (
-            <>
-              <p className="text-stone-400 text-sm">Wedding date has passed</p>
-              <p className="font-serif text-stone-600 mt-1">{formatDate(booking.wedding_date)}</p>
-            </>
-          )
-        ) : (
-          <p className="text-stone-400">Wedding date not yet set</p>
-        )}
-        {booking.wedding_date && countdown !== null && countdown > 0 && (
-          <p className="text-stone-400 text-sm mt-2">{formatDate(booking.wedding_date)}</p>
-        )}
-      </div>
-
-      {/* At-a-glance grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { label: "Venue", value: booking.venue ?? "TBD" },
-          { label: "Package", value: booking.package ?? "TBD" },
-          { label: "Guests", value: booking.guest_count != null ? String(booking.guest_count) : "TBD" },
-          { label: "Ceremony", value: formatTime(booking.ceremony_time) },
-        ].map(({ label, value }) => (
-          <div
-            key={label}
-            className="rounded-xl p-4"
-            style={{ background: "#fff", border: "1px solid #e8dfd0" }}
-          >
-            <p className="text-xs text-stone-400 uppercase tracking-wide mb-1">{label}</p>
-            <p className="text-stone-700 font-medium text-sm leading-snug">{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Checklist progress */}
-      <div
-        className="rounded-2xl p-5"
-        style={{ background: "#fff", border: "1px solid #e8dfd0" }}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-serif text-stone-700 text-lg">Checklist Progress</h2>
-          <Link href="/couple/timeline" className="text-amber-700 text-xs hover:underline">
-            View all →
-          </Link>
+            <p className="text-center text-[#9aab9a] text-sm">{formatDate(booking.wedding_date)}</p>
+          )}
         </div>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex-1 h-2 rounded-full bg-stone-100 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-amber-400 transition-all"
-              style={{
-                width: checklist.length
-                  ? `${(completedCount / checklist.length) * 100}%`
-                  : "0%",
-              }}
-            />
-          </div>
-          <span className="text-xs text-stone-400 shrink-0">
-            {completedCount}/{checklist.length} complete
-          </span>
-        </div>
-        {nextItem ? (
-          <div className="flex items-start gap-2 text-sm">
-            <span className="text-amber-500 mt-0.5">→</span>
-            <div>
-              <p className="text-stone-600 font-medium">{nextItem.title}</p>
-              {nextItem.due_date && (
-                <p className="text-stone-400 text-xs mt-0.5">Due {formatDate(nextItem.due_date)}</p>
-              )}
+
+        {/* ── At-a-glance grid ─────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {[
+            { label: "VENUE",     value: booking.venue ?? "TBD" },
+            { label: "PACKAGE",   value: booking.package ?? "TBD" },
+            { label: "GUESTS",    value: booking.guest_count != null ? String(booking.guest_count) : "TBD" },
+            { label: "CEREMONY",  value: formatTime(booking.ceremony_time) },
+          ].map(({ label, value }) => (
+            <div key={label} className="rounded-xl p-3 bg-white shadow-sm">
+              <p className="text-[9px] font-semibold tracking-widest uppercase" style={{ color: "#9aab9a" }}>{label}</p>
+              <p className="text-[#2a3d2a] font-medium text-sm mt-0.5 leading-snug">{value}</p>
             </div>
-          </div>
-        ) : incompleteCount === 0 && checklist.length > 0 ? (
-          <p className="text-emerald-600 text-sm">All items complete! 🎉</p>
-        ) : (
-          <p className="text-stone-400 text-sm">No items yet — your coordinator will add them soon.</p>
-        )}
-      </div>
+          ))}
+        </div>
 
-      {/* Quick links */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[
-          { href: "/couple/messages",  label: "Messages",  emoji: "💬" },
-          { href: "/couple/documents", label: "Documents", emoji: "📄" },
-          { href: "/couple/vendors",   label: "Vendors",   emoji: "📋" },
-        ].map(({ href, label, emoji }) => (
-          <Link
-            key={href}
-            href={href}
-            className="rounded-xl p-4 flex items-center gap-3 transition-colors hover:bg-amber-50"
-            style={{ background: "#fff", border: "1px solid #e8dfd0" }}
-          >
-            <span className="text-2xl">{emoji}</span>
-            <span className="text-stone-600 font-medium text-sm">{label}</span>
+        {/* ── Next step card ───────────────────────────────────────── */}
+        {nextItem && (
+          <Link href="/couple/timeline">
+            <div
+              className="rounded-2xl p-4 flex items-center gap-3 shadow-sm"
+              style={{ background: "#4a6741" }}
+            >
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: "rgba(255,255,255,0.15)" }}
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white/60 text-[10px] font-semibold tracking-wider uppercase">Next Step</p>
+                <p className="text-white font-semibold text-sm leading-snug truncate">{nextItem.title}</p>
+                {nextItem.description && (
+                  <p className="text-white/70 text-xs mt-0.5 truncate">{nextItem.description}</p>
+                )}
+                {nextItem.due_date && (
+                  <p className="text-white/50 text-xs mt-0.5">Due {formatDate(nextItem.due_date)}</p>
+                )}
+              </div>
+              <svg viewBox="0 0 24 24" className="w-4 h-4 text-white/50 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
           </Link>
-        ))}
+        )}
+
+        {/* ── Latest message preview ───────────────────────────────── */}
+        {latestMessage && (
+          <Link href="/couple/messages">
+            <div className="rounded-2xl px-4 py-3 bg-white shadow-sm flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "#e8efe6" }}>
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#4a6741" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[#4a6741] text-xs font-semibold">
+                    {latestMessage.sender_role === "coordinator" ? "Fairchild Events Team" : "You"}
+                  </p>
+                  <p className="text-[#9aab9a] text-[10px] shrink-0">
+                    {(() => {
+                      const mins = Math.round((Date.now() - new Date(latestMessage.created_at).getTime()) / 60000);
+                      if (mins < 60) return `${mins}m ago`;
+                      if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
+                      return `${Math.round(mins / 1440)}d ago`;
+                    })()}
+                  </p>
+                </div>
+                <p className="text-[#5a6e5a] text-xs truncate mt-0.5">{latestMessage.message}</p>
+              </div>
+              <svg viewBox="0 0 24 24" className="w-4 h-4 text-[#c4d4c4] shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </Link>
+        )}
+
+        {/* ── Explore ──────────────────────────────────────────────── */}
+        <div>
+          <p className="text-[#2a3d2a] font-semibold text-base mb-2.5">Explore</p>
+
+          {/* Large image tiles */}
+          <div className="grid grid-cols-3 gap-2 mb-2.5">
+            {[
+              { href: "/couple/details",   label: "My Wedding",  img: "/wedding/venues-overview.png" },
+              { href: "/couple/timeline",  label: "Timeline",    img: "/wedding/package-ceremony.png" },
+              { href: "/couple/documents", label: "Documents",   img: "/wedding/additional-information.png" },
+            ].map(({ href, label, img }) => (
+              <Link key={href} href={href} className="relative rounded-2xl overflow-hidden shadow-sm" style={{ aspectRatio: "3/4" }}>
+                <Image src={img} alt={label} fill className="object-cover" />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%)" }}
+                />
+                <p className="absolute bottom-2 left-0 right-0 text-center text-white text-xs font-semibold px-1 leading-tight">
+                  {label}
+                </p>
+              </Link>
+            ))}
+          </div>
+
+          {/* Small icon tiles */}
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              {
+                href: "/couple/vendors",
+                label: "Vendors",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                  </svg>
+                ),
+              },
+              {
+                href: "/couple/details#floral",
+                label: "Floral Details",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 2a4 4 0 014 4c0 1.5-.5 2.8-1.3 3.8M12 2a4 4 0 00-4 4c0 1.5.5 2.8 1.3 3.8M22 12a4 4 0 01-4 4c-1.5 0-2.8-.5-3.8-1.3M22 12a4 4 0 00-4-4c-1.5 0-2.8.5-3.8 1.3M12 22a4 4 0 01-4-4c0-1.5.5-2.8 1.3-3.8M12 22a4 4 0 004-4c0-1.5-.5-2.8-1.3-3.8M2 12a4 4 0 014-4c1.5 0 2.8.5 3.8 1.3M2 12a4 4 0 004 4c1.5 0 2.8-.5 3.8-1.3" />
+                  </svg>
+                ),
+              },
+              {
+                href: "/couple/documents",
+                label: "Upload Files",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                ),
+              },
+              {
+                href: "/couple/messages",
+                label: "Messages",
+                icon: (
+                  <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                  </svg>
+                ),
+              },
+            ].map(({ href, label, icon }) => (
+              <Link
+                key={label}
+                href={href}
+                className="rounded-2xl flex flex-col items-center justify-center gap-1.5 py-3 bg-white shadow-sm"
+              >
+                {icon}
+                <span className="text-[10px] font-medium text-[#5a6e5a] text-center leading-tight px-1">{label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* bottom padding for nav */}
+        <div className="h-2" />
       </div>
     </div>
   );
