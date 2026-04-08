@@ -109,7 +109,7 @@ export default function DetailsPage() {
                 onChange={(e) => setGuestCount(e.target.value)}
                 placeholder="e.g. 150"
                 className="w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2"
-                style={{ border: "1.5px solid #e4ebe4", background: "#f7faf7", color: "#2a3d2a", focusRingColor: "#4a6741" }}
+                style={{ border: "1.5px solid #e4ebe4", background: "#f7faf7", color: "#2a3d2a" }}
               />
             </div>
             <div>
