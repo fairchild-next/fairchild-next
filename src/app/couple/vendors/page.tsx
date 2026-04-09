@@ -44,7 +44,7 @@ export default function VendorsPage() {
                 {vendor.name}
               </h3>
               <span
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap"
+                className="text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap"
                 style={{ background: "#e8efe6", color: "#4a6741" }}
               >
                 ✦ Preferred

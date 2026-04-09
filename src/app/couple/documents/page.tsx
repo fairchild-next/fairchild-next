@@ -92,7 +92,7 @@ function StatusBadge({ type }: { type: "not_submitted" | "in_progress" | "receiv
     action_needed: { label: "Action needed", color: "#9a7020", bg: "#fdf6e3" },
   }[type];
   return (
-    <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: cfg.bg, color: cfg.color }}>
+    <span className="inline-block text-xs font-bold px-2.5 py-0.5 rounded-full" style={{ background: cfg.bg, color: cfg.color }}>
       {cfg.label}
     </span>
   );
@@ -134,7 +134,7 @@ function DocRow({
               href={viewUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full"
+              className="flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full"
               style={{ background: "#e8efe6", color: "#4a6741" }}
             >
               {SvgIcons.download}
@@ -145,7 +145,7 @@ function DocRow({
             <button
               onClick={onUpload}
               disabled={uploading}
-              className="text-[10px] font-bold px-2.5 py-1 rounded-full border transition-colors"
+              className="text-xs font-bold px-2.5 py-1 rounded-full border transition-colors"
               style={{ borderColor: "#c4d4c4", color: "#5a6e5a", background: "#fff" }}
             >
               {uploading ? "Uploading…" : "Upload"}
@@ -160,7 +160,7 @@ function DocRow({
 // ── Section header ─────────────────────────────────────────────────────────
 function SectionLabel({ children, color = "#9aab9a" }: { children: ReactNode; color?: string }) {
   return (
-    <p className="text-[10px] font-bold tracking-widest uppercase pt-1 pb-2" style={{ color }}>
+    <p className="text-xs font-bold tracking-wider uppercase pt-1 pb-2" style={{ color }}>
       {children}
     </p>
   );

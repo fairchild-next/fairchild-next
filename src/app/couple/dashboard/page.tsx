@@ -115,7 +115,7 @@ export default function CoupleDashboardPage() {
             className="px-5 pt-5 pb-4 text-center"
             style={{ background: "linear-gradient(135deg, #f7fbf5 0%, #eef5ec 100%)" }}
           >
-            <p className="text-[11px] font-bold tracking-widest uppercase mb-1" style={{ color: "#9aab9a" }}>
+            <p className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: "#9aab9a" }}>
               Your wedding is in
             </p>
             {countdown !== null && countdown > 0 ? (
@@ -139,8 +139,8 @@ export default function CoupleDashboardPage() {
           {checklist.length > 0 && (
             <div className="px-5 py-3 border-t" style={{ borderColor: "#f0f3ee" }}>
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[10px] font-semibold" style={{ color: "#9aab9a" }}>Wedding Checklist</p>
-                <p className="text-[10px] font-bold" style={{ color: "#4a6741" }}>{completedCount}/{checklist.length} complete</p>
+                <p className="text-xs font-semibold" style={{ color: "#9aab9a" }}>Wedding Checklist</p>
+                <p className="text-sm font-bold" style={{ color: "#4a6741" }}>{completedCount}/{checklist.length} complete</p>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#e4ebe4" }}>
                 <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "#4a6741" }} />
@@ -158,7 +158,7 @@ export default function CoupleDashboardPage() {
             { label: "CEREMONY", value: formatTime(booking.ceremony_time) },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl p-3.5 bg-white shadow-sm">
-              <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "#9aab9a" }}>{label}</p>
+              <p className="text-[11px] font-bold tracking-wider uppercase" style={{ color: "#9aab9a" }}>{label}</p>
               <p className="font-semibold text-sm mt-1 leading-snug" style={{ color: "#2a3d2a" }}>{value}</p>
             </div>
           ))}
@@ -170,7 +170,7 @@ export default function CoupleDashboardPage() {
             <div className="rounded-2xl p-4 shadow-sm" style={{ background: "#4a6741" }}>
               <div className="flex items-start gap-3">
                 <div>
-                  <p className="text-[10px] font-bold tracking-wider uppercase mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>
+                  <p className="text-xs font-bold tracking-wider uppercase mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>
                     Next Step
                   </p>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
@@ -186,7 +186,7 @@ export default function CoupleDashboardPage() {
                     <p className="text-xs mt-1 line-clamp-2" style={{ color: "rgba(255,255,255,0.65)" }}>{nextItem.description}</p>
                   )}
                   {nextItem.due_date && (
-                    <p className="text-[11px] font-semibold mt-1.5" style={{ color: "#f0c070" }}>Due {formatDate(nextItem.due_date)}</p>
+                    <p className="text-xs font-semibold mt-1.5" style={{ color: "#f0c070" }}>Due {formatDate(nextItem.due_date)}</p>
                   )}
                 </div>
                 <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0 mt-6" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -219,7 +219,7 @@ export default function CoupleDashboardPage() {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-bold" style={{ color: "#4a6741" }}>Fairchild Events Team</p>
                 {latestMessage && (
-                  <p className="text-[10px] shrink-0" style={{ color: "#9aab9a" }}>{timeAgo(latestMessage.created_at)}</p>
+                  <p className="text-xs shrink-0" style={{ color: "#9aab9a" }}>{timeAgo(latestMessage.created_at)}</p>
                 )}
               </div>
               <p className="text-xs truncate mt-0.5" style={{ color: latestMessage ? "#5a6e5a" : "#9aab9a" }}>
@@ -253,7 +253,7 @@ export default function CoupleDashboardPage() {
                   <Image src={img} alt={label} fill className="object-cover" />
                 </div>
                 <div className="py-2 px-1.5">
-                  <p className="text-[11px] font-bold text-center" style={{ color: "#2a3d2a" }}>{label}</p>
+                  <p className="text-xs font-bold text-center" style={{ color: "#2a3d2a" }}>{label}</p>
                 </div>
               </Link>
             ))}
@@ -314,7 +314,7 @@ export default function CoupleDashboardPage() {
             ].map(({ href, label, icon }) => (
               <Link key={label} href={href} className="rounded-2xl flex flex-col items-center justify-center gap-1.5 py-3.5 bg-white shadow-sm">
                 {icon}
-                <span className="text-[10px] font-semibold text-center leading-tight px-1" style={{ color: "#5a6e5a" }}>{label}</span>
+                <span className="text-[11px] font-semibold text-center leading-tight px-1" style={{ color: "#5a6e5a" }}>{label}</span>
               </Link>
             ))}
           </div>

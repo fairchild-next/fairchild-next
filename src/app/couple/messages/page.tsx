@@ -79,7 +79,7 @@ export default function MessagesPage() {
           return (
             <div key={msg.id} className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}>
               {!isMine && (
-                <p className="text-[10px] font-semibold mb-1 px-1 uppercase tracking-wider" style={{ color: "#9aab9a" }}>
+                <p className="text-xs font-semibold mb-1 px-1 uppercase tracking-wider" style={{ color: "#9aab9a" }}>
                   Fairchild Events Team
                 </p>
               )}
@@ -93,7 +93,7 @@ export default function MessagesPage() {
               >
                 <p className="whitespace-pre-wrap">{msg.message}</p>
               </div>
-              <p className="text-[10px] mt-1 px-1" style={{ color: "#b4c4b4" }}>{timeAgo(msg.created_at)}</p>
+              <p className="text-xs mt-1 px-1" style={{ color: "#b4c4b4" }}>{timeAgo(msg.created_at)}</p>
             </div>
           );
         })}

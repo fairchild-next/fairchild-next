@@ -110,11 +110,6 @@ export default function TimelinePage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="px-4 pt-5 pb-3">
         <h1 className="font-serif text-2xl font-bold" style={{ color: "#2a3d2a" }}>Wedding Checklist</h1>
-        {booking && (
-          <p className="text-xs mt-0.5" style={{ color: "#9aab9a" }}>
-            {booking.couple_name.split(" ")[0]} &amp; {booking.partner_name?.split(" ")[0]} · {booking.wedding_date ?? ""}
-          </p>
-        )}
       </div>
 
       {/* ── Stats row ───────────────────────────────────────────── */}
@@ -127,7 +122,7 @@ export default function TimelinePage() {
           ].map(({ value, label, color }) => (
             <div key={label} className="text-center">
               <p className="text-2xl font-serif font-light" style={{ color }}>{value}</p>
-              <p className="text-[11px]" style={{ color: "#9aab9a" }}>{label}</p>
+              <p className="text-xs" style={{ color: "#9aab9a" }}>{label}</p>
             </div>
           ))}
         </div>
@@ -156,9 +151,15 @@ export default function TimelinePage() {
       )}
 
       {!loading && items.length === 0 && (
-        <div className="mx-4 rounded-2xl bg-white shadow-sm p-8 text-center">
-          <p className="text-3xl mb-2">📋</p>
-          <p className="text-sm font-medium" style={{ color: "#5a6e5a" }}>No milestones yet</p>
+        <div className="mx-4 rounded-2xl bg-white shadow-sm p-10 flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: "#e8efe6" }}>
+            <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#4a6741" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+              <rect x="9" y="3" width="6" height="4" rx="1" />
+              <line x1="9" y1="12" x2="15" y2="12" /><line x1="9" y1="16" x2="13" y2="16" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold" style={{ color: "#5a6e5a" }}>No milestones yet</p>
           <p className="text-xs mt-1" style={{ color: "#9aab9a" }}>Your coordinator will add items as planning begins.</p>
         </div>
       )}
@@ -175,11 +176,11 @@ export default function TimelinePage() {
             <div key={phase}>
               {/* Phase header */}
               <div className="flex items-baseline gap-2 pt-4 pb-2">
-                <p className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#9aab9a" }}>
+                <p className="text-xs font-bold tracking-wider uppercase" style={{ color: "#9aab9a" }}>
                   {phase}
                 </p>
                 {latestDue && (
-                  <p className="text-[10px]" style={{ color: "#b4c4b4" }}>
+                  <p className="text-xs" style={{ color: "#b4c4b4" }}>
                     · Due by {formatDate(latestDue)}
                   </p>
                 )}
@@ -224,7 +225,7 @@ export default function TimelinePage() {
                         )}
                         {dueStatus && (
                           <span
-                            className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-2"
+                            className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2"
                             style={{ background: dueStatus.bg, color: dueStatus.color }}
                           >
                             {dueStatus.label}
