@@ -27,7 +27,7 @@ function MapBody() {
   }, [searchParams, isKidsMode]);
 
   return (
-    <div className="-mx-4 sm:mx-0">
+    <div className="-mx-6 sm:mx-0">
       <GardenMap configSlug={configSlug} poiListReturnPath="/map" />
     </div>
   );

@@ -163,18 +163,19 @@ export default function GardenMapLeaflet({
   const zoom = data?.config?.zoom ?? 16;
 
   return (
-    <div className="space-y-3">
-      <div className="relative">
+    <div className="space-y-0">
+      {/* Search */}
+      <div className="relative px-6 sm:px-0">
         <input
           type="search"
           placeholder="Find exhibits, cafés, restrooms..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 pr-10 text-sm placeholder-[var(--text-muted)]"
+          className="w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 pr-10 text-sm placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden>🔍</span>
+        <span className="absolute right-9 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden>🔍</span>
         {search.trim() && searchResults.length > 0 && (
-          <ul className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] py-1 shadow-lg">
+          <ul className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] py-1 shadow-lg">
             {searchResults.map((poi) => (
               <li key={poi.id}>
                 <button
@@ -193,47 +194,51 @@ export default function GardenMapLeaflet({
           </ul>
         )}
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-2 flex-1 min-w-0">
+
+      {/* Filter pills — horizontally scrollable row */}
+      <div className="flex gap-2 overflow-x-auto px-6 sm:px-0 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CATEGORIES.map((c) => (
           <button
             key={c.id}
             onClick={() => setFilter(c.id)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-              filter === c.id ? "bg-[var(--primary)] text-black" : "bg-[var(--surface)] border border-[var(--surface-border)] text-[var(--text-muted)]"
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+              filter === c.id
+                ? "bg-[var(--primary)] text-white"
+                : "bg-[var(--surface)] border border-[var(--surface-border)] text-[var(--text-muted)]"
             }`}
           >
             {c.label}
           </button>
         ))}
-        </div>
-        <div className="flex shrink-0 rounded-lg border border-[var(--surface-border)] overflow-hidden">
+      </div>
+
+      {/* Map / List toggle */}
+      <div className="px-6 sm:px-0 pb-3">
+        <div className="flex rounded-xl border border-[var(--surface-border)] overflow-hidden">
           <button
             type="button"
             onClick={() => setViewMode("map")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
+            className={`flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium transition ${
               viewMode === "map" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
             }`}
-            title="Map view"
           >
             <MapTrifold size={18} weight="regular" />
-            <span className="hidden sm:inline">Map</span>
+            Map
           </button>
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
+            className={`flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium transition ${
               viewMode === "list" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
             }`}
-            title="List view"
           >
             <List size={18} weight="regular" />
-            <span className="hidden sm:inline">List</span>
+            List
           </button>
         </div>
       </div>
       {viewMode === "list" ? (
-        <div className="h-[480px] w-full overflow-y-auto rounded-lg border border-[var(--surface-border)] bg-[var(--surface)]">
+        <div className="mx-6 sm:mx-0 h-[480px] overflow-y-auto rounded-2xl border border-[var(--surface-border)] bg-[var(--surface)]">
           {filteredPois.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
               <p className="text-[var(--text-muted)]">
@@ -282,7 +287,7 @@ export default function GardenMapLeaflet({
           )}
         </div>
       ) : (
-      <div className="relative h-[480px] w-full overflow-hidden rounded-lg">
+      <div className="relative h-[480px] w-full overflow-hidden sm:rounded-2xl">
         {filteredPois.length === 0 && (
           <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center rounded-lg bg-[var(--surface)]/95">
             <p className="text-[var(--text-muted)] text-center px-4">
