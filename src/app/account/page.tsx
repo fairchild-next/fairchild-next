@@ -296,16 +296,16 @@ export default function AccountPage() {
             setKidsMode(true);
             router.push("/");
           }}
-          className="block w-full p-4 rounded-2xl bg-[var(--surface)] border-2 border-[#6A8468] hover:border-[#5a7360] transition text-left"
+          className="block w-full p-4 rounded-2xl bg-[#d4e8d0] border border-[#c0dabb] hover:brightness-[0.97] transition text-left"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-[#6A8468]">Switch to Kids Mode</p>
-              <p className="text-sm text-[var(--text-muted)] mt-0.5">
+              <p className="font-semibold text-[#193521]">Switch to Kids Mode</p>
+              <p className="text-sm text-[#193521]/70 mt-0.5">
                 Let your kids explore with a fun, kid-friendly interface
               </p>
             </div>
-            <span className="text-[#6A8468]">→</span>
+            <span className="text-[#193521]">→</span>
           </div>
         </button>
 
@@ -317,19 +317,18 @@ export default function AccountPage() {
             setEventsMode(true);
             router.push("/");
           }}
-          className="block w-full p-4 rounded-2xl bg-[var(--surface)] border-2 transition text-left hover:opacity-95"
-          style={{ borderColor: `${eventAccent}55` }}
+          className="block w-full p-4 rounded-2xl bg-[#193521] border border-[#193521] hover:opacity-95 transition text-left"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold" style={{ color: eventAccent }}>
+              <p className="font-semibold text-white">
                 Events Mode
               </p>
-              <p className="text-sm text-[var(--text-muted)] mt-0.5">
+              <p className="text-sm text-white/70 mt-0.5">
                 Day-of guide, schedule, map, and premium add-ons for featured events
               </p>
             </div>
-            <span style={{ color: eventAccent }}>→</span>
+            <span className="text-white">→</span>
           </div>
         </button>
 
@@ -340,11 +339,11 @@ export default function AccountPage() {
             setWeddingMode(true);
             router.push("/");
           }}
-          className="block w-full p-4 rounded-2xl bg-[var(--surface)] border-2 border-[var(--surface-border)] hover:border-[var(--primary)] transition text-left"
+          className="block w-full p-4 rounded-2xl bg-white border border-[#e0dcd6] hover:border-[#c5c0b8] transition text-left"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-[var(--text-primary)]">Wedding Mode</p>
+              <p className="font-semibold text-[#193521]">Wedding Mode</p>
               <p className="text-sm text-[var(--text-muted)] mt-0.5">
                 Explore Fairchild as a wedding venue—packages, venues, and planning
               </p>
