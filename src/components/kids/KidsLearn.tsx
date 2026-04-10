@@ -37,7 +37,7 @@ export default function KidsLearn() {
       <div className="px-6 mt-12 grid grid-cols-2 gap-4 pb-24">
         <Link
           href="/kids/plant-superpowers"
-          className="flex flex-col rounded-2xl overflow-hidden border-2 border-[#193521] bg-[#193521] hover:opacity-95 transition min-h-[140px]"
+          className="flex flex-col rounded-2xl overflow-hidden border-2 border-[var(--surface-border)] bg-white hover:border-[var(--primary)] transition min-h-[140px]"
         >
           <div className="relative flex-1 min-h-[90px]">
             <Image
@@ -48,8 +48,8 @@ export default function KidsLearn() {
               sizes="(max-width: 448px) 50vw, 224px"
             />
           </div>
-          <div className="p-3 bg-[#193521]">
-            <span className="font-semibold text-white text-sm">Plant Superpowers</span>
+          <div className="p-3 bg-white">
+            <span className="font-semibold text-[#193521] text-sm">Plant Superpowers</span>
           </div>
         </Link>
 

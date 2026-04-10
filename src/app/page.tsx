@@ -84,8 +84,8 @@ type GuestShortcut = {
 };
 
 const GUEST_HOME_TOP_THREE: GuestShortcut[] = [
-  { href: "/tickets/daily", label: "Buy Tickets", image: GUEST_HOME_IMAGES.buyTickets },
   { href: "/wallet", label: "My Wallet", image: GUEST_HOME_IMAGES.wallet },
+  { href: "/tickets/daily", label: "Buy Tickets", image: GUEST_HOME_IMAGES.buyTickets },
   { href: "/map", label: "Garden Map", image: GUEST_HOME_IMAGES.gardenMap },
 ];
 
@@ -157,28 +157,35 @@ export default function Home() {
       {/* Top actions — three equal tiles (edge-aligned with hero) */}
       <div className="mt-4 px-3 sm:px-4">
         <div className="grid grid-cols-3 gap-2">
-          {GUEST_HOME_TOP_THREE.map((item) => (
-            <Link
-              key={item.href + item.label}
-              href={item.href}
-              className="flex flex-col overflow-hidden rounded-xl border-2 border-[#6A8468] bg-white shadow-sm transition hover:border-[#5a7360]"
-            >
-              <div className="relative h-[92px] shrink-0 bg-[#e8e4e0]">
-                <Image
-                  src={item.image}
-                  alt=""
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 448px) 33vw, 180px"
-                />
-              </div>
-              <div className="flex min-h-[46px] items-center justify-center bg-white px-1 py-2.5 text-center">
-                <span className="text-xs font-semibold leading-tight text-black line-clamp-2">
-                  {item.label}
-                </span>
-              </div>
-            </Link>
-          ))}
+          {GUEST_HOME_TOP_THREE.map((item) => {
+            const isCta = item.label === "Buy Tickets";
+            return (
+              <Link
+                key={item.href + item.label}
+                href={item.href}
+                className={`flex flex-col overflow-hidden rounded-xl border-2 shadow-sm transition ${
+                  isCta
+                    ? "border-[#193521] bg-[#193521] hover:opacity-95"
+                    : "border-[#6A8468] bg-white hover:border-[#5a7360]"
+                }`}
+              >
+                <div className="relative h-[92px] shrink-0 bg-[#e8e4e0]">
+                  <Image
+                    src={item.image}
+                    alt=""
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 448px) 33vw, 180px"
+                  />
+                </div>
+                <div className={`flex min-h-[46px] items-center justify-center px-1 py-2.5 text-center ${isCta ? "bg-[#193521]" : "bg-white"}`}>
+                  <span className={`text-xs font-semibold leading-tight line-clamp-2 ${isCta ? "text-white" : "text-black"}`}>
+                    {item.label}
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
