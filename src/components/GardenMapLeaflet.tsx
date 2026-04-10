@@ -365,13 +365,12 @@ export default function GardenMapLeaflet({
                         </Link>
                       </div>
                     </div>
-                    <div className="flex justify-center border-t border-gray-100 pt-2">
+                    <div className="flex justify-center border-t border-[var(--surface-border)] pt-2">
                       <a
                         href={getDirectionsUrl(poi.lat, poi.lng)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium shadow-sm transition hover:opacity-90"
-                        style={{ backgroundColor: "#1d4ed8", color: "#ffffff" }}
+                        className="inline-flex items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold text-white bg-[var(--primary)] transition hover:opacity-90"
                       >
                         Get Directions
                       </a>
