@@ -126,7 +126,7 @@ function DocRow({
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold" style={{ color: "#2a3d2a" }}>{label}</p>
-        <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#9aab9a" }}>{desc}</p>
+        <p className="text-sm mt-0.5 leading-relaxed" style={{ color: "#9aab9a" }}>{desc}</p>
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           {status && <StatusBadge type={status} />}
           {viewUrl && (
@@ -239,7 +239,7 @@ export default function DocumentsPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="px-4 pt-5">
         <h1 className="font-serif text-2xl font-bold" style={{ color: "#2a3d2a" }}>Documents</h1>
-        <p className="text-xs mt-0.5" style={{ color: "#9aab9a" }}>
+        <p className="text-sm mt-0.5" style={{ color: "#9aab9a" }}>
           {submittedSlots.length}/{REQUIRED_SLOTS.length} required items submitted
         </p>
       </div>
@@ -250,7 +250,7 @@ export default function DocumentsPage() {
           <button
             key={id}
             onClick={() => setTab(id)}
-            className="px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors mr-1"
+            className="px-3 py-2.5 text-sm font-semibold border-b-2 transition-colors mr-1"
             style={tab === id
               ? { borderColor: "#4a6741", color: "#2a3d2a" }
               : { borderColor: "transparent", color: "#9aab9a" }}
@@ -275,7 +275,7 @@ export default function DocumentsPage() {
             <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="#9a7020" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <p className="text-xs leading-relaxed" style={{ color: "#7a6020" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "#7a6020" }}>
               Your coordinator can see all documents in this vault and will be notified when you upload anything new.
             </p>
           </div>
@@ -362,8 +362,8 @@ export default function DocumentsPage() {
             <div className="text-center">
               <p className="text-sm font-semibold" style={{ color: "#5a6e5a" }}>Have something else to share?</p>
               <p className="text-xs mt-0.5" style={{ color: "#4a6741" }}>
-                {vaultUploading ? "Uploading…" : "Upload any file to your vault"}
-              </p>
+              <span className="text-sm" style={{ color: "#4a6741" }}>{vaultUploading ? "Uploading…" : "Upload any file to your vault"}</span>
+            </p>
             </div>
             <input
               ref={vaultRef}
@@ -400,7 +400,7 @@ export default function DocumentsPage() {
                 </svg>
               </div>
               <p className="text-sm font-semibold" style={{ color: "#5a6e5a" }}>No contracts yet</p>
-              <p className="text-xs mt-1" style={{ color: "#9aab9a" }}>Your coordinator will upload your signed contract here.</p>
+              <p className="text-sm mt-1" style={{ color: "#9aab9a" }}>Your coordinator will upload your signed contract here.</p>
             </div>
           )}
         </div>

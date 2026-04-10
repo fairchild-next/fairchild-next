@@ -183,10 +183,10 @@ export default function CoupleDashboardPage() {
                 <div className="flex-1 min-w-0 mt-6">
                   <p className="text-white font-bold text-base leading-snug">{nextItem.title}</p>
                   {nextItem.description && (
-                    <p className="text-xs mt-1 line-clamp-2" style={{ color: "rgba(255,255,255,0.65)" }}>{nextItem.description}</p>
+                    <p className="text-sm mt-1 line-clamp-2" style={{ color: "rgba(255,255,255,0.7)" }}>{nextItem.description}</p>
                   )}
                   {nextItem.due_date && (
-                    <p className="text-xs font-semibold mt-1.5" style={{ color: "#f0c070" }}>Due {formatDate(nextItem.due_date)}</p>
+                    <p className="text-sm font-semibold mt-1.5" style={{ color: "#f0c070" }}>Due {formatDate(nextItem.due_date)}</p>
                   )}
                 </div>
                 <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0 mt-6" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -217,12 +217,12 @@ export default function CoupleDashboardPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-bold" style={{ color: "#4a6741" }}>Fairchild Events Team</p>
+                <p className="text-sm font-bold" style={{ color: "#4a6741" }}>Fairchild Events Team</p>
                 {latestMessage && (
                   <p className="text-xs shrink-0" style={{ color: "#9aab9a" }}>{timeAgo(latestMessage.created_at)}</p>
                 )}
               </div>
-              <p className="text-xs truncate mt-0.5" style={{ color: latestMessage ? "#5a6e5a" : "#9aab9a" }}>
+              <p className="text-sm truncate mt-0.5" style={{ color: latestMessage ? "#5a6e5a" : "#9aab9a" }}>
                 {latestMessage ? latestMessage.message : "No messages yet — say hello!"}
               </p>
             </div>
@@ -253,7 +253,7 @@ export default function CoupleDashboardPage() {
                   <Image src={img} alt={label} fill className="object-cover" />
                 </div>
                 <div className="py-2 px-1.5">
-                  <p className="text-xs font-bold text-center" style={{ color: "#2a3d2a" }}>{label}</p>
+                  <p className="text-sm font-bold text-center" style={{ color: "#2a3d2a" }}>{label}</p>
                 </div>
               </Link>
             ))}

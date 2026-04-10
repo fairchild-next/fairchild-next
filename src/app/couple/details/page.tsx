@@ -8,8 +8,8 @@ import { formatDate, formatTime } from "@/lib/couple/types";
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-center py-3 border-b" style={{ borderColor: "#f0f3ee" }}>
-      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9aab9a" }}>{label}</span>
-      <span className="text-sm font-medium text-right" style={{ color: "#2a3d2a" }}>{value}</span>
+      <span className="text-sm font-semibold" style={{ color: "#9aab9a" }}>{label}</span>
+      <span className="text-sm font-semibold text-right" style={{ color: "#2a3d2a" }}>{value}</span>
     </div>
   );
 }
@@ -100,7 +100,7 @@ export default function DetailsPage() {
           <p className="font-serif text-sm font-semibold mb-3" style={{ color: "#4a6741" }}>Guest Count &amp; Catering</p>
           <form onSubmit={handleSave} className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#9aab9a" }}>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: "#9aab9a" }}>
                 Estimated Guest Count
               </label>
               <input
@@ -113,7 +113,7 @@ export default function DetailsPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#9aab9a" }}>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: "#9aab9a" }}>
                 Dietary &amp; Catering Notes
               </label>
               <textarea

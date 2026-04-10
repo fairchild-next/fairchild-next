@@ -71,7 +71,7 @@ export default function MessagesPage() {
               </svg>
             </div>
             <p className="text-sm font-semibold" style={{ color: "#5a6e5a" }}>No messages yet</p>
-            <p className="text-xs mt-1" style={{ color: "#9aab9a" }}>Send a note to your coordinator to get started.</p>
+            <p className="text-sm mt-1" style={{ color: "#9aab9a" }}>Send a note to your coordinator to get started.</p>
           </div>
         )}
         {messages.map((msg) => {

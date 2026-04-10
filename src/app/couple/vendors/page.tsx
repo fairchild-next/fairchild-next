@@ -52,29 +52,29 @@ export default function VendorsPage() {
             </div>
             <p className="text-sm mb-3 leading-relaxed" style={{ color: "#7a8a7a" }}>{vendor.description}</p>
             {vendor.note && (
-              <p className="text-xs italic mb-3" style={{ color: "#9a7020" }}>{vendor.note}</p>
+              <p className="text-sm italic mb-3" style={{ color: "#9a7020" }}>{vendor.note}</p>
             )}
             <div className="flex flex-wrap gap-3">
               {vendor.website && (
                 <a href={vendor.website} target="_blank" rel="noopener noreferrer"
-                   className="text-xs font-semibold flex items-center gap-1" style={{ color: "#4a6741" }}>
+                   className="text-sm font-semibold flex items-center gap-1" style={{ color: "#4a6741" }}>
                   <span>🌐</span> Website
                 </a>
               )}
               {vendor.phone && (
-                <a href={`tel:${vendor.phone}`} className="text-xs flex items-center gap-1" style={{ color: "#7a8a7a" }}>
+                <a href={`tel:${vendor.phone}`} className="text-sm flex items-center gap-1" style={{ color: "#7a8a7a" }}>
                   <span>📞</span> {vendor.phone}
                 </a>
               )}
               {vendor.email && (
-                <a href={`mailto:${vendor.email}`} className="text-xs flex items-center gap-1" style={{ color: "#7a8a7a" }}>
+                <a href={`mailto:${vendor.email}`} className="text-sm flex items-center gap-1" style={{ color: "#7a8a7a" }}>
                   <span>✉️</span> {vendor.email}
                 </a>
               )}
             </div>
           </div>
         ))}
-        <p className="text-xs text-center pb-2" style={{ color: "#b4c4b4" }}>
+        <p className="text-sm text-center pb-2" style={{ color: "#b4c4b4" }}>
           Have a vendor to request? Message your coordinator.
         </p>
         <div className="h-2" />

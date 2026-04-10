@@ -122,7 +122,7 @@ export default function TimelinePage() {
           ].map(({ value, label, color }) => (
             <div key={label} className="text-center">
               <p className="text-2xl font-serif font-light" style={{ color }}>{value}</p>
-              <p className="text-xs" style={{ color: "#9aab9a" }}>{label}</p>
+              <p className="text-sm" style={{ color: "#9aab9a" }}>{label}</p>
             </div>
           ))}
         </div>
@@ -134,7 +134,7 @@ export default function TimelinePage() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className="px-3 py-2 text-xs font-semibold border-b-2 transition-colors mr-1"
+            className="px-3 py-2.5 text-sm font-semibold border-b-2 transition-colors mr-1"
             style={filter === f
               ? { borderColor: "#4a6741", color: "#2a3d2a" }
               : { borderColor: "transparent", color: "#9aab9a" }}
@@ -160,7 +160,7 @@ export default function TimelinePage() {
             </svg>
           </div>
           <p className="text-sm font-semibold" style={{ color: "#5a6e5a" }}>No milestones yet</p>
-          <p className="text-xs mt-1" style={{ color: "#9aab9a" }}>Your coordinator will add items as planning begins.</p>
+          <p className="text-sm mt-1" style={{ color: "#9aab9a" }}>Your coordinator will add items as planning begins.</p>
         </div>
       )}
 
@@ -219,7 +219,7 @@ export default function TimelinePage() {
                           {item.title}
                         </p>
                         {item.description && (
-                          <p className="text-xs leading-relaxed mt-1" style={{ color: "#7a8a7a" }}>
+                          <p className="text-sm leading-relaxed mt-1" style={{ color: "#7a8a7a" }}>
                             {item.description}
                           </p>
                         )}

@@ -52,12 +52,12 @@ export default function ProfilePage() {
             <div className="rounded-2xl bg-white shadow-sm p-4 space-y-3">
               <p className="font-serif text-sm font-semibold" style={{ color: "#4a6741" }}>Account</p>
               <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9aab9a" }}>Email</span>
+                  <span className="text-sm font-semibold" style={{ color: "#9aab9a" }}>Email</span>
                 <span className="text-sm font-medium" style={{ color: "#2a3d2a" }}>{email ?? "—"}</span>
               </div>
               {booking && (
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9aab9a" }}>Status</span>
+                  <span className="text-sm font-semibold" style={{ color: "#9aab9a" }}>Status</span>
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${STATUS_COLORS[booking.status]}`}>
                     {STATUS_LABELS[booking.status]}
                   </span>
@@ -75,7 +75,7 @@ export default function ProfilePage() {
                   ["Venue",  booking.venue ?? "TBD"],
                 ].map(([label, value]) => (
                   <div key={label} className="flex justify-between items-center py-1 border-b" style={{ borderColor: "#f0f3ee" }}>
-                    <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#9aab9a" }}>{label}</span>
+                    <span className="text-sm font-semibold" style={{ color: "#9aab9a" }}>{label}</span>
                     <span className="text-sm font-medium text-right" style={{ color: "#2a3d2a" }}>{value}</span>
                   </div>
                 ))}
