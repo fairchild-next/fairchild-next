@@ -164,35 +164,59 @@ export default function GardenMapLeaflet({
 
   return (
     <div className="space-y-0">
-      {/* Search */}
-      <div className="relative px-6 sm:px-0">
-        <input
-          type="search"
-          placeholder="Find exhibits, cafés, restrooms..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 pr-10 text-sm placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
-        />
-        <span className="absolute right-9 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden>🔍</span>
-        {search.trim() && searchResults.length > 0 && (
-          <ul className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] py-1 shadow-lg">
-            {searchResults.map((poi) => (
-              <li key={poi.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPoi(poi);
-                    setFlyToTrigger((t) => t + 1);
-                    setSearch("");
-                  }}
-                  className="w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--surface-border)]"
-                >
-                  {poi.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Search + Map/List toggle on same row */}
+      <div className="flex items-center gap-2 px-6 sm:px-0">
+        <div className="relative flex-1">
+          <input
+            type="search"
+            placeholder="Find exhibits, cafés, restrooms..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 pr-10 text-sm placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden>🔍</span>
+          {search.trim() && searchResults.length > 0 && (
+            <ul className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] py-1 shadow-lg">
+              {searchResults.map((poi) => (
+                <li key={poi.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPoi(poi);
+                      setFlyToTrigger((t) => t + 1);
+                      setSearch("");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--surface-border)]"
+                  >
+                    {poi.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="flex shrink-0 rounded-lg border border-[var(--surface-border)] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setViewMode("map")}
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition ${
+              viewMode === "map" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
+            }`}
+          >
+            <MapTrifold size={18} weight="regular" />
+            Map
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("list")}
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition ${
+              viewMode === "list" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
+            }`}
+          >
+            <List size={18} weight="regular" />
+            List
+          </button>
+        </div>
       </div>
 
       {/* Filter pills — horizontally scrollable row */}
@@ -210,32 +234,6 @@ export default function GardenMapLeaflet({
             {c.label}
           </button>
         ))}
-      </div>
-
-      {/* Map / List toggle — left-aligned, compact */}
-      <div className="flex justify-start px-6 sm:px-0 pb-3 pt-1">
-        <div className="flex shrink-0 rounded-lg border border-[var(--surface-border)] overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setViewMode("map")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
-              viewMode === "map" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
-            }`}
-          >
-            <MapTrifold size={18} weight="regular" />
-            Map
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("list")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
-              viewMode === "list" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
-            }`}
-          >
-            <List size={18} weight="regular" />
-            List
-          </button>
-        </div>
       </div>
       {viewMode === "list" ? (
         <div className="mx-6 sm:mx-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
