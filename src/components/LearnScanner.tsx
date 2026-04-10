@@ -297,8 +297,22 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
           <div className="rounded-2xl overflow-hidden bg-black/5 aspect-[4/3] flex items-center justify-center border border-[var(--surface-border)]">
             <div className="text-center px-6">
               <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-[var(--primary)]/20 flex items-center justify-center">
-                <svg className="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-2v2m0-2v-2m-2 0h2M4 7a2 2 0 012-2h2V3h4v2h2a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
+                <svg className="w-8 h-8 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  {/* QR code icon — top-left square */}
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none" />
+                  {/* top-right square */}
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none" />
+                  {/* bottom-left square */}
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none" />
+                  {/* bottom-right dots */}
+                  <line x1="14" y1="14" x2="14" y2="14.01" strokeWidth={2.5} />
+                  <line x1="17" y1="14" x2="17" y2="17" />
+                  <line x1="14" y1="17" x2="17" y2="17" />
+                  <line x1="17" y1="20" x2="21" y2="20" />
+                  <line x1="21" y1="14" x2="21" y2="17" />
                 </svg>
               </div>
               <p className="text-sm text-[var(--text-muted)] mb-4">
