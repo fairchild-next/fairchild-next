@@ -370,7 +370,7 @@ export default function GardenMapLeaflet({
                         href={getDirectionsUrl(poi.lat, poi.lng)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold text-white bg-[var(--primary)] transition hover:opacity-90"
+                        className="inline-flex items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold bg-[var(--primary)] transition hover:opacity-90 !text-white"
                       >
                         Get Directions
                       </a>
