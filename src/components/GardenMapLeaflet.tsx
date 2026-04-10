@@ -212,8 +212,8 @@ export default function GardenMapLeaflet({
         ))}
       </div>
 
-      {/* Map / List toggle — right-aligned, compact */}
-      <div className="flex justify-end px-6 sm:px-0 pb-3">
+      {/* Map / List toggle — left-aligned, compact */}
+      <div className="flex justify-start px-6 sm:px-0 pb-3 pt-1">
         <div className="flex shrink-0 rounded-lg border border-[var(--surface-border)] overflow-hidden">
           <button
             type="button"
