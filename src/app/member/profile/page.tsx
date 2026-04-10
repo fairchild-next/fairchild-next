@@ -285,21 +285,21 @@ export default function MemberProfilePage() {
 
       <div className="space-y-4">
         <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--surface-border)]">
-          <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">
-            Membership Type
+          <p className="text-sm font-medium text-[var(--text-muted)] mb-1">
+            Membership type
           </p>
           <p className="font-medium">{member.membership_type}</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--surface-border)]">
-          <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">
-            Valid Through
+          <p className="text-sm font-medium text-[var(--text-muted)] mb-1">
+            Valid through
           </p>
           <p className="font-medium">{formatExpiry(member.expires_at)}</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--surface-border)]">
-          <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">
+          <p className="text-sm font-medium text-[var(--text-muted)] mb-1">
             Member ID
           </p>
           <p className="font-mono font-medium">#{member.member_id}</p>

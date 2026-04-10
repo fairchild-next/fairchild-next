@@ -87,16 +87,16 @@ export default function AccountStatsPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-xl bg-[var(--background)] border border-[var(--surface-border)]">
-                  <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
-                    Quizzes Completed
+                  <p className="text-sm font-medium text-[var(--text-muted)]">
+                    Quizzes completed
                   </p>
                   <p className="text-xl font-bold text-[var(--primary)] mt-0.5">
                     {quizStats!.totalCompletions}
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-[var(--background)] border border-[var(--surface-border)]">
-                  <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
-                    Best Score
+                  <p className="text-sm font-medium text-[var(--text-muted)]">
+                    Best score
                   </p>
                   <p className="text-xl font-bold text-[var(--primary)] mt-0.5">
                     {quizStats!.bestScore}%
