@@ -26,7 +26,7 @@ export default function DailyTicketsPage() {
 
   return (
     <div className="px-6 pt-6 pb-24 bg-[var(--background)] min-h-full text-[var(--text-primary)]">
-      <h2 className="text-3xl font-semibold mb-6 border-b border-[var(--surface-border)] pb-4">
+      <h2 className="text-2xl font-semibold mb-6 border-b border-[var(--surface-border)] pb-4">
         Daily Admission
       </h2>
 

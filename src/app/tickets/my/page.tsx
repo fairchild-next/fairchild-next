@@ -103,7 +103,7 @@ export default function MyTicketsPage() {
   if (!initialized || !sessionResolved) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">Loading…</p>
+        <p className="text-[var(--text-muted)]">Loading…</p>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export default function MyTicketsPage() {
   if (!user) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">Redirecting…</p>
+        <p className="text-[var(--text-muted)]">Redirecting…</p>
       </div>
     );
   }
@@ -193,7 +193,7 @@ export default function MyTicketsPage() {
             </>
           )}
           {currentGroups.length === 0 && !member ? (
-            <p className="text-gray-500">No current tickets.</p>
+            <p className="text-[var(--text-muted)]">No current tickets.</p>
           ) : currentGroups.length > 0 ? (
             <div className="space-y-6">
               {currentGroups.map((group) => (
@@ -355,7 +355,7 @@ function TicketGroupCard({
 
   if (showQr) {
     return (
-      <div className="border border-gray-700 rounded-xl overflow-hidden shadow-sm">
+      <div className="border border-[var(--surface-border)] rounded-xl overflow-hidden shadow-sm">
           <div
             className={`relative overflow-hidden ${
               isScheduled || isEvent ? "aspect-[2/1]" : ""
@@ -421,14 +421,14 @@ function TicketGroupCard({
               {dateTimeStr}
             </p>
           ) : null}
-          <p className="text-xs text-gray-500 uppercase tracking-wide">{admissionLabel}</p>
+          <p className="text-sm font-medium text-[var(--text-muted)]">{admissionLabel}</p>
           {isScheduled && (
             <p className="text-xs text-amber-400/90">
               Enter at your scheduled time. 30-min grace after slot end.
             </p>
           )}
           {flexLegalText && (
-            <p className="text-xs text-gray-500">{flexLegalText}</p>
+            <p className="text-xs text-[var(--text-muted)]">{flexLegalText}</p>
           )}
           {eventDetailHref && (
             <Link href={eventDetailHref} className="inline-block text-sm font-medium text-[var(--primary)]">
@@ -436,16 +436,16 @@ function TicketGroupCard({
             </Link>
           )}
           {siteConfig.ticketRequiresActivation && (
-            <div className="w-full py-2.5 px-3 rounded-lg bg-green-700 text-white text-center text-sm font-bold uppercase tracking-wide">
+            <div className="w-full py-2.5 px-3 rounded-xl bg-[var(--text-primary)] text-white text-center text-sm font-bold">
               Activated
             </div>
           )}
-          <p className="text-sm text-gray-400">{breakdown}</p>
+          <p className="text-sm text-[var(--text-muted)]">{breakdown}</p>
           {totalStr && (
-            <p className="text-sm font-medium text-green-600">{totalStr}</p>
+            <p className="text-sm font-medium text-[var(--primary)]">{totalStr}</p>
           )}
-          <div className="space-y-3 pt-2 border-t border-gray-700">
-            <p className="text-xs text-gray-500">Show QR at entry</p>
+          <div className="space-y-3 pt-2 border-t border-[var(--surface-border)]">
+            <p className="text-xs text-[var(--text-muted)]">Show QR at entry</p>
             <TicketQrCarousel tickets={tickets} />
           </div>
         </div>
@@ -517,7 +517,7 @@ function TicketQrCarousel({ tickets }: { tickets: Ticket[] }) {
       onTouchEnd={onTouchEnd}
     >
       <div className="flex flex-col items-center gap-2">
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-[var(--text-muted)]">
           Ticket {index + 1} of {tickets.length}
         </span>
         <TicketQr ticket={ticket} />
@@ -531,7 +531,7 @@ function TicketQrCarousel({ tickets }: { tickets: Ticket[] }) {
               aria-label={`Go to ticket ${i + 1}`}
               onClick={() => setIndex(i)}
               className={`w-2 h-2 rounded-full transition ${
-                i === index ? "bg-green-500" : "bg-gray-600"
+                i === index ? "bg-[var(--primary)]" : "bg-[var(--surface-border)]"
               }`}
             />
           ))}

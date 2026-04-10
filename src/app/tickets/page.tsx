@@ -8,8 +8,8 @@ export default function TicketsPage() {
   const { member, loading } = useMember()
 
   return (
-    <div className={`px-6 pt-6 pb-24 ${!member ? "bg-[#F3EFEE] min-h-full text-[#193521]" : ""}`}>
-      <h2 className={`text-3xl font-semibold mb-8 border-b pb-4 ${!member ? "border-[#e5e0d8]" : "border-[var(--surface-border)]"}`}>
+    <div className="px-6 pt-6 pb-24">
+      <h2 className="text-2xl font-semibold mb-8 border-b border-[var(--surface-border)] pb-4">
         Tickets
       </h2>
 
@@ -19,7 +19,7 @@ export default function TicketsPage() {
         {!loading && member && (
           <div
             onClick={() => router.push("/tickets/member")}
-            className="bg-[var(--primary)]/20 border-2 border-[var(--primary)] rounded-2xl p-6 cursor-pointer hover:border-green-400 transition"
+            className="bg-[var(--primary)]/20 border-2 border-[var(--primary)] rounded-2xl p-6 cursor-pointer hover:border-[var(--primary-hover)] transition"
           >
             <h3 className="text-xl font-medium mb-2">
               Member Tickets
@@ -34,7 +34,7 @@ export default function TicketsPage() {
         {!member && (
           <div
             onClick={() => router.push("/tickets/daily")}
-            className="bg-[#6A8468] border border-[#6A8468] rounded-2xl p-6 cursor-pointer hover:opacity-90 transition"
+            className="bg-[var(--primary)] border border-[var(--primary)] rounded-2xl p-6 cursor-pointer hover:opacity-90 transition"
           >
             <h3 className="text-xl font-medium mb-2 text-white">
               Daily Admission
@@ -48,11 +48,7 @@ export default function TicketsPage() {
         {/* Special Events / All Special Events – label differs for member vs guest. Non-member: white */}
         <div
           onClick={() => router.push("/tickets/events")}
-          className={`rounded-2xl p-6 cursor-pointer transition ${
-            member
-              ? "bg-[var(--surface)] border border-[var(--surface-border)] hover:border-green-500"
-              : "bg-white border border-[#e5e0d8] hover:border-[#6A8468]"
-          }`}
+          className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl p-6 cursor-pointer hover:border-[var(--primary)] transition"
         >
           <h3 className="text-xl font-medium mb-2">
             {member ? "All Special Events" : "Special Events"}

@@ -2,8 +2,8 @@ import MapPageClient from "./MapPageClient";
 
 export default function MapPage() {
   return (
-    <div className="px-4 pt-4 pb-24 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-semibold mb-2 border-b border-[var(--surface-border)] pb-4">
+    <div className="px-6 pt-6 pb-24">
+      <h2 className="text-2xl font-semibold mb-2 border-b border-[var(--surface-border)] pb-4">
         Explore the Garden
       </h2>
       <p className="text-[var(--text-muted)] mb-4">

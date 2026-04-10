@@ -34,7 +34,7 @@ export default function LearnPage() {
     <div className="min-h-screen">
       {/* Header – same format as Map/Explore the Garden */}
       <div className="px-6 pt-6 pb-4">
-        <h1 className="text-3xl font-semibold text-[var(--text-primary)] mb-2 border-b border-[var(--surface-border)] pb-4">
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-2 border-b border-[var(--surface-border)] pb-4">
           Learn
         </h1>
         <p className="text-[var(--text-muted)]">

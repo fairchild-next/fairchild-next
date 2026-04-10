@@ -41,10 +41,10 @@ export default async function MapPoiDetailPage({
   const fullDescription = poi.details ?? poi.description ?? "";
 
   return (
-    <div className="px-4 pb-24 max-w-2xl mx-auto w-full min-w-0">
+    <div className="px-6 pb-24 max-w-2xl mx-auto w-full min-w-0">
       <Link
         href={backHref}
-        className="inline-block mb-4 text-sm text-[var(--text-muted)] hover:text-[var(--text)]"
+        className="inline-block mb-4 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]"
       >
         ← Back to map
       </Link>
@@ -64,7 +64,7 @@ export default async function MapPoiDetailPage({
       <h1 className="mt-4 text-2xl font-semibold">{poi.name}</h1>
 
       {fullDescription && (
-        <div className="mt-3 whitespace-pre-wrap text-[var(--text)] break-words">
+        <div className="mt-3 whitespace-pre-wrap text-[var(--text-primary)] break-words">
           {fullDescription}
         </div>
       )}
@@ -73,7 +73,7 @@ export default async function MapPoiDetailPage({
         href={getDirectionsUrl(Number(poi.lat), Number(poi.lng))}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-6 inline-flex items-center justify-center rounded-lg bg-[var(--primary)] px-6 py-3 font-medium text-black"
+        className="mt-6 inline-flex items-center justify-center rounded-xl bg-[var(--primary)] px-6 py-3 font-semibold text-white"
       >
         Get Directions
       </a>

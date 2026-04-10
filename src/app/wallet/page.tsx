@@ -31,14 +31,14 @@ export default function WalletPage() {
   if (!initialized || !ready) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">Loading…</p>
+        <p className="text-[var(--text-muted)]">Loading…</p>
       </div>
     );
   }
 
   return (
     <div className="p-6 flex items-center justify-center min-h-[200px]">
-      <p className="text-gray-500">Redirecting…</p>
+      <p className="text-[var(--text-muted)]">Redirecting…</p>
     </div>
   );
 }

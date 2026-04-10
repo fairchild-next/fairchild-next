@@ -69,7 +69,7 @@ export default function EventsPage() {
       </div>
 
       <div className="px-6 pt-4 pb-6">
-        <h2 className="text-3xl font-semibold mb-2">All Special Events</h2>
+        <h2 className="text-2xl font-semibold mb-2">All Special Events</h2>
         <p className="text-[var(--text-muted)]">
           Yoga, concerts, workshops, and seasonal experiences.
         </p>
@@ -97,7 +97,7 @@ export default function EventsPage() {
               href={member ? `/tickets/events/${ev.slug}?member=1` : `/tickets/events/${ev.slug}`}
               className="block"
             >
-              <div className="mx-6 bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl overflow-hidden hover:border-green-500 transition">
+              <div className="mx-6 bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl overflow-hidden hover:border-[var(--primary)] transition">
                 <div className="aspect-[2/1] relative bg-gradient-to-br from-emerald-900/40 to-transparent">
                   {ev.image_url ? (
                     <img

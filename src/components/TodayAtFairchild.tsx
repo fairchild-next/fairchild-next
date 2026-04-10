@@ -37,10 +37,10 @@ export default function TodayAtFairchild({
 
   if (!data) {
     return (
-      <div className="rounded-2xl border border-[#e5e0d8] bg-[#f8f5ef] px-4 py-3 shadow-xl font-system">
-        <h2 className="text-sm font-semibold text-[#1a1a1a] mb-2">Today at Fairchild</h2>
-        <p className="text-sm text-[#4a4a4a]">Loading…</p>
-      </div>
+    <div className="rounded-2xl border border-[#e5e0d8] bg-[#f8f5ef] px-4 py-3 font-system">
+      <h2 className="text-sm font-semibold text-[#1a1a1a] mb-2">Today at Fairchild</h2>
+      <p className="text-sm text-[#4a4a4a]">Loading…</p>
+    </div>
     );
   }
 
@@ -52,7 +52,7 @@ export default function TodayAtFairchild({
     });
 
   return (
-    <div className="rounded-2xl border border-[#e5e0d8] bg-[#f8f5ef] px-4 py-3 shadow-xl font-system">
+    <div className="rounded-2xl border border-[#e5e0d8] bg-[#f8f5ef] px-4 py-3 font-system">
       <h2 className="text-sm font-semibold text-[#1a1a1a] mb-2">Today at Fairchild</h2>
       <div className="flex items-center gap-2 flex-nowrap text-sm text-[#4a4a4a] min-w-0">
         <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">

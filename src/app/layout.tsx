@@ -21,7 +21,7 @@ export const metadata = {
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#22c55e",
+  themeColor: "#1a2f26",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
