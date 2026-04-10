@@ -212,13 +212,13 @@ export default function GardenMapLeaflet({
         ))}
       </div>
 
-      {/* Map / List toggle */}
-      <div className="px-6 sm:px-0 pb-3">
-        <div className="flex rounded-xl border border-[var(--surface-border)] overflow-hidden">
+      {/* Map / List toggle — right-aligned, compact */}
+      <div className="flex justify-end px-6 sm:px-0 pb-3">
+        <div className="flex shrink-0 rounded-lg border border-[var(--surface-border)] overflow-hidden">
           <button
             type="button"
             onClick={() => setViewMode("map")}
-            className={`flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium transition ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
               viewMode === "map" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
             }`}
           >
@@ -228,7 +228,7 @@ export default function GardenMapLeaflet({
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`flex flex-1 items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium transition ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
               viewMode === "list" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
             }`}
           >
@@ -238,9 +238,9 @@ export default function GardenMapLeaflet({
         </div>
       </div>
       {viewMode === "list" ? (
-        <div className="mx-6 sm:mx-0 h-[480px] overflow-y-auto rounded-2xl border border-[var(--surface-border)] bg-[var(--surface)]">
+        <div className="mx-6 sm:mx-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
           {filteredPois.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="flex flex-col items-center justify-center text-center p-8">
               <p className="text-[var(--text-muted)]">
                 No locations match your search.
               </p>
