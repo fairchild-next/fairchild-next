@@ -201,7 +201,7 @@ export default function Home() {
       </div>
 
       {/* What's Blooming — under quick tools */}
-      <div className="mt-5 px-3 sm:px-4">
+      <div className="mt-8 border-t border-[#e8e4de] pt-6 px-3 sm:px-4">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg font-semibold text-[#193521]">What&apos;s Blooming</h2>
           <a
@@ -272,7 +272,7 @@ export default function Home() {
       </div>
 
       {/* Don't Miss This - single upcoming event preview (dynamic) */}
-      <div className="mt-8 px-6 pb-10">
+      <div className="mt-8 border-t border-[#e8e4de] pt-6 px-6 pb-10">
         <div className="mb-4 flex items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg font-semibold text-[#193521]">Don&apos;t Miss This</h2>
           <Link
