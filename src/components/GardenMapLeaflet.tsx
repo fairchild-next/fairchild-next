@@ -164,27 +164,31 @@ export default function GardenMapLeaflet({
 
   return (
     <div className="space-y-0">
-      {/* Map / List toggle — above search, left-aligned */}
-      <div className="flex px-6 sm:px-0 pb-3">
-        <div className="flex shrink-0 rounded-lg border border-[var(--surface-border)] overflow-hidden">
+      {/* Map / List toggle — pill-shaped, left-aligned */}
+      <div className="flex px-6 sm:px-0 pt-4 pb-3">
+        <div className="flex p-1 rounded-full bg-[var(--surface)] border border-[var(--surface-border)]">
           <button
             type="button"
             onClick={() => setViewMode("map")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
-              viewMode === "map" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition ${
+              viewMode === "map"
+                ? "bg-[var(--text-primary)] text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
-            <MapTrifold size={18} weight="regular" />
+            <MapTrifold size={16} weight="regular" />
             Map
           </button>
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition ${
-              viewMode === "list" ? "bg-[var(--primary)] text-white" : "bg-[var(--surface)] text-[var(--text-muted)]"
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition ${
+              viewMode === "list"
+                ? "bg-[var(--text-primary)] text-white"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
-            <List size={18} weight="regular" />
+            <List size={16} weight="regular" />
             List
           </button>
         </div>
