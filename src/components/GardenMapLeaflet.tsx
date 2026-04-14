@@ -294,7 +294,7 @@ export default function GardenMapLeaflet({
           )}
         </div>
       ) : (
-      <div className="relative h-[480px] w-full sm:overflow-hidden sm:rounded-2xl">
+      <div className="relative h-[340px] w-full sm:overflow-hidden sm:rounded-2xl">
         {filteredPois.length === 0 && (
           <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center rounded-lg bg-[var(--surface)]/95">
             <p className="text-[var(--text-muted)] text-center px-4">
@@ -314,7 +314,7 @@ export default function GardenMapLeaflet({
           zoomControl={false}
         >
           <MapFlyTo poi={selectedPoi} trigger={flyToTrigger} />
-          <ZoomControl position="topright" />
+          <ZoomControl position="topleft" />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png"
@@ -365,7 +365,7 @@ export default function GardenMapLeaflet({
                         </div>
                         <Link
                           href={poiDetailHref(poi.id, poiListReturnPath)}
-                          className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                          className="text-xs font-medium text-[var(--primary)] hover:underline"
                         >
                           Learn More →
                         </Link>
