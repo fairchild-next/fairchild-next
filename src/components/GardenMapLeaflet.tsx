@@ -195,34 +195,36 @@ export default function GardenMapLeaflet({
       </div>
 
       {/* Search */}
-      <div className="relative px-6 sm:px-0">
-        <input
-          type="search"
-          placeholder="Find exhibits, cafés, restrooms..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 pr-10 text-sm placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
-        />
-        <span className="absolute right-9 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden>🔍</span>
-        {search.trim() && searchResults.length > 0 && (
-          <ul className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] py-1 shadow-lg">
-            {searchResults.map((poi) => (
-              <li key={poi.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPoi(poi);
-                    setFlyToTrigger((t) => t + 1);
-                    setSearch("");
-                  }}
-                  className="w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--surface-border)]"
-                >
-                  {poi.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="px-6 sm:px-0">
+        <div className="relative">
+          <input
+            type="search"
+            placeholder="Find exhibits, cafés, restrooms..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 pr-10 text-sm placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden>🔍</span>
+          {search.trim() && searchResults.length > 0 && (
+            <ul className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] py-1 shadow-lg">
+              {searchResults.map((poi) => (
+                <li key={poi.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPoi(poi);
+                      setFlyToTrigger((t) => t + 1);
+                      setSearch("");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--surface-border)]"
+                  >
+                    {poi.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* Filter pills — horizontally scrollable row */}
@@ -292,7 +294,7 @@ export default function GardenMapLeaflet({
           )}
         </div>
       ) : (
-      <div className="relative h-[480px] w-full overflow-hidden sm:rounded-2xl">
+      <div className="relative h-[480px] w-full sm:overflow-hidden sm:rounded-2xl">
         {filteredPois.length === 0 && (
           <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center rounded-lg bg-[var(--surface)]/95">
             <p className="text-[var(--text-muted)] text-center px-4">
