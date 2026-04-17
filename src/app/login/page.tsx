@@ -78,13 +78,7 @@ export default function LoginPage() {
         const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
-        const redirect =
-          typeof window !== "undefined"
-            ? new URLSearchParams(window.location.search).get("redirect")
-            : null;
-        if (redirect) { window.location.href = redirect; return; }
-
-        // Auto-route based on role — use user from signIn response directly
+        // Role-based routes always take priority over any ?redirect= param
         const user = authData?.user;
         if (user) {
           const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
@@ -93,10 +87,16 @@ export default function LoginPage() {
           const { data: weddingRow, error: weddingErr } = await supabase
             .from("wedding_bookings").select("id").eq("couple_user_id", user.id).single();
           if (weddingErr && weddingErr.code !== "PGRST116") {
-            // Surface unexpected DB errors so they're visible
             throw new Error(`Booking lookup failed: ${weddingErr.message}`);
           }
           if (weddingRow) { window.location.href = "/couple/dashboard"; return; }
+
+          // Not staff or couple — honour ?redirect= for regular members, else home
+          const redirect =
+            typeof window !== "undefined"
+              ? new URLSearchParams(window.location.search).get("redirect")
+              : null;
+          if (redirect && redirect !== "/") { window.location.href = redirect; return; }
         }
         window.location.href = "/";
       }
