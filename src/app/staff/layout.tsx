@@ -45,7 +45,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
 
   if (allowed === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <span className="text-[var(--text-muted)]">Checking access…</span>
       </div>
     );
@@ -53,7 +53,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
 
   if (allowed === false) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 bg-black">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 bg-[var(--background)]">
         <p className="text-[var(--text-muted)] text-center">
           You don&apos;t have staff access. Contact your admin to be added.
         </p>
