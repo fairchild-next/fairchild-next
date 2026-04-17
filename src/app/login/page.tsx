@@ -75,7 +75,7 @@ export default function LoginPage() {
         setMessage("Check your email to confirm your account, then sign in.");
         setMessageType("success");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
         const redirect =
@@ -84,13 +84,18 @@ export default function LoginPage() {
             : null;
         if (redirect) { window.location.href = redirect; return; }
 
-        // Auto-route based on role
-        const { data: { user } } = await supabase.auth.getUser();
+        // Auto-route based on role — use user from signIn response directly
+        const user = authData?.user;
         if (user) {
           const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
           if (staffRow) { window.location.href = "/staff"; return; }
 
-          const { data: weddingRow } = await supabase.from("wedding_bookings").select("id").eq("couple_user_id", user.id).single();
+          const { data: weddingRow, error: weddingErr } = await supabase
+            .from("wedding_bookings").select("id").eq("couple_user_id", user.id).single();
+          if (weddingErr && weddingErr.code !== "PGRST116") {
+            // Surface unexpected DB errors so they're visible
+            throw new Error(`Booking lookup failed: ${weddingErr.message}`);
+          }
           if (weddingRow) { window.location.href = "/couple/dashboard"; return; }
         }
         window.location.href = "/";
