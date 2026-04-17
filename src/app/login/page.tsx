@@ -80,12 +80,23 @@ export default function LoginPage() {
 
         // Role-based routes always take priority over any ?redirect= param
         const user = authData?.user;
+        const hasSession = !!authData?.session;
         if (user) {
           const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
           if (staffRow) { window.location.href = "/staff"; return; }
 
           const { data: weddingRow, error: weddingErr } = await supabase
             .from("wedding_bookings").select("id").eq("couple_user_id", user.id).single();
+
+          // TEMP DEBUG — remove once login is confirmed working
+          setMessage(
+            `uid=${user.id} | session=${hasSession} | row=${weddingRow ? weddingRow.id : "null"} | err=${weddingErr ? weddingErr.code + " " + weddingErr.message : "none"}`
+          );
+          setMessageType("success");
+          setLoading(false);
+          return;
+          // END TEMP DEBUG
+
           if (weddingErr && weddingErr.code !== "PGRST116") {
             throw new Error(`Booking lookup failed: ${weddingErr.message}`);
           }
