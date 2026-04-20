@@ -312,13 +312,16 @@ export default function LoginPage() {
         )}
 
         {/* ── Staff portal link ─────────────────────────────────── */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 flex justify-center">
           <Link
             href="/staff/login"
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
           >
-            Fairchild staff?{" "}
-            <span className="font-semibold underline underline-offset-2">Staff Portal →</span>
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0110 0v4" />
+            </svg>
+            Staff Portal
           </Link>
         </div>
 
