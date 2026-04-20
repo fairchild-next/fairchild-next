@@ -311,6 +311,17 @@ export default function LoginPage() {
           </div>
         )}
 
+        {/* ── Staff portal link ─────────────────────────────────── */}
+        <div className="mt-8 text-center">
+          <Link
+            href="/staff/login"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            Fairchild staff?{" "}
+            <span className="font-semibold underline underline-offset-2">Staff Portal →</span>
+          </Link>
+        </div>
+
         <div className="h-10" />
       </div>
     </div>
