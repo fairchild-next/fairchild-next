@@ -34,10 +34,11 @@ function IconMap() {
     </svg>
   );
 }
-function IconLeaf() {
+function IconBook() {
   return (
     <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 8C8 10 5.9 16.17 3.82 19.83M9.09 9.91C7.17 14.74 6 18 3.82 19.83M18 2c0 10-7 14-15 14" />
+      <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
     </svg>
   );
 }
@@ -88,7 +89,7 @@ const ACTIONS = [
   { label: "Update Homepage Content", icon: IconHome,     href: "/staff/homepage" },
   { label: "Update Events Content",   icon: IconCalendar, href: "/staff/events" },
   { label: "Update Garden Map",       icon: IconMap,      href: "/staff/map/edit" },
-  { label: "Update Learn Content",    icon: IconLeaf,     href: "/staff/learn" },
+  { label: "Update Learn Content",    icon: IconBook,     href: "/staff/learn" },
 ];
 
 // ── Mode edit buttons ────────────────────────────────────────────────────────
@@ -138,18 +139,9 @@ export default function StaffHomePage() {
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 pt-12 pb-3">
-        <div className="flex items-center gap-2.5">
-          <Image
-            src="/logo-fairchild.png"
-            alt="Fairchild"
-            width={32}
-            height={32}
-            className="rounded-lg"
-          />
-          <div>
-            <p className="text-xs text-[var(--text-muted)] font-medium leading-tight">Fairchild</p>
-            <p className="text-base font-bold text-[var(--text-primary)] leading-tight">Staff Portal</p>
-          </div>
+        <div>
+          <p className="text-xs text-[var(--text-muted)] font-medium leading-tight tracking-wide uppercase">Fairchild</p>
+          <p className="text-xl font-bold text-[var(--text-primary)] leading-tight">Staff Portal</p>
         </div>
 
         {/* View-mode selector — shows staff what mode guests see */}
@@ -199,16 +191,16 @@ export default function StaffHomePage() {
             <Link
               key={href}
               href={href}
-              className="flex flex-col items-start gap-3 rounded-2xl p-4 transition-opacity active:opacity-70"
+              className="flex flex-col items-start gap-4 rounded-2xl p-5 transition-opacity active:opacity-70"
               style={{ background: "var(--surface)", border: "1px solid var(--surface-border)" }}
             >
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                className="w-11 h-11 rounded-xl flex items-center justify-center"
                 style={{ background: "var(--background)", color: "var(--primary)" }}
               >
                 <Icon />
               </div>
-              <span className="text-sm font-semibold text-[var(--text-primary)] leading-snug">{label}</span>
+              <span className="text-[15px] font-bold text-[var(--text-primary)] leading-snug">{label}</span>
             </Link>
           ))}
         </div>
