@@ -127,11 +127,10 @@ export default function StaffHomePage() {
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.email) {
-        setStaffName(user.email.split("@")[0]);
-      }
-    });
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) setStaffName(user.email.split("@")[0]);
+    })();
   }, []);
 
   return (
