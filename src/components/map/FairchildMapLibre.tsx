@@ -654,16 +654,9 @@ export default function FairchildMapLibre({
     void addMarkers();
   }, [filteredPois]);
 
-  // -----------------------------------------------------------------------
-  // Loading skeleton
-  // -----------------------------------------------------------------------
-  if (loading) {
-    return (
-      <div className="flex h-[500px] w-full items-center justify-center rounded-xl bg-[var(--surface)]">
-        <span className="text-[var(--text-muted)] text-sm">Loading map…</span>
-      </div>
-    );
-  }
+  // Note: no early return for `loading` here — the map container div must
+  // always be in the DOM so the init useEffect can attach MapLibre to it.
+  // A loading overlay is shown inside the container instead.
 
   return (
     <div className="flex flex-col">
@@ -810,14 +803,22 @@ export default function FairchildMapLibre({
         <div className="px-3 sm:px-0">
           {/* Map container — position:relative so the bottom sheet is scoped to it */}
           <div className="relative h-[420px] w-full rounded-xl overflow-hidden sm:rounded-2xl">
-            {filteredPois.length === 0 && search.trim() && (
+            {/* Loading overlay — sits on top of the map canvas while data is fetching.
+                The canvas div is always in the DOM so MapLibre can attach to it. */}
+            {loading && (
+              <div className="absolute inset-0 z-[300] flex items-center justify-center rounded-xl bg-[var(--surface)]">
+                <span className="text-[var(--text-muted)] text-sm">Loading map…</span>
+              </div>
+            )}
+
+            {filteredPois.length === 0 && !loading && search.trim() && (
               <div className="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-[var(--surface)]/90 rounded-xl">
                 <p className="text-[var(--text-muted)] text-center px-4">No locations match your search.</p>
                 <p className="text-sm text-[var(--text-muted)] mt-1 text-center px-4">Try a different filter or search term.</p>
               </div>
             )}
 
-            {/* MapLibre canvas — filled by the init useEffect */}
+            {/* MapLibre canvas — always rendered so useEffect can attach the map */}
             <div ref={mapContainerRef} className="w-full h-full" />
 
             {/* POI bottom sheet — overlaid on the map */}
