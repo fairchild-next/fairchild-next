@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, ImageOverlay, useMap } from "react-leaflet";
+import type { LatLngBoundsExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Fuse from "fuse.js";
 import { getPinIcon } from "@/lib/map-icons";
@@ -11,6 +12,47 @@ import { MapTrifold, List } from "@phosphor-icons/react";
 
 const CENTER: [number, number] = [25.677, -80.273];
 const DEFAULT_IMAGE = "/stock/garden-1.png";
+
+// Bounding box for the illustrated garden map overlay.
+// SW = bottom-left corner, NE = top-right corner of the image.
+// Fine-tune these values if the GPS dot appears slightly offset.
+const OVERLAY_BOUNDS: LatLngBoundsExpression = [
+  [25.6730, -80.2785], // SW (bottom-left of image)
+  [25.6820, -80.2675], // NE (top-right of image)
+];
+
+// Restrict the map to the garden area so users can't scroll to random streets
+const MAX_BOUNDS: LatLngBoundsExpression = [
+  [25.6720, -80.2800],
+  [25.6830, -80.2660],
+];
+
+// Inverse-polygon mask — large world rectangle with garden hole cut out.
+// This grays out everything outside the illustrated map.
+const WORLD_MASK_GEOJSON: GeoJSON.FeatureCollection = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          // Outer ring — covers the entire world
+          [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]],
+          // Inner ring (hole) — the illustrated map bounds, counter-clockwise
+          [
+            [-80.2785, 25.6730],
+            [-80.2785, 25.6820],
+            [-80.2675, 25.6820],
+            [-80.2675, 25.6730],
+            [-80.2785, 25.6730],
+          ],
+        ],
+      },
+    },
+  ],
+};
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -312,23 +354,47 @@ export default function GardenMapLeaflet({
           keyboard={false}
           className="h-full w-full"
           zoomControl={false}
+          maxBounds={MAX_BOUNDS}
+          maxBoundsViscosity={1.0}
+          minZoom={15}
         >
           <MapFlyTo poi={selectedPoi} trigger={flyToTrigger} />
           <ZoomControl position="topright" />
+          {/* Light basemap sits underneath — mostly hidden by the overlay */}
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png"
             maxZoom={19}
+            opacity={0.3}
           />
+          {/* Illustrated garden map overlay — pinned to real-world coordinates */}
+          <ImageOverlay
+            url="/garden-map-overlay.png"
+            bounds={OVERLAY_BOUNDS}
+            opacity={1}
+            zIndex={10}
+          />
+          {/* Gray mask outside the illustrated map bounds */}
+          <GeoJSON
+            key="world-mask"
+            data={WORLD_MASK_GEOJSON}
+            style={() => ({
+              fillColor: "#e8e4dc",
+              fillOpacity: 0.85,
+              color: "transparent",
+              weight: 0,
+            })}
+          />
+          {/* Garden boundary outline if configured in Supabase */}
           {boundaryGeoJson && (
             <GeoJSON
               key="boundary"
               data={boundaryGeoJson}
               style={() => ({
-                fillColor: "#22c55e",
-                fillOpacity: 0.38,
+                fillColor: "transparent",
+                fillOpacity: 0,
                 color: "#15803d",
-                weight: 3,
+                weight: 2,
                 lineJoin: "round" as const,
                 lineCap: "round" as const,
               })}
