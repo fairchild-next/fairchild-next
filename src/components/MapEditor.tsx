@@ -448,7 +448,7 @@ export default function MapEditor() {
     : [];
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="guest-theme flex min-h-0 flex-1 flex-col bg-[var(--background)] text-[var(--text-primary)]">
       <header className="relative z-[5000] shrink-0 space-y-2 border-b border-[var(--surface-border)] bg-[var(--surface)] px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-2">

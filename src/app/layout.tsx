@@ -34,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={libreBaskerville.variable}>
-      <body className={`bg-black text-white ${libreBaskerville.className}`}>
+      <body className={`bg-[var(--background)] text-[var(--text-primary)] ${libreBaskerville.className}`}>
         <Providers>
           <ThemeWrapper>
             <RootShell>
