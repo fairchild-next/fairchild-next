@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSupabaseBrowser } from "@/lib/supabase/SupabaseBrowserProvider";
+import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 
 type OverlayConfig = {
   image_url: string;
@@ -23,7 +23,7 @@ const EMPTY: OverlayConfig = {
 // (Not needed for this UI, just for reference comments)
 
 export default function MapOverlayPage() {
-  const supabase = useSupabaseBrowser();
+  const supabase = useSupabaseBrowserClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [config, setConfig] = useState<OverlayConfig>(EMPTY);
@@ -56,7 +56,7 @@ export default function MapOverlayPage() {
     setUploading(true);
     setMessage(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = supabase ? (await supabase.auth.getSession()).data.session : null;
       const token = session?.access_token;
       const fd = new FormData();
       fd.append("file", file);
@@ -95,7 +95,7 @@ export default function MapOverlayPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = supabase ? (await supabase.auth.getSession()).data.session : null;
       const token = session?.access_token;
       const res = await fetch("/api/map/overlay", {
         method: "PATCH",
