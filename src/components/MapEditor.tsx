@@ -449,20 +449,26 @@ export default function MapEditor() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="relative z-[5000] shrink-0 space-y-2 border-b border-[var(--surface-border)] bg-neutral-950 px-3 py-2">
+      <header className="relative z-[5000] shrink-0 space-y-2 border-b border-[var(--surface-border)] bg-[var(--surface)] px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <Link href="/staff/scanner" className="shrink-0 text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
+            <Link href="/staff" className="shrink-0 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
               ← Staff
             </Link>
-            <h1 className="text-base font-semibold sm:text-lg">Map Editor</h1>
+            <h1 className="text-base font-semibold text-[var(--text-primary)] sm:text-lg">Map Editor</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/staff/map/overlay"
+              className="shrink-0 rounded-lg border border-[var(--surface-border)] px-3 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--background)] transition"
+            >
+              Map Overlay ↗
+            </Link>
             <button
               type="button"
               onClick={handleSave}
               disabled={saving || loading}
-              className="rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-black disabled:opacity-50"
+              className="rounded-lg bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               {saving ? "Saving…" : loading ? "Loading…" : "Save"}
             </button>
@@ -474,7 +480,7 @@ export default function MapEditor() {
                 router.push("/staff/login");
                 router.refresh();
               }}
-              className="text-sm text-gray-400 hover:text-white"
+              className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               Sign out
             </button>
@@ -490,7 +496,7 @@ export default function MapEditor() {
                 if (!isMapConfigSlug(v)) return;
                 router.replace(`${pathname}?config=${encodeURIComponent(v)}`);
               }}
-              className="min-w-0 flex-1 rounded border border-[var(--surface-border)] bg-[var(--surface)] px-2 py-1.5 text-[var(--text-primary)] sm:max-w-[16rem] sm:flex-none"
+              className="min-w-0 flex-1 rounded border border-[var(--surface-border)] bg-[var(--background)] px-2 py-1.5 text-[var(--text-primary)] sm:max-w-[16rem] sm:flex-none"
             >
               {MAP_CONFIG_OPTIONS.map((o) => (
                 <option key={o.slug} value={o.slug}>
@@ -512,7 +518,7 @@ export default function MapEditor() {
               type="button"
               onClick={openCopyFromMainModal}
               disabled={copying}
-              className="shrink-0 rounded border border-amber-600/60 px-2 py-1.5 text-xs text-amber-200 hover:bg-amber-900/30 disabled:opacity-50 sm:text-sm"
+              className="shrink-0 rounded border border-[var(--surface-border)] px-2 py-1.5 text-xs text-[var(--text-muted)] hover:bg-[var(--background)] disabled:opacity-50 sm:text-sm"
             >
               {copying ? "Copying…" : "Copy from main"}
             </button>
@@ -520,7 +526,7 @@ export default function MapEditor() {
           <button
             type="button"
             onClick={() => setSidebarOpen((o) => !o)}
-            className="shrink-0 rounded border border-[var(--surface-border)] px-2 py-1.5 text-sm"
+            className="shrink-0 rounded border border-[var(--surface-border)] px-2 py-1.5 text-sm text-[var(--text-primary)]"
           >
             {sidebarOpen ? "Hide list" : `Pins (${pois.length})`}
           </button>
@@ -530,7 +536,7 @@ export default function MapEditor() {
               setAddPinMode((m) => !m);
               setBoundaryMode(false);
             }}
-            className={`shrink-0 rounded-lg px-3 py-2.5 text-sm font-semibold min-h-11 ${addPinMode ? "bg-[var(--primary)] text-black" : "border-2 border-[var(--surface-border)]"}`}
+            className={`shrink-0 rounded-lg px-3 py-2.5 text-sm font-semibold min-h-11 ${addPinMode ? "bg-[var(--primary)] text-white" : "border-2 border-[var(--surface-border)] text-[var(--text-primary)]"}`}
           >
             {addPinMode ? "Cancel add pin" : "+ Add pin"}
           </button>
@@ -540,20 +546,20 @@ export default function MapEditor() {
               setBoundaryMode((m) => !m);
               setAddPinMode(false);
             }}
-            className={`shrink-0 rounded px-3 py-1.5 text-sm font-medium ${boundaryMode ? "bg-[var(--primary)] text-black" : "border border-[var(--surface-border)]"}`}
+            className={`shrink-0 rounded px-3 py-1.5 text-sm font-medium ${boundaryMode ? "bg-[var(--primary)] text-white" : "border border-[var(--surface-border)] text-[var(--text-primary)]"}`}
           >
             Boundary
           </button>
         </div>
-        <details className="group rounded border border-neutral-800 bg-neutral-900/80 px-2 py-1.5 text-neutral-400">
-          <summary className="cursor-pointer select-none text-xs marker:text-neutral-500">
+        <details className="group rounded border border-[var(--surface-border)] bg-[var(--background)] px-2 py-1.5">
+          <summary className="cursor-pointer select-none text-xs text-[var(--text-muted)]">
             Help: pins, copy from main, save
           </summary>
-          <p className="mt-2 border-t border-neutral-800 pt-2 text-xs leading-relaxed text-neutral-400">
-            Pick the map with <strong className="text-neutral-200">Editing</strong>. Tap{" "}
-            <strong className="text-neutral-200">+ Add pin</strong>, then <strong className="text-neutral-200">tap the map</strong>{" "}
-            to place. Scroll the <strong className="text-neutral-200">Pins</strong> list below the map to edit each pin.
-            <strong className="text-neutral-200"> Save</strong> writes only this mode. On desktop, map and list are side‑by‑side.
+          <p className="mt-2 border-t border-[var(--surface-border)] pt-2 text-xs leading-relaxed text-[var(--text-muted)]">
+            Pick the map with <strong className="text-[var(--text-primary)]">Editing</strong>. Tap{" "}
+            <strong className="text-[var(--text-primary)]">+ Add pin</strong>, then <strong className="text-[var(--text-primary)]">tap the map</strong>{" "}
+            to place. Scroll the <strong className="text-[var(--text-primary)]">Pins</strong> list below the map to edit each pin.
+            <strong className="text-[var(--text-primary)]"> Save</strong> writes only this mode. On desktop, map and list are side‑by‑side.
           </p>
         </details>
       </header>
@@ -627,7 +633,7 @@ export default function MapEditor() {
         <main
           className={`relative z-0 min-h-0 w-full md:min-h-0 ${
             sidebarOpen
-              ? "order-1 h-[min(42vh,320px)] shrink-0 border-b border-neutral-800 md:order-2 md:h-auto md:flex-1 md:border-b-0"
+              ? "order-1 h-[min(42vh,320px)] shrink-0 border-b border-[var(--surface-border)] md:order-2 md:h-auto md:flex-1 md:border-b-0"
               : "flex-1"
           }`}
         >
@@ -724,15 +730,15 @@ export default function MapEditor() {
           onClick={() => setCopyModalOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-amber-700/50 bg-neutral-900 p-4 shadow-xl"
+            className="w-full max-w-md rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] p-4 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="mb-2 font-medium text-white">Copy pins from main map?</h3>
-            <p className="mb-3 text-sm text-neutral-300">
+            <h3 className="mb-2 font-medium text-[var(--text-primary)]">Copy pins from main map?</h3>
+            <p className="mb-3 text-sm text-[var(--text-muted)]">
               This replaces <strong>every pin</strong> on the <strong>{configSlug}</strong> map with copies from the main map.
               This cannot be undone from the app.
             </p>
-            <p className="mb-2 text-xs text-amber-200/90">
+            <p className="mb-2 text-xs text-[var(--text-muted)]">
               Type <span className="font-mono font-semibold">REPLACE</span> to confirm:
             </p>
             <input
@@ -742,7 +748,7 @@ export default function MapEditor() {
               placeholder="REPLACE"
               autoCapitalize="characters"
               autoCorrect="off"
-              className="mb-4 w-full rounded-lg border border-neutral-600 bg-black px-3 py-2 text-white placeholder:text-neutral-500"
+              className="mb-4 w-full rounded-lg border border-[var(--surface-border)] bg-[var(--background)] px-3 py-2 text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
               autoFocus
             />
             <div className="flex gap-2">
@@ -750,14 +756,14 @@ export default function MapEditor() {
                 type="button"
                 onClick={runCopyFromMainConfirmed}
                 disabled={copyModalText.trim().toUpperCase() !== "REPLACE" || copying}
-                className="flex-1 rounded-lg bg-amber-600 py-2 text-sm font-medium text-black disabled:opacity-40"
+                className="flex-1 rounded-lg bg-[var(--primary)] py-2 text-sm font-medium text-white disabled:opacity-40"
               >
                 Copy now
               </button>
               <button
                 type="button"
                 onClick={() => setCopyModalOpen(false)}
-                className="rounded-lg border border-neutral-600 px-4 py-2 text-sm text-neutral-200"
+                className="rounded-lg border border-[var(--surface-border)] px-4 py-2 text-sm text-[var(--text-primary)]"
               >
                 Cancel
               </button>

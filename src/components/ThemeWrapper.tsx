@@ -10,8 +10,8 @@ export default function ThemeWrapper({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
-  // Map editor stays full-screen dark; everything else (incl. staff portal) uses light guest theme
-  const useLightTheme = !pathname.startsWith("/staff/map/edit");
+  // All pages use the light guest theme, including the map editor
+  const useLightTheme = true;
   return (
     <div
       className={`h-dvh flex justify-center overflow-hidden ${
