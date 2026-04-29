@@ -13,46 +13,43 @@ import { MapTrifold, List } from "@phosphor-icons/react";
 const CENTER: [number, number] = [25.677, -80.273];
 const DEFAULT_IMAGE = "/stock/garden-1.png";
 
-// Bounding box for the illustrated garden map overlay.
-// SW = bottom-left corner, NE = top-right corner of the image.
-// Fine-tune these values if the GPS dot appears slightly offset.
-const OVERLAY_BOUNDS: LatLngBoundsExpression = [
-  [25.6730, -80.2785], // SW (bottom-left of image)
-  [25.6820, -80.2675], // NE (top-right of image)
+// Fallback bounds used only until the admin saves real coordinates via the staff portal
+const FALLBACK_OVERLAY_BOUNDS: LatLngBoundsExpression = [
+  [25.6730, -80.2785],
+  [25.6820, -80.2675],
 ];
 
-// Restrict the map to the garden area so users can't scroll to random streets
 const MAX_BOUNDS: LatLngBoundsExpression = [
-  [25.6720, -80.2800],
-  [25.6830, -80.2660],
+  [25.6710, -80.2810],
+  [25.6840, -80.2650],
 ];
 
 // Inverse-polygon mask — large world rectangle with garden hole cut out.
-// This grays out everything outside the illustrated map.
-const WORLD_MASK_GEOJSON: GeoJSON.FeatureCollection = {
-  type: "FeatureCollection",
-  features: [
-    {
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "Polygon",
-        coordinates: [
-          // Outer ring — covers the entire world
-          [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]],
-          // Inner ring (hole) — the illustrated map bounds, counter-clockwise
-          [
-            [-80.2785, 25.6730],
-            [-80.2785, 25.6820],
-            [-80.2675, 25.6820],
-            [-80.2675, 25.6730],
-            [-80.2785, 25.6730],
+// Updated whenever overlay bounds change.
+function buildMask(sw: [number, number], ne: [number, number]): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]],
+            [
+              [sw[1], sw[0]],
+              [sw[1], ne[0]],
+              [ne[1], ne[0]],
+              [ne[1], sw[0]],
+              [sw[1], sw[0]],
+            ],
           ],
-        ],
+        },
       },
-    },
-  ],
-};
+    ],
+  };
+}
 
 const CATEGORIES = [
   { id: "all", label: "All" },
@@ -77,10 +74,11 @@ type Poi = {
   category: string | null;
 };
 
-function getDirectionsUrl(lat: number, lng: number): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-}
-
+type OverlayConfig = {
+  image_url: string;
+  sw: [number, number];
+  ne: [number, number];
+};
 
 type Zone = {
   id: string;
@@ -88,10 +86,19 @@ type Zone = {
 };
 
 type MapData = {
-  config: { name: string; center: [number, number]; zoom: number };
+  config: {
+    name: string;
+    center: [number, number];
+    zoom: number;
+    overlay: OverlayConfig | null;
+  };
   pois: Poi[];
   zones: Zone[];
 };
+
+function getDirectionsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+}
 
 function MapFlyTo({ poi, trigger }: { poi: Poi | null; trigger: number }) {
   const map = useMap();
@@ -103,16 +110,12 @@ function MapFlyTo({ poi, trigger }: { poi: Poi | null; trigger: number }) {
 }
 
 type GardenMapLeafletProps = {
-  /** Supabase `map_config.slug` */
   configSlug?: string;
-  /** Path used for POI detail “back” link when not the main /map list */
   poiListReturnPath?: string;
 };
 
 function poiDetailHref(poiId: string, listReturnPath: string) {
-  if (listReturnPath === "/map") {
-    return `/map/${poiId}`;
-  }
+  if (listReturnPath === "/map") return `/map/${poiId}`;
   return `/map/${poiId}?returnTo=${encodeURIComponent(listReturnPath)}`;
 }
 
@@ -132,7 +135,7 @@ export default function GardenMapLeaflet({
     const res = await fetch(`/api/map?config=${encodeURIComponent(configSlug)}`);
     const json = await res.json();
     if (json.error) {
-      setData({ config: { name: "Fairchild", center: CENTER, zoom: 16 }, pois: [], zones: [] });
+      setData({ config: { name: "Fairchild", center: CENTER, zoom: 15, overlay: null }, pois: [], zones: [] });
     } else {
       setData({
         config: json.config,
@@ -193,6 +196,17 @@ export default function GardenMapLeaflet({
     };
   }, [data?.zones]);
 
+  // Resolve overlay — use API data if available, else fallback to public file
+  const overlay = data?.config?.overlay ?? null;
+  const overlayImageUrl = overlay?.image_url ?? "/garden-map-overlay.png";
+  const overlayBounds: LatLngBoundsExpression = overlay
+    ? [overlay.sw, overlay.ne]
+    : FALLBACK_OVERLAY_BOUNDS;
+
+  const sw = overlay ? overlay.sw : (FALLBACK_OVERLAY_BOUNDS as [[number, number], [number, number]])[0];
+  const ne = overlay ? overlay.ne : (FALLBACK_OVERLAY_BOUNDS as [[number, number], [number, number]])[1];
+  const worldMask = useMemo(() => buildMask(sw, ne), [sw, ne]);
+
   if (loading) {
     return (
       <div className="flex h-[480px] w-full items-center justify-center rounded-lg bg-[var(--surface)]">
@@ -202,11 +216,11 @@ export default function GardenMapLeaflet({
   }
 
   const center = (data?.config?.center ?? CENTER) as [number, number];
-  const zoom = data?.config?.zoom ?? 16;
+  const zoom = data?.config?.zoom ?? 15;
 
   return (
     <div className="space-y-0">
-      {/* Map / List toggle — pill-shaped, left-aligned */}
+      {/* Map / List toggle */}
       <div className="flex px-6 sm:px-0 pt-4 pb-3">
         <div className="flex p-1 rounded-full bg-[var(--surface)] border border-[var(--surface-border)]">
           <button
@@ -269,7 +283,7 @@ export default function GardenMapLeaflet({
         </div>
       </div>
 
-      {/* Filter pills — horizontally scrollable row */}
+      {/* Filter pills */}
       <div className="flex gap-2 overflow-x-auto px-6 sm:px-0 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CATEGORIES.map((c) => (
           <button
@@ -290,12 +304,8 @@ export default function GardenMapLeaflet({
         <div className="mx-6 sm:mx-0 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface)] overflow-hidden">
           {filteredPois.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center p-8">
-              <p className="text-[var(--text-muted)]">
-                No locations match your search.
-              </p>
-              <p className="text-sm text-[var(--text-muted)] mt-1">
-                Try a different filter or search term.
-              </p>
+              <p className="text-[var(--text-muted)]">No locations match your search.</p>
+              <p className="text-sm text-[var(--text-muted)] mt-1">Try a different filter or search term.</p>
             </div>
           ) : (
             <ul className="divide-y divide-[var(--surface-border)]">
@@ -314,17 +324,13 @@ export default function GardenMapLeaflet({
                           src={imgSrc}
                           alt=""
                           className="h-full w-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = DEFAULT_IMAGE;
-                          }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE; }}
                         />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="font-medium text-[var(--text-primary)]">{poi.name}</h3>
                         {previewDesc && (
-                          <p className="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-2">
-                            {previewDesc}
-                          </p>
+                          <p className="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-2">{previewDesc}</p>
                         )}
                       </div>
                       <span className="shrink-0 text-[var(--primary)] text-sm">→</span>
@@ -336,124 +342,123 @@ export default function GardenMapLeaflet({
           )}
         </div>
       ) : (
-      <div className="px-3 sm:px-0"><div className="relative h-[340px] w-full rounded-xl sm:overflow-hidden sm:rounded-2xl">
-        {filteredPois.length === 0 && (
-          <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center rounded-lg bg-[var(--surface)]/95">
-            <p className="text-[var(--text-muted)] text-center px-4">
-              No locations match your search.
-            </p>
-            <p className="text-sm text-[var(--text-muted)] mt-1 text-center px-4">
-              Try a different filter or search term.
-            </p>
-          </div>
-        )}
-        <MapContainer
-          center={center}
-          zoom={zoom}
-          scrollWheelZoom={false}
-          keyboard={false}
-          className="h-full w-full"
-          zoomControl={false}
-          maxBounds={MAX_BOUNDS}
-          maxBoundsViscosity={1.0}
-          minZoom={15}
-        >
-          <MapFlyTo poi={selectedPoi} trigger={flyToTrigger} />
-          <ZoomControl position="topright" />
-          {/* Light basemap sits underneath — mostly hidden by the overlay */}
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png"
-            maxZoom={19}
-            opacity={0.3}
-          />
-          {/* Illustrated garden map overlay — pinned to real-world coordinates */}
-          <ImageOverlay
-            url="/garden-map-overlay.png"
-            bounds={OVERLAY_BOUNDS}
-            opacity={1}
-            zIndex={10}
-          />
-          {/* Gray mask outside the illustrated map bounds */}
-          <GeoJSON
-            key="world-mask"
-            data={WORLD_MASK_GEOJSON}
-            style={() => ({
-              fillColor: "#e8e4dc",
-              fillOpacity: 0.85,
-              color: "transparent",
-              weight: 0,
-            })}
-          />
-          {/* Garden boundary outline if configured in Supabase */}
-          {boundaryGeoJson && (
-            <GeoJSON
-              key="boundary"
-              data={boundaryGeoJson}
-              style={() => ({
-                fillColor: "transparent",
-                fillOpacity: 0,
-                color: "#15803d",
-                weight: 2,
-                lineJoin: "round" as const,
-                lineCap: "round" as const,
-              })}
-            />
-          )}
-          {filteredPois.map((poi) => {
-            const imgSrc = resolveImageUrl(poi.image_url, DEFAULT_IMAGE);
-            const fullDesc = poi.description ?? poi.details ?? "";
-            const previewDesc = fullDesc.length > 120 ? fullDesc.slice(0, 120).trim() + "…" : fullDesc;
-            return (
-              <Marker key={poi.id} position={[poi.lat, poi.lng]} icon={getPinIcon(poi.category)}>
-                <Popup maxWidth={340} minWidth={280}>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex gap-3">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-gray-900">{poi.name}</h3>
-                        {previewDesc && (
-                          <p className="mt-0.5 text-xs leading-relaxed text-gray-600 line-clamp-3">
-                            {previewDesc}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <div className="relative h-20 w-24 overflow-hidden rounded-lg bg-gray-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={imgSrc}
-                            alt=""
-                            className="h-full w-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = DEFAULT_IMAGE;
-                            }}
-                          />
+        <div className="px-3 sm:px-0">
+          <div className="relative h-[340px] w-full rounded-xl sm:overflow-hidden sm:rounded-2xl">
+            {filteredPois.length === 0 && (
+              <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center rounded-lg bg-[var(--surface)]/95">
+                <p className="text-[var(--text-muted)] text-center px-4">No locations match your search.</p>
+                <p className="text-sm text-[var(--text-muted)] mt-1 text-center px-4">Try a different filter or search term.</p>
+              </div>
+            )}
+            <MapContainer
+              center={center}
+              zoom={zoom}
+              scrollWheelZoom={false}
+              keyboard={false}
+              className="h-full w-full"
+              zoomControl={false}
+              maxBounds={MAX_BOUNDS}
+              maxBoundsViscosity={1.0}
+              minZoom={14}
+            >
+              <MapFlyTo poi={selectedPoi} trigger={flyToTrigger} />
+              <ZoomControl position="topright" />
+
+              {/* Light basemap sits underneath the illustrated overlay */}
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png"
+                maxZoom={19}
+                opacity={0.3}
+              />
+
+              {/* Illustrated garden map overlay — pinned to real-world coordinates */}
+              <ImageOverlay
+                url={overlayImageUrl}
+                bounds={overlayBounds}
+                opacity={1}
+                zIndex={10}
+              />
+
+              {/* Neutral mask outside the illustrated map */}
+              <GeoJSON
+                key={`mask-${sw[0]}-${ne[0]}`}
+                data={worldMask}
+                style={() => ({
+                  fillColor: "#e8e4dc",
+                  fillOpacity: 0.88,
+                  color: "transparent",
+                  weight: 0,
+                })}
+              />
+
+              {/* Garden boundary outline if configured */}
+              {boundaryGeoJson && (
+                <GeoJSON
+                  key="boundary"
+                  data={boundaryGeoJson}
+                  style={() => ({
+                    fillColor: "transparent",
+                    fillOpacity: 0,
+                    color: "#15803d",
+                    weight: 2,
+                    lineJoin: "round" as const,
+                    lineCap: "round" as const,
+                  })}
+                />
+              )}
+
+              {filteredPois.map((poi) => {
+                const imgSrc = resolveImageUrl(poi.image_url, DEFAULT_IMAGE);
+                const fullDesc = poi.description ?? poi.details ?? "";
+                const previewDesc = fullDesc.length > 120 ? fullDesc.slice(0, 120).trim() + "…" : fullDesc;
+                return (
+                  <Marker key={poi.id} position={[poi.lat, poi.lng]} icon={getPinIcon(poi.category)}>
+                    <Popup maxWidth={340} minWidth={280}>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex gap-3">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-gray-900">{poi.name}</h3>
+                            {previewDesc && (
+                              <p className="mt-0.5 text-xs leading-relaxed text-gray-600 line-clamp-3">{previewDesc}</p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 flex-col items-end gap-1">
+                            <div className="relative h-20 w-24 overflow-hidden rounded-lg bg-gray-100">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={imgSrc}
+                                alt=""
+                                className="h-full w-full object-cover"
+                                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE; }}
+                              />
+                            </div>
+                            <Link
+                              href={poiDetailHref(poi.id, poiListReturnPath)}
+                              className="text-xs font-medium text-[var(--primary)] hover:underline"
+                            >
+                              Learn More →
+                            </Link>
+                          </div>
                         </div>
-                        <Link
-                          href={poiDetailHref(poi.id, poiListReturnPath)}
-                          className="text-xs font-medium text-[var(--primary)] hover:underline"
-                        >
-                          Learn More →
-                        </Link>
+                        <div className="flex justify-center border-t border-[var(--surface-border)] pt-2">
+                          <a
+                            href={getDirectionsUrl(poi.lat, poi.lng)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold bg-[var(--primary)] transition hover:opacity-90 !text-white"
+                          >
+                            Get Directions
+                          </a>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex justify-center border-t border-[var(--surface-border)] pt-2">
-                      <a
-                        href={getDirectionsUrl(poi.lat, poi.lng)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold bg-[var(--primary)] transition hover:opacity-90 !text-white"
-                      >
-                        Get Directions
-                      </a>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
-        </MapContainer>
-      </div></div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </MapContainer>
+          </div>
+        </div>
       )}
     </div>
   );

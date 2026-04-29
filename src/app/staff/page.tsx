@@ -89,6 +89,7 @@ const ACTIONS = [
   { label: "Update Homepage Content", icon: IconHome,     href: "/staff/homepage" },
   { label: "Update Events Content",   icon: IconCalendar, href: "/staff/events" },
   { label: "Update Garden Map",       icon: IconMap,      href: "/staff/map/edit" },
+  { label: "Map Overlay Image",       icon: IconMap,      href: "/staff/map/overlay" },
   { label: "Update Learn Content",    icon: IconBook,     href: "/staff/learn" },
 ];
 
