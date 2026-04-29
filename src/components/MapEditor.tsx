@@ -448,8 +448,8 @@ export default function MapEditor() {
     : [];
 
   return (
-    <div className="guest-theme flex min-h-0 flex-1 flex-col bg-[var(--background)] text-[var(--text-primary)]">
-      <header className="relative z-[5000] shrink-0 space-y-2 border-b border-[var(--surface-border)] bg-[var(--surface)] px-3 py-2">
+    <div className="guest-theme flex min-h-0 flex-1 flex-col" style={{ background: "#F3EFEE", color: "#193521" }}>
+      <header className="relative z-[5000] shrink-0 space-y-2 border-b px-3 py-2" style={{ background: "#F8F8F8", borderColor: "#e5e0d8" }}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Link href="/staff" className="shrink-0 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
@@ -566,10 +566,10 @@ export default function MapEditor() {
 
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         {sidebarOpen && (
-          <aside className="order-2 flex min-h-0 min-w-0 flex-1 flex-col border-t border-[var(--surface-border)] bg-[var(--surface)] md:order-1 md:h-full md:w-[min(100%,20rem)] md:shrink-0 md:flex-none md:border-t-0 md:border-r">
-            <div className="shrink-0 border-b border-[var(--surface-border)] px-3 py-2">
-              <h2 className="text-sm font-medium text-[var(--text-primary)]">Pins ({pois.length})</h2>
-              <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
+          <aside className="order-2 flex min-h-0 min-w-0 flex-1 flex-col md:order-1 md:h-full md:w-[min(100%,20rem)] md:shrink-0 md:flex-none" style={{ background: "#F8F8F8", borderTop: "1px solid #e5e0d8", borderRight: "1px solid #e5e0d8" }}>
+            <div className="shrink-0 px-3 py-2" style={{ borderBottom: "1px solid #e5e0d8" }}>
+              <h2 className="text-sm font-medium" style={{ color: "#193521" }}>Pins ({pois.length})</h2>
+              <p className="mt-0.5 text-[11px]" style={{ color: "#4a4a4a" }}>
                 Scroll this list. Fields are below—zoom the page if the keyboard hides them.
               </p>
             </div>
