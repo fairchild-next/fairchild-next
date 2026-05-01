@@ -1,32 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
 
-type OverlayConfig = {
-  image_url: string;
-  sw_lat: string;
-  sw_lng: string;
-  ne_lat: string;
-  ne_lng: string;
-};
+const OverlayEditorMap = dynamic(() => import("./OverlayEditorMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center">
+      <span style={{ color: "#4a4a4a" }}>Loading map…</span>
+    </div>
+  ),
+});
 
-const EMPTY: OverlayConfig = {
-  image_url: "",
-  sw_lat: "",
-  sw_lng: "",
-  ne_lat: "",
-  ne_lng: "",
-};
+type Bounds = { sw: [number, number]; ne: [number, number] };
 
-// Helper: rough degree offset per pixel at a given zoom level
-// (Not needed for this UI, just for reference comments)
+const DEFAULT_BOUNDS: Bounds = {
+  sw: [25.6730, -80.2785],
+  ne: [25.6820, -80.2675],
+};
 
 export default function MapOverlayPage() {
   const supabase = useSupabaseBrowserClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [config, setConfig] = useState<OverlayConfig>(EMPTY);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [bounds, setBounds] = useState<Bounds>(DEFAULT_BOUNDS);
+  const [opacity, setOpacity] = useState(0.7);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -37,14 +38,9 @@ export default function MapOverlayPage() {
       .then((r) => r.json())
       .then((json) => {
         const ov = json?.config?.overlay;
-        if (ov) {
-          setConfig({
-            image_url: ov.image_url ?? "",
-            sw_lat: String(ov.sw?.[0] ?? ""),
-            sw_lng: String(ov.sw?.[1] ?? ""),
-            ne_lat: String(ov.ne?.[0] ?? ""),
-            ne_lng: String(ov.ne?.[1] ?? ""),
-          });
+        if (ov?.image_url) {
+          setImageUrl(ov.image_url);
+          setBounds({ sw: ov.sw, ne: ov.ne });
         }
       })
       .catch(() => {});
@@ -67,8 +63,8 @@ export default function MapOverlayPage() {
       });
       const json = await res.json();
       if (json.url) {
-        setConfig((c) => ({ ...c, image_url: json.url }));
-        setMessage({ type: "ok", text: "Image uploaded. Now set the coordinates below and save." });
+        setImageUrl(json.url);
+        setMessage({ type: "ok", text: "Image uploaded — now drag the corner handles to position it." });
       } else {
         setMessage({ type: "err", text: json.error ?? "Upload failed" });
       }
@@ -80,16 +76,8 @@ export default function MapOverlayPage() {
   }
 
   async function handleSave() {
-    if (!config.image_url) {
+    if (!imageUrl) {
       setMessage({ type: "err", text: "Upload an image first." });
-      return;
-    }
-    const sw_lat = parseFloat(config.sw_lat);
-    const sw_lng = parseFloat(config.sw_lng);
-    const ne_lat = parseFloat(config.ne_lat);
-    const ne_lng = parseFloat(config.ne_lng);
-    if ([sw_lat, sw_lng, ne_lat, ne_lng].some(isNaN)) {
-      setMessage({ type: "err", text: "All four coordinate fields must be valid numbers." });
       return;
     }
     setSaving(true);
@@ -103,7 +91,14 @@ export default function MapOverlayPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ config_slug: "default", image_url: config.image_url, sw_lat, sw_lng, ne_lat, ne_lng }),
+        body: JSON.stringify({
+          config_slug: "default",
+          image_url: imageUrl,
+          sw_lat: bounds.sw[0],
+          sw_lng: bounds.sw[1],
+          ne_lat: bounds.ne[0],
+          ne_lng: bounds.ne[1],
+        }),
       });
       const json = await res.json();
       if (json.ok) {
@@ -118,134 +113,104 @@ export default function MapOverlayPage() {
     }
   }
 
-  const field = (label: string, hint: string, key: keyof OverlayConfig) => (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-semibold text-[var(--text-primary)]">{label}</label>
-      <p className="text-xs text-[var(--text-muted)]">{hint}</p>
-      <input
-        type="text"
-        inputMode="decimal"
-        value={config[key]}
-        onChange={(e) => setConfig((c) => ({ ...c, [key]: e.target.value }))}
-        placeholder={key.includes("lat") ? "e.g. 25.6730" : "e.g. -80.2785"}
-        className="rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-2.5 text-sm focus:border-[var(--primary)] focus:outline-none"
-      />
-    </div>
-  );
-
   return (
-    <div style={{ background: "var(--background)", minHeight: "100%" }}>
-      <div className="px-5 pt-12 pb-3">
-        <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">Map Settings</p>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Garden Map Overlay</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">
-          Upload your illustrated garden map and set its position so it lines up with GPS coordinates.
-        </p>
-      </div>
-
-      <div className="px-5 space-y-6 pb-10">
-
-        {/* ── Step 1: Upload ───────────────────────────────────────────── */}
-        <div
-          className="rounded-2xl p-5 space-y-4"
-          style={{ background: "var(--surface)", border: "1px solid var(--surface-border)" }}
-        >
-          <div>
-            <p className="font-bold text-[var(--text-primary)]">Step 1 — Upload Map Image</p>
-            <p className="text-sm text-[var(--text-muted)] mt-0.5">PNG or JPG, high resolution recommended.</p>
-          </div>
-
-          {config.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={config.image_url}
-              alt="Current overlay"
-              className="w-full rounded-xl object-cover max-h-48"
-            />
-          )}
-
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="w-full rounded-xl py-3 text-sm font-semibold transition"
-            style={{
-              background: "var(--background)",
-              border: "1px dashed var(--surface-border)",
-              color: "var(--text-primary)",
-            }}
-          >
-            {uploading ? "Uploading…" : config.image_url ? "Replace Image" : "Choose Image File"}
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+    <div
+      className="flex flex-col"
+      style={{ height: "100%", minHeight: 0, background: "#F3EFEE", color: "#193521" }}
+    >
+      {/* ── Header ── */}
+      <div
+        className="shrink-0 flex items-center justify-between px-4 py-3 border-b"
+        style={{ background: "#F8F8F8", borderColor: "#e5e0d8" }}
+      >
+        <div className="flex items-center gap-3">
+          <Link href="/staff" className="text-sm" style={{ color: "#4a4a4a" }}>
+            ← Staff
+          </Link>
+          <h1 className="text-base font-semibold">Map Overlay Editor</h1>
         </div>
-
-        {/* ── Step 2: Coordinates ──────────────────────────────────────── */}
-        <div
-          className="rounded-2xl p-5 space-y-4"
-          style={{ background: "var(--surface)", border: "1px solid var(--surface-border)" }}
-        >
-          <div>
-            <p className="font-bold text-[var(--text-primary)]">Step 2 — Set Bounding Box</p>
-            <p className="text-sm text-[var(--text-muted)] mt-0.5">
-              These four coordinates tell the map exactly where to place your image.
-              Open{" "}
-              <a
-                href="https://www.google.com/maps/@25.677,-80.273,17z"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--primary)] underline"
-              >
-                Google Maps
-              </a>{" "}
-              → right-click the bottom-left corner of your image area → copy coordinates for SW,
-              then repeat for the top-right corner for NE.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {field("SW Latitude", "Bottom-left corner — latitude", "sw_lat")}
-            {field("SW Longitude", "Bottom-left corner — longitude", "sw_lng")}
-            {field("NE Latitude", "Top-right corner — latitude", "ne_lat")}
-            {field("NE Longitude", "Top-right corner — longitude", "ne_lng")}
-          </div>
-
-          <div
-            className="rounded-xl p-3 text-xs space-y-1"
-            style={{ background: "var(--background)", border: "1px solid var(--surface-border)" }}
-          >
-            <p className="font-semibold text-[var(--text-primary)]">Quick reference — Fairchild approximate bounds:</p>
-            <p className="text-[var(--text-muted)]">SW: 25.6730, -80.2785 &nbsp;|&nbsp; NE: 25.6820, -80.2675</p>
-            <p className="text-[var(--text-muted)]">
-              Start with these, save, check the guest map, then nudge the numbers until the paths line up with the GPS dot.
-            </p>
-          </div>
-        </div>
-
-        {/* ── Message ──────────────────────────────────────────────────── */}
-        {message && (
-          <div
-            className="rounded-xl px-4 py-3 text-sm font-medium"
-            style={{
-              background: message.type === "ok" ? "#f0fdf4" : "#fef2f2",
-              color: message.type === "ok" ? "#166534" : "#991b1b",
-              border: `1px solid ${message.type === "ok" ? "#bbf7d0" : "#fecaca"}`,
-            }}
-          >
-            {message.text}
-          </div>
-        )}
-
-        {/* ── Save ─────────────────────────────────────────────────────── */}
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving || uploading}
-          className="w-full rounded-2xl py-4 text-base font-bold text-white transition hover:opacity-90 disabled:opacity-50"
-          style={{ background: "var(--primary)" }}
+          disabled={saving || !imageUrl}
+          className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          style={{ background: "#6A8468" }}
         >
-          {saving ? "Saving…" : "Save & Update Guest Map"}
+          {saving ? "Saving…" : "Save"}
         </button>
+      </div>
+
+      {/* ── Toolbar ── */}
+      <div
+        className="shrink-0 flex items-center gap-4 px-4 py-2 border-b flex-wrap"
+        style={{ background: "#F8F8F8", borderColor: "#e5e0d8" }}
+      >
+        {/* Upload */}
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="rounded-lg px-3 py-1.5 text-sm font-medium border"
+          style={{ borderColor: "#e5e0d8", background: "white", color: "#193521" }}
+        >
+          {uploading ? "Uploading…" : imageUrl ? "Replace Image" : "Upload Map Image"}
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+
+        {/* Opacity */}
+        {imageUrl && (
+          <label className="flex items-center gap-2 text-sm" style={{ color: "#4a4a4a" }}>
+            Overlay opacity
+            <input
+              type="range"
+              min={0.1}
+              max={1}
+              step={0.05}
+              value={opacity}
+              onChange={(e) => setOpacity(parseFloat(e.target.value))}
+              className="w-28 accent-[#6A8468]"
+            />
+            <span className="tabular-nums w-8">{Math.round(opacity * 100)}%</span>
+          </label>
+        )}
+
+        {/* Instructions */}
+        {imageUrl && (
+          <p className="text-xs" style={{ color: "#4a4a4a" }}>
+            Drag the <strong>NW / NE / SW / SE</strong> corner handles to fit the image over the garden.
+          </p>
+        )}
+
+        {!imageUrl && (
+          <p className="text-xs" style={{ color: "#4a4a4a" }}>
+            Upload your illustrated garden map to get started.
+          </p>
+        )}
+      </div>
+
+      {/* ── Message ── */}
+      {message && (
+        <div
+          className="shrink-0 px-4 py-2 text-sm font-medium"
+          style={{
+            background: message.type === "ok" ? "#f0fdf4" : "#fef2f2",
+            color: message.type === "ok" ? "#166534" : "#991b1b",
+            borderBottom: "1px solid",
+            borderColor: message.type === "ok" ? "#bbf7d0" : "#fecaca",
+          }}
+        >
+          {message.text}
+        </div>
+      )}
+
+      {/* ── Map ── */}
+      <div className="min-h-0 flex-1">
+        <OverlayEditorMap
+          imageUrl={imageUrl}
+          bounds={bounds}
+          opacity={opacity}
+          onChange={setBounds}
+        />
       </div>
     </div>
   );
