@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, ImageOverlay, useMap } from "react-leaflet";
+// GeoJSON kept for the world mask layer
 import type { LatLngBoundsExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Fuse from "fuse.js";
@@ -178,18 +179,6 @@ export default function GardenMapLeaflet({
     if (!search.trim() || !fuse) return [];
     return fuse.search(search.trim(), { limit: 6 }).map((r) => r.item);
   }, [fuse, search]);
-
-  const boundaryGeoJson = useMemo(() => {
-    if (!data?.zones?.length) return null;
-    return {
-      type: "FeatureCollection" as const,
-      features: data.zones.map((z) => ({
-        type: "Feature" as const,
-        properties: {},
-        geometry: z.geometry_geojson,
-      })),
-    };
-  }, [data?.zones]);
 
   // Resolve overlay — only use DB data; skip fallback file if nothing saved yet
   const overlay = data?.config?.overlay ?? null;
@@ -394,21 +383,6 @@ export default function GardenMapLeaflet({
                 })}
               />
 
-              {/* Garden boundary outline if configured */}
-              {boundaryGeoJson && (
-                <GeoJSON
-                  key="boundary"
-                  data={boundaryGeoJson}
-                  style={() => ({
-                    fillColor: "transparent",
-                    fillOpacity: 0,
-                    color: "#15803d",
-                    weight: 2,
-                    lineJoin: "round" as const,
-                    lineCap: "round" as const,
-                  })}
-                />
-              )}
 
               {filteredPois.map((poi) => {
                 const imgSrc = resolveImageUrl(poi.image_url, DEFAULT_IMAGE);
