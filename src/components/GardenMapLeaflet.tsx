@@ -19,11 +19,6 @@ const FALLBACK_OVERLAY_BOUNDS: LatLngBoundsExpression = [
   [25.6820, -80.2675],
 ];
 
-const MAX_BOUNDS: LatLngBoundsExpression = [
-  [25.6710, -80.2810],
-  [25.6840, -80.2650],
-];
-
 // Inverse-polygon mask — large world rectangle with garden hole cut out.
 // Updated whenever overlay bounds change.
 function buildMask(sw: [number, number], ne: [number, number]): GeoJSON.FeatureCollection {
@@ -196,8 +191,9 @@ export default function GardenMapLeaflet({
     };
   }, [data?.zones]);
 
-  // Resolve overlay — use API data if available, else fallback to public file
+  // Resolve overlay — only use DB data; skip fallback file if nothing saved yet
   const overlay = data?.config?.overlay ?? null;
+  const hasOverlay = overlay !== null;
   const overlayImageUrl = overlay?.image_url ?? "/garden-map-overlay.png";
   const overlayBounds: LatLngBoundsExpression = overlay
     ? [overlay.sw, overlay.ne]
@@ -206,6 +202,12 @@ export default function GardenMapLeaflet({
   const sw = overlay ? overlay.sw : (FALLBACK_OVERLAY_BOUNDS as [[number, number], [number, number]])[0];
   const ne = overlay ? overlay.ne : (FALLBACK_OVERLAY_BOUNDS as [[number, number], [number, number]])[1];
   const worldMask = useMemo(() => buildMask(sw, ne), [sw, ne]);
+
+  // Add a small padding (0.001°) around the overlay so the boundary isn't razor-tight
+  const dynamicMaxBounds: LatLngBoundsExpression = [
+    [sw[0] - 0.001, sw[1] - 0.001],
+    [ne[0] + 0.001, ne[1] + 0.001],
+  ];
 
   if (loading) {
     return (
@@ -357,7 +359,7 @@ export default function GardenMapLeaflet({
               keyboard={false}
               className="h-full w-full"
               zoomControl={false}
-              maxBounds={MAX_BOUNDS}
+              maxBounds={dynamicMaxBounds}
               maxBoundsViscosity={1.0}
               minZoom={14}
             >

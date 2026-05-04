@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireStaff } from "@/lib/staff";
 
 /**
  * PATCH /api/map/overlay
  * Save the illustrated map overlay settings (image URL + bounding box).
- * Staff only.
+ * Staff only. Uses admin client to bypass RLS on map_config.
  */
 export async function PATCH(req: Request) {
   const staff = await requireStaff(req);
@@ -20,9 +20,10 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const supabase = await createSupabaseServerClient();
+  // Use admin client so RLS on map_config doesn't block the update
+  const admin = createSupabaseAdminClient();
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("map_config")
     .update({
       overlay_image_url: image_url,
