@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import DailyTicketsContent from "./DailyTicketsContent";
 
 export default function DailyTicketsPage() {
@@ -26,6 +27,11 @@ export default function DailyTicketsPage() {
 
   return (
     <div className="px-6 pt-6 pb-24 bg-[var(--background)] min-h-full text-[var(--text-primary)]">
+      <div className="mb-4">
+        <Link href="/tickets" className="text-[var(--primary)] text-sm font-medium">
+          ← Back to Tickets
+        </Link>
+      </div>
       <h2 className="text-2xl font-semibold mb-6 border-b border-[var(--surface-border)] pb-4">
         Daily Admission
       </h2>

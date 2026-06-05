@@ -13,6 +13,8 @@ import {
   bunnyHoppeningEvent,
   getCurrentEventAccentColor,
 } from "@/lib/clients/fairchild/eventModeContent";
+import { GARDEN_QUESTS } from "@/lib/kids/gardenQuestData";
+import { FOUND_IDS_KEY } from "@/lib/kids/gardenQuestDiscoveries";
 
 const FAIRCHILD_RENEW_URL = "https://www.fairchildgarden.org";
 
@@ -32,6 +34,20 @@ export default function MemberProfilePage() {
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
   const { isEventsMode, setEventsMode } = useEventsMode();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [kidsFoundCount, setKidsFoundCount] = useState(0);
+
+  useEffect(() => {
+    if (!supabase || !hasSession) return;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) setUserEmail(data.user.email);
+    });
+    try {
+      const stored = localStorage.getItem(FOUND_IDS_KEY);
+      const ids: string[] = stored ? JSON.parse(stored) : [];
+      setKidsFoundCount(ids.length);
+    } catch {}
+  }, [supabase, hasSession]);
 
   useEffect(() => {
     if (!authReady) return;
@@ -108,6 +124,23 @@ export default function MemberProfilePage() {
               <span className="text-white">→</span>
             </div>
           </button>
+
+          <Link
+            href="/kids/garden-quest"
+            className="block p-4 rounded-2xl bg-[var(--surface)] border-2 border-[var(--surface-border)] hover:border-[#6A8468] transition"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-[#193521]">Garden Quest</p>
+                <p className="text-sm text-[var(--text-muted)] mt-0.5">
+                  {kidsFoundCount > 0
+                    ? `Found ${kidsFoundCount} of ${GARDEN_QUESTS.length} things!`
+                    : "Find plants and animals in the garden"}
+                </p>
+              </div>
+              <span className="text-[#6A8468]">→</span>
+            </div>
+          </Link>
 
           <Link
             href="/badges"
@@ -303,6 +336,12 @@ export default function MemberProfilePage() {
       <h1 className="text-2xl font-semibold mb-6">Member Profile</h1>
 
       <div className="space-y-4">
+        {userEmail && (
+          <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--surface-border)]">
+            <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Account</p>
+            <p className="font-medium truncate">{userEmail}</p>
+          </div>
+        )}
         <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--surface-border)]">
           <p className="text-sm font-medium text-[var(--text-muted)] mb-1">
             Membership type

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { getDiscoveries, type DiscoveryEntry } from "@/lib/kids/gardenQuestDiscoveries";
 import { GARDEN_QUESTS } from "@/lib/kids/gardenQuestData";
 
@@ -23,18 +24,12 @@ type BadgeRow = {
   earned_at?: string | null;
 };
 
-const placeholderBadges: BadgeRow[] = [
-  { badge_key: "butterfly-finder", badge_name: "Butterfly Finder", description: "", earned: false },
-  { badge_key: "flower-spotter", badge_name: "Flower Spotter", description: "", earned: false },
-  { badge_key: "tree-explorer", badge_name: "Tree Explorer", description: "", earned: false },
-  { badge_key: "flower-collector", badge_name: "Flower Collector", description: "", earned: false },
-  { badge_key: "pollinator-pal", badge_name: "Pollinator Pal", description: "", earned: false },
-  { badge_key: "nature-photographer", badge_name: "Nature Photographer", description: "", earned: false },
-  { badge_key: "nature-detective", badge_name: "Nature Detective", description: "", earned: false },
-  { badge_key: "garden-traveler", badge_name: "Garden Traveler", description: "", earned: false },
-  { badge_key: "garden-explorer", badge_name: "Garden Explorer", description: "", earned: false },
-  { badge_key: "secret-garden", badge_name: "?", description: "A special surprise!", earned: false },
-];
+const placeholderBadges: BadgeRow[] = Array.from({ length: 10 }, (_, i) => ({
+  badge_key: `placeholder-${i}`,
+  badge_name: "???",
+  description: "",
+  earned: false,
+}));
 
 export default function KidsBadges() {
   const searchParams = useSearchParams();
@@ -112,6 +107,12 @@ export default function KidsBadges() {
         <div className="absolute inset-0 flex items-center justify-center">
           <h1 className="text-2xl font-bold text-white drop-shadow-lg">Badges</h1>
         </div>
+        <Link
+          href="/kids/garden-quest"
+          className="absolute top-4 left-4 text-white/80 text-sm font-medium hover:text-white transition drop-shadow"
+        >
+          ← Garden Quest
+        </Link>
       </div>
 
       {/* Toggle: My Badges / My Discoveries */}
@@ -173,13 +174,11 @@ export default function KidsBadges() {
                     </div>
                   )
                 ) : (
-                  /* Locked: question mark + name */
-                  <>
-                    <span className="text-2xl text-[#6A8468]">?</span>
-                    <span className="text-[9px] text-[var(--text-muted)] text-center line-clamp-2 leading-tight mt-1">
-                      {b.badge_name}
-                    </span>
-                  </>
+                  /* Locked: hide name to preserve mystery */
+                  <div className="flex flex-col items-center justify-center gap-1.5">
+                    <span className="text-2xl text-[#6A8468]/60">?</span>
+                    <span className="text-[9px] text-[var(--text-muted)]/60 font-medium">???</span>
+                  </div>
                 )}
               </div>
             ))}

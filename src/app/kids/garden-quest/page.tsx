@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, PencilSimple } from "@phosphor-icons/react";
 import { GARDEN_QUESTS, WORD_HELPER_CATEGORIES, getQuestNameColorClass, type GardenQuestItem } from "@/lib/kids/gardenQuestData";
-import { addDiscovery, clearDiscoveries, clearFoundIds, FOUND_IDS_KEY } from "@/lib/kids/gardenQuestDiscoveries";
+import { addDiscovery, clearDiscoveries, clearFoundIds, getDiscoveries, FOUND_IDS_KEY, type DiscoveryEntry } from "@/lib/kids/gardenQuestDiscoveries";
 import BadgeEarnedModal from "@/components/kids/BadgeEarnedModal";
 
 function getFoundIds(): string[] {
@@ -49,6 +49,8 @@ export default function KidsGardenQuestPage() {
   const [selectedQuest, setSelectedQuest] = useState<GardenQuestItem | null>(null);
   const [description, setDescription] = useState("");
   const [badgeQueue, setBadgeQueue] = useState<BadgeInfo[]>([]);
+  const [discoveries, setDiscoveries] = useState<DiscoveryEntry[]>([]);
+  const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
     const loadDiscoveries = async () => {
@@ -63,8 +65,14 @@ export default function KidsGardenQuestPage() {
         } else {
           setFoundIdsState(local);
         }
+        if (data.discoveries?.length) {
+          setDiscoveries(data.discoveries);
+        } else {
+          setDiscoveries(getDiscoveries());
+        }
       } catch {
         setFoundIdsState(local);
+        setDiscoveries(getDiscoveries());
       }
     };
     loadDiscoveries();
@@ -86,6 +94,9 @@ export default function KidsGardenQuestPage() {
       setSelectedQuest(null);
       setDescription("");
 
+      // Optimistically add to local discoveries list
+      setDiscoveries(getDiscoveries());
+
       try {
         const saveRes = await fetch("/api/discoveries", {
           method: "POST",
@@ -94,12 +105,14 @@ export default function KidsGardenQuestPage() {
           body: JSON.stringify({
             quest_item: questId,
             type,
-            content: type === "photo" ? content : content,
+            content,
           }),
         });
         const data = await saveRes.json();
         if (!saveRes.ok) {
           console.warn("Garden Quest save failed:", saveRes.status, data?.error ?? data);
+          setSaveError(true);
+          setTimeout(() => setSaveError(false), 4000);
           return;
         }
         // Badges are returned in the same response (no second request)
@@ -107,7 +120,7 @@ export default function KidsGardenQuestPage() {
           setBadgeQueue(data.badges);
         }
       } catch {
-        // Offline or not logged in - localStorage still works
+        // Offline or not logged in — localStorage still works
       }
     },
     [foundIds]
@@ -163,12 +176,12 @@ export default function KidsGardenQuestPage() {
   };
 
   const handleSaveDescription = () => {
-    if (selectedQuest) {
+    if (selectedQuest && description.trim()) {
       saveDiscoveryAndCheckBadges(
         selectedQuest.id,
         selectedQuest.name,
         "description",
-        description,
+        description.trim(),
         selectedQuest.image
       );
     }
@@ -329,7 +342,8 @@ export default function KidsGardenQuestPage() {
           </button>
           <button
             onClick={handleSaveDescription}
-            className="mt-6 w-full py-4 rounded-2xl bg-[#6A8468] text-white font-semibold"
+            disabled={!description.trim()}
+            className="mt-6 w-full py-4 rounded-2xl bg-[#6A8468] text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             Save Discovery
           </button>
@@ -420,6 +434,11 @@ export default function KidsGardenQuestPage() {
           onClose={() => setBadgeQueue((q) => q.slice(1))}
         />
       )}
+      {saveError && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-red-500/90 text-white text-sm font-medium shadow-lg">
+          Couldn&apos;t save to cloud — discovery kept locally.
+        </div>
+      )}
       {/* Banner */}
       <div className="relative overflow-hidden">
         <div className="relative h-[10rem] min-h-[180px]">
@@ -439,9 +458,14 @@ export default function KidsGardenQuestPage() {
 
       {/* Tabs */}
       <div className="px-6 pt-6">
-        <Link href="/" className="text-[#6A8468] text-sm font-medium mb-4 inline-block">
-          ← Go Back
-        </Link>
+        <div className="flex items-center justify-between mb-4">
+          <Link href="/" className="text-[#6A8468] text-sm font-medium">
+            ← Go Back
+          </Link>
+          <Link href="/badges" className="text-[#6A8468] text-sm font-medium">
+            My Badges →
+          </Link>
+        </div>
         <p className="text-[#193521] font-semibold mb-1">
           You found {foundIds.length} / {GARDEN_QUESTS.length} things!
         </p>
@@ -521,28 +545,47 @@ export default function KidsGardenQuestPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {foundQuests.map((quest) => (
-              <div
-                key={quest.id}
-                className="rounded-2xl border-2 border-[var(--surface-border)] bg-white overflow-hidden"
-              >
-                <div className="relative aspect-video">
-                  <Image
-                    src={quest.image}
-                    alt={quest.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 448px) 100vw, 448px"
-                    unoptimized
-                  />
+            {foundQuests.map((quest) => {
+              const discovery = discoveries.find((d) => d.questId === quest.id);
+              return (
+                <div
+                  key={quest.id}
+                  className="rounded-2xl border-2 border-[#6A8468]/30 bg-white overflow-hidden"
+                >
+                  {discovery?.type === "photo" ? (
+                    <img
+                      src={discovery.content}
+                      alt={quest.name}
+                      className="w-full aspect-video object-cover"
+                    />
+                  ) : (
+                    <div className="relative aspect-video">
+                      <Image
+                        src={quest.image}
+                        alt={quest.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 448px) 100vw, 448px"
+                        unoptimized
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-[#6A8468] uppercase tracking-wide">Found!</span>
+                      <p className="font-semibold text-[#193521]">
+                        <QuestName quest={quest} />
+                      </p>
+                    </div>
+                    {discovery?.type === "description" && discovery.content && (
+                      <div className="mt-2 rounded-xl border border-[var(--surface-border)] bg-[#F8F8F8] p-3">
+                        <p className="text-sm text-[#193521] whitespace-pre-wrap">{discovery.content}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="p-4">
-                  <p className="font-semibold">
-                    Found: <QuestName quest={quest} />
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {foundQuests.length === 0 && (
               <p className="text-center text-[var(--text-muted)] py-8">
                 No discoveries yet. Start exploring!

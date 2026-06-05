@@ -113,7 +113,12 @@ export default function DailyTicketsContent() {
     };
   }, [selectedDate, supabase]);
 
-  const formatTime = (time: string) => time.slice(0, 5);
+  const formatTime = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    if (h === 0) return `12:${String(m).padStart(2, "0")} AM`;
+    if (h === 12) return `12:${String(m).padStart(2, "0")} PM`;
+    return `${h > 12 ? h - 12 : h}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+  };
 
   return (
     <div className="p-6 space-y-8 bg-[var(--background)]">
@@ -137,10 +142,22 @@ export default function DailyTicketsContent() {
         </div>
       </div>
 
+      {!selectedDate && availableDates.length === 0 && (
+        <p className="text-sm text-[var(--text-muted)] text-center">
+          No upcoming dates available — check back soon.
+        </p>
+      )}
+
       {selectedDate && (
         <div className="space-y-4">
           {loadingSlots ? (
-            <p>Loading available times...</p>
+            <div className="flex items-center gap-2 text-[var(--text-muted)]">
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+              <span className="text-sm">Loading available times…</span>
+            </div>
           ) : slots.length === 0 ? (
             <p className="text-[var(--text-muted)]">
               No available times for this date.
@@ -165,15 +182,25 @@ export default function DailyTicketsContent() {
                 {slots.map((slot) => (
                   <button
                     key={slot.id}
-                    onClick={() =>
-                      router.push(
-                        `/tickets/daily/scheduled/${slot.id}`
-                      )
-                    }
-                    className="w-full border border-[var(--surface-border)] rounded-xl p-4 text-left hover:bg-[var(--surface-border)]/50 transition text-[var(--text-primary)]"
+                    onClick={() => router.push(`/tickets/daily/scheduled/${slot.id}`)}
+                    className="w-full border border-[var(--surface-border)] rounded-xl p-4 text-left hover:bg-[var(--surface-border)]/50 transition text-[var(--text-primary)] flex items-center justify-between"
                   >
-                    {formatTime(slot.start_time)} –{" "}
-                    {formatTime(slot.end_time)}
+                    <span>
+                      {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+                    </span>
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      slot.capacity_remaining <= 5
+                        ? "bg-red-500/10 text-red-500"
+                        : slot.capacity_remaining <= 15
+                          ? "bg-amber-500/10 text-amber-500"
+                          : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                    }`}>
+                      {slot.capacity_remaining <= 5
+                        ? `${slot.capacity_remaining} left!`
+                        : slot.capacity_remaining <= 15
+                          ? `${slot.capacity_remaining} spots`
+                          : "Available"}
+                    </span>
                   </button>
                 ))}
               </div>
