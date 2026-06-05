@@ -145,22 +145,22 @@ export default function CheckoutPage() {
   return (
     <div className="flex flex-col min-h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-28" id="checkout-content">
-        <h1 className="text-xl font-semibold">Review & Checkout</h1>
+        <h1 className="font-serif text-xl font-semibold text-[#193521]">Review &amp; Checkout</h1>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {items.map((item) => (
             <div
               key={item.id}
-              className="border rounded-lg p-4"
+              className="border border-[#6A8468]/20 rounded-2xl p-4 bg-white"
             >
-              <div className="flex justify-between">
+              <div className="flex justify-between items-start">
                 <div>
-                  <div className="font-medium">{item.name}</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="font-semibold text-[#193521]">{item.name}</div>
+                  <div className="text-sm text-[var(--text-muted)] mt-0.5">
                     {item.quantity} × ${item.price.toFixed(2)}
                   </div>
                 </div>
-                <div className="font-medium">
+                <div className="font-semibold text-[#193521]">
                   ${(item.quantity * item.price).toFixed(2)}
                 </div>
               </div>
@@ -169,13 +169,13 @@ export default function CheckoutPage() {
         </div>
 
         {!member && (
-          <div className="border border-[var(--surface-border)] rounded-lg p-4">
+          <div className="border border-[#6A8468]/20 rounded-2xl p-4 bg-white">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={addDonation}
                 onChange={() => setAddDonation(!addDonation)}
-                className="w-4 h-4"
+                className="w-4 h-4 accent-[#6A8468] cursor-pointer"
               />
               <span className="text-sm text-[var(--text-primary)]">
                 Add $5 to support Fairchild’s conservation work
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
                     setMemberDonationCustom("");
                   }
                 }}
-                className="w-4 h-4"
+                className="w-4 h-4 accent-[#6A8468] cursor-pointer"
               />
               <span className="text-sm text-[var(--text-primary)]">
                 Want to donate to Fairchild&apos;s mission? Support conservation with a 100% tax-deductible contribution.
@@ -273,23 +273,31 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        <div className="border-t pt-4 space-y-2">
-          <div className="flex justify-between">
+        <div className="rounded-2xl border border-[#6A8468]/20 bg-white px-4 py-4 space-y-2">
+          <div className="flex justify-between text-sm text-[var(--text-muted)]">
             <span>Subtotal</span>
             <span>${subtotal.toFixed(2)}</span>
           </div>
 
           {donationAmount > 0 && (
-            <div className="flex justify-between">
+            <div className="flex justify-between text-sm text-[var(--text-muted)]">
               <span>Conservation Support</span>
               <span>${donationAmount.toFixed(2)}</span>
             </div>
           )}
 
-          <div className="flex justify-between font-semibold text-lg">
+          <div className="flex justify-between font-semibold text-[#193521] text-base border-t border-[#e8e4de] pt-2 mt-1">
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
           </div>
+        </div>
+
+        {/* Trust row */}
+        <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--text-muted)] py-1">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Payments processed securely by Stripe</span>
         </div>
       </div>
 

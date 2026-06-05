@@ -37,6 +37,15 @@ export default function EventsMapPage() {
         <div className="-mx-4 sm:mx-0 rounded-2xl overflow-hidden border border-[var(--surface-border)]">
           <GardenMap configSlug="events" poiListReturnPath="/events/map" />
         </div>
+
+        {/* Fallback — always visible; especially helpful if event POIs haven't been seeded */}
+        <p className="mt-3 text-xs text-center text-[var(--text-muted)]">
+          Not seeing event pins?{" "}
+          <a href="/map" className="underline font-medium text-[var(--text-primary)]">
+            Open the main garden map
+          </a>
+        </p>
+
         <a
           href={bunnyHoppeningEvent.officialUrl}
           target="_blank"

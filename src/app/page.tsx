@@ -106,10 +106,8 @@ export default function Home() {
 
   const activateGuestMode = (mode: "kids" | "wedding" | "events") => {
     if (!authReady) return;
-    if (!hasSession) {
-      router.push(`/login?redirect=${encodeURIComponent("/")}`);
-      return;
-    }
+    // Allow read-only preview without login — purchases inside each mode
+    // require auth and redirect there contextually (checkout, discoveries, etc.)
     if (mode === "kids") {
       setWeddingMode(false);
       setEventsMode(false);
@@ -141,7 +139,9 @@ export default function Home() {
     return <MemberHome member={member} />;
   }
 
-  if (authReady && !loading && hasSession && !member) {
+  // Authenticated session without member record, OR unauthenticated guest who
+  // activated a mode — both get the mode home in read-only/guest capacity.
+  if (authReady && !loading) {
     if (isKidsMode) return <KidsHome />;
     if (isEventsMode) return <EventsHome />;
     if (isWeddingMode) return <WeddingHome />;
