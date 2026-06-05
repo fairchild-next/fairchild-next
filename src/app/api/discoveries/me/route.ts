@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 /**
  * GET /api/discoveries/me
@@ -50,8 +51,10 @@ export async function DELETE() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await supabase.from("kids_user_badges").delete().eq("user_id", user.id);
-  const { error } = await supabase.from("kids_discoveries").delete().eq("user_id", user.id);
+  // Use admin client — user session lacks DELETE policy on kids_user_badges
+  const admin = createSupabaseAdminClient();
+  await admin.from("kids_user_badges").delete().eq("user_id", user.id);
+  const { error } = await admin.from("kids_discoveries").delete().eq("user_id", user.id);
 
   if (error) {
     console.error("Discovery reset error:", error);

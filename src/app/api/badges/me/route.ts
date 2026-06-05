@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 /**
  * GET /api/badges/me
@@ -15,12 +16,15 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: allBadges } = await supabase
+  // Use admin client so badge reads are never blocked by RLS edge cases.
+  const admin = createSupabaseAdminClient();
+
+  const { data: allBadges } = await admin
     .from("kids_badges")
     .select("id, badge_key, badge_name, description, icon_url, badge_type")
     .order("sort_order", { ascending: true });
 
-  const { data: userBadges } = await supabase
+  const { data: userBadges } = await admin
     .from("kids_user_badges")
     .select("badge_id, earned_at")
     .eq("user_id", user.id);
