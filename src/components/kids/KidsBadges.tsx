@@ -76,6 +76,12 @@ export default function KidsBadges() {
   useEffect(() => {
     const fetchBadges = async () => {
       try {
+        // Retroactively award any badges earned from existing discoveries
+        // (handles cases where badges table didn't exist when discoveries were saved)
+        await fetch("/api/badges/check", {
+          method: "POST",
+          credentials: "include",
+        });
         const res = await fetch("/api/badges/me", { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
