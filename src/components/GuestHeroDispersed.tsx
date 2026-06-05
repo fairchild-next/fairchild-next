@@ -149,21 +149,37 @@ export default function GuestHeroDispersed({ hasSession }: { hasSession: boolean
         </div>
 
         <div className="shrink-0 border-t border-white/[0.06] bg-[#1a2f26]/98 px-4 py-2.5 backdrop-blur-md font-system">
-          <div className="flex w-full items-center gap-3">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-[#9dc88a]" aria-hidden />
-              <p className="truncate text-xs font-medium text-white/75" title={eventLabel}>
-                {eventLabel}
+          {eventLabel.toLowerCase().includes("no events") ? (
+            /* No event today — show a forward-looking prompt instead */
+            <div className="flex w-full items-center justify-between">
+              <p className="text-xs font-medium text-white/55">
+                Upcoming programs &amp; events
               </p>
+              <Link
+                href="/tickets/events"
+                className="shrink-0 text-xs font-semibold text-[#6A8468] transition hover:text-[#5a7360]"
+              >
+                Explore →
+              </Link>
             </div>
-            <span className="h-8 w-px shrink-0 bg-white/20" aria-hidden />
-            <Link
-              href="/tickets/events"
-              className="shrink-0 text-xs font-semibold text-[#6A8468] transition hover:text-[#5a7360]"
-            >
-              See upcoming →
-            </Link>
-          </div>
+          ) : (
+            /* Event happening today — show it */
+            <div className="flex w-full items-center gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[#9dc88a]" aria-hidden />
+                <p className="truncate text-xs font-medium text-white/75" title={eventLabel}>
+                  {eventLabel}
+                </p>
+              </div>
+              <span className="h-8 w-px shrink-0 bg-white/20" aria-hidden />
+              <Link
+                href="/tickets/events"
+                className="shrink-0 text-xs font-semibold text-[#6A8468] transition hover:text-[#5a7360]"
+              >
+                See upcoming →
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -154,32 +154,32 @@ export default function Home() {
         <GuestHeroDispersed hasSession={hasSession} />
       </div>
 
-      {/* Mode switcher — moved above main tiles so visitors orient themselves first */}
+      {/* Mode switcher — compact icon-pills, equal visual weight, no false selected state */}
       <div className="mt-4 px-3 sm:px-4">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-          I&apos;m visiting as
-        </p>
         <div className="grid grid-cols-3 gap-2 font-system">
           <button
             type="button"
             onClick={() => activateGuestMode("kids")}
-            className="flex min-h-[46px] min-w-0 items-center justify-center rounded-xl bg-[#d4e8d0] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-[#193521] transition hover:brightness-[0.97] active:brightness-95 sm:px-2 sm:text-sm"
+            className="flex min-h-[40px] min-w-0 items-center justify-center gap-1 rounded-xl border border-[#6A8468]/35 bg-[#f4faf4] px-1 py-2 text-center text-[11px] font-semibold leading-tight text-[#193521] transition active:brightness-95 sm:px-2 sm:text-xs"
           >
-            Kids Mode
+            <span aria-hidden className="text-sm">🌿</span>
+            <span>Kids Mode</span>
           </button>
           <button
             type="button"
             onClick={() => activateGuestMode("events")}
-            className="flex min-h-[46px] min-w-0 items-center justify-center rounded-xl bg-[#193521] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-white transition hover:opacity-95 active:opacity-90 sm:px-2 sm:text-sm"
+            className="flex min-h-[40px] min-w-0 items-center justify-center gap-1 rounded-xl border border-[#193521]/20 bg-white px-1 py-2 text-center text-[11px] font-semibold leading-tight text-[#193521] transition active:bg-[#f0f0f0] sm:px-2 sm:text-xs"
           >
-            Events Mode
+            <span aria-hidden className="text-sm">🎟</span>
+            <span>Events Mode</span>
           </button>
           <button
             type="button"
             onClick={() => activateGuestMode("wedding")}
-            className="flex min-h-[46px] min-w-0 items-center justify-center rounded-xl border border-[#e0dcd6] bg-white px-1.5 py-2 text-center text-xs font-semibold leading-snug text-[#193521] transition hover:border-[#c5c0b8] active:bg-[#fafafa] sm:px-2 sm:text-sm"
+            className="flex min-h-[40px] min-w-0 items-center justify-center gap-1 rounded-xl border border-[#c5b08a]/40 bg-[#fdfaf6] px-1 py-2 text-center text-[11px] font-semibold leading-tight text-[#193521] transition active:brightness-95 sm:px-2 sm:text-xs"
           >
-            Wedding Mode
+            <span aria-hidden className="text-sm">💍</span>
+            <span>Wedding</span>
           </button>
         </div>
       </div>
