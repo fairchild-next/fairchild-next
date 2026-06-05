@@ -445,12 +445,12 @@ export default function KidsGardenQuestPage() {
         <p className="text-[#193521] font-semibold mb-1">
           You found {foundIds.length} / {GARDEN_QUESTS.length} things!
         </p>
-        {foundIds.length > 0 && (
+        {foundIds.length > 0 && process.env.NODE_ENV === "development" && (
           <button
             onClick={handleReset}
             className="text-xs text-[var(--text-muted)] underline mb-3"
           >
-            Reset discoveries (for testing)
+            Reset discoveries (dev only)
           </button>
         )}
         <div className="flex rounded-2xl border-2 border-[var(--surface-border)] overflow-hidden bg-white mb-4">
