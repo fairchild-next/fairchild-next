@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { badRequestError } from "@/lib/api-error";
 import { requireStaff } from "@/lib/staff";
 
 export type MapEditBody = {
@@ -77,7 +78,7 @@ export async function PATCH(req: Request) {
           .update({ geometry_geojson: geom })
           .eq("id", body.boundary.zoneId);
         if (error) {
-          return NextResponse.json({ error: error.message }, { status: 400 });
+          return badRequestError("map", error);
         }
       } else {
         const { data: existingZones, error: listErr } = await db
@@ -86,7 +87,7 @@ export async function PATCH(req: Request) {
           .eq("map_config_id", boundaryCfg.id)
           .limit(1);
         if (listErr) {
-          return NextResponse.json({ error: listErr.message }, { status: 400 });
+          return badRequestError("map/edit zones list", listErr);
         }
         const firstId = existingZones?.[0]?.id;
         if (firstId) {
@@ -95,7 +96,7 @@ export async function PATCH(req: Request) {
             .update({ geometry_geojson: geom })
             .eq("id", firstId);
           if (error) {
-            return NextResponse.json({ error: error.message }, { status: 400 });
+            return badRequestError("map", error);
           }
         } else {
           const { error } = await db.from("map_zones").insert({
@@ -104,7 +105,7 @@ export async function PATCH(req: Request) {
             geometry_geojson: geom,
           });
           if (error) {
-            return NextResponse.json({ error: error.message }, { status: 400 });
+            return badRequestError("map", error);
           }
         }
       }
@@ -122,7 +123,7 @@ export async function PATCH(req: Request) {
         })
         .eq("id", body.overlay.id);
       if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return badRequestError("map", error);
       }
     }
 
@@ -149,7 +150,7 @@ export async function PATCH(req: Request) {
         }));
         const { error } = await db.from("map_pois").insert(toInsert);
         if (error) {
-          return NextResponse.json({ error: error.message }, { status: 400 });
+          return badRequestError("map", error);
         }
       }
     }

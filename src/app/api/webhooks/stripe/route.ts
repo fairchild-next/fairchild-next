@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { decrementSlotCapacity } from "@/lib/commerce/validateCart";
+import { logAudit } from "@/lib/audit";
 
 let stripeClient: Stripe | undefined;
 function getStripe(): Stripe {
@@ -152,6 +153,18 @@ export async function POST(req: NextRequest) {
         );
       }
     }
+
+    void logAudit({
+      action: "payment.completed",
+      userId: order?.user_id ?? null,
+      resourceType: "order",
+      resourceId: internalOrderId,
+      metadata: {
+        stripe_session_id: session.id,
+        stripe_event_id: event.id,
+        ticket_count: ticketsToInsert.length,
+      },
+    });
   }
 
   return NextResponse.json({ received: true });

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { serverError } from "@/lib/api-error";
 
 /** Only accept file_url values that point to this project's Supabase storage. */
 function isValidStorageUrl(url: string): boolean {
@@ -41,7 +42,7 @@ export async function GET(req: Request) {
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/documents GET", error);
   return NextResponse.json({ documents: data });
 }
 
@@ -78,7 +79,7 @@ export async function POST(req: Request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/documents POST", error);
   return NextResponse.json({ document: data });
 }
 
@@ -99,13 +100,13 @@ export async function DELETE(req: Request) {
 
   if (staffRow) {
     const { error } = await supabase.from("wedding_documents").delete().eq("id", docId);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return serverError("couple/documents DELETE staff", error);
     return NextResponse.json({ ok: true });
   }
 
   // Couple can only delete their own uploads
   const { error } = await supabase
     .from("wedding_documents").delete().eq("id", docId).eq("uploaded_by", user.id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/documents DELETE couple", error);
   return NextResponse.json({ ok: true });
 }

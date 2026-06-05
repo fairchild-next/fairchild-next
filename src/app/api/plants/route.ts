@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { serverError } from "@/lib/api-error";
 
 /**
  * GET /api/plants?search=&type=&location=
@@ -29,8 +30,6 @@ export async function GET(req: Request) {
 
   const { data, error } = await query;
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  if (error) return serverError("plants GET", error);
   return NextResponse.json({ plants: data ?? [] });
 }

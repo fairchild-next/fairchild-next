@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { serverError } from "@/lib/api-error";
 
 /**
  * POST /api/couple/coordinator
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     .select("id, couple_name, couple_user_id")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/coordinator POST", error);
   return NextResponse.json({ booking: data });
 }
 
@@ -63,6 +64,6 @@ export async function DELETE(req: Request) {
     .update({ couple_user_id: null, updated_at: new Date().toISOString() })
     .eq("id", bookingId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/coordinator DELETE", error);
   return NextResponse.json({ ok: true });
 }

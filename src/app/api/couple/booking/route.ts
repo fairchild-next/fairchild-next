@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { serverError } from "@/lib/api-error";
 
 /**
  * GET /api/couple/booking
@@ -24,7 +25,7 @@ export async function GET() {
       .from("wedding_bookings")
       .select("*")
       .order("wedding_date", { ascending: true });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return serverError("couple/booking GET coordinator", error);
     return NextResponse.json({ bookings: data, role: "coordinator" });
   }
 
@@ -67,7 +68,7 @@ export async function PATCH(req: Request) {
       .eq("id", bookingId)
       .select()
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return serverError("couple/booking PATCH coordinator", error);
     return NextResponse.json({ booking: data });
   }
 
@@ -80,6 +81,6 @@ export async function PATCH(req: Request) {
     .select("id, guest_count, catering_notes, updated_at")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/booking PATCH couple", error);
   return NextResponse.json({ booking: data });
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { badRequestError } from "@/lib/api-error";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireStaff } from "@/lib/staff";
 import { isMapConfigSlug, type MapConfigSlug } from "@/lib/mapConfigs";
@@ -154,12 +155,12 @@ export async function POST(req: Request) {
     .order("sort_order", { ascending: true });
 
   if (poisErr) {
-    return NextResponse.json({ error: poisErr.message }, { status: 400 });
+    return badRequestError("map/copy-from POI fetch", poisErr);
   }
 
   const { error: delErr } = await db.from("map_pois").delete().eq("map_config_id", toConfig.id);
   if (delErr) {
-    return NextResponse.json({ error: delErr.message }, { status: 400 });
+    return badRequestError("map/copy-from POI delete", delErr);
   }
 
   const list = sourcePois ?? [];
@@ -181,9 +182,10 @@ export async function POST(req: Request) {
 
     const { error: insErr } = await db.from("map_pois").insert(toInsert);
     if (insErr) {
+      console.error("[map/copy-from POI insert]", insErr);
       return NextResponse.json(
         {
-          error: insErr.message,
+          error: "POI insert failed",
           copied: 0,
           hint: "If this mentions a missing column, run migrations so map_pois has details, image_url, and category.",
         },

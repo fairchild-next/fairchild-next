@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { badRequestError } from "@/lib/api-error";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireStaff } from "@/lib/staff";
 
@@ -35,7 +36,7 @@ export async function PATCH(req: Request) {
     .eq("slug", config_slug);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return badRequestError("map", error);
   }
 
   return NextResponse.json({ ok: true });

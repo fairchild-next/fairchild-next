@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { serverError } from "@/lib/api-error";
 
 /**
  * GET /api/couple/messages?bookingId=...
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/messages GET", error);
   return NextResponse.json({ messages: data });
 }
 
@@ -70,6 +71,6 @@ export async function POST(req: Request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/messages POST", error);
   return NextResponse.json({ message: data });
 }

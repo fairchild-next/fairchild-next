@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { serverError } from "@/lib/api-error";
 
 async function getBookingIdForCouple(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, userId: string): Promise<string | null> {
   const { data } = await supabase
@@ -36,7 +37,7 @@ export async function GET(req: Request) {
     .eq("booking_id", bookingId)
     .order("sort_order", { ascending: true });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/checklist GET", error);
   return NextResponse.json({ items: data });
 }
 
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/checklist POST", error);
   return NextResponse.json({ item: data });
 }
 
@@ -93,7 +94,7 @@ export async function PATCH(req: Request) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/checklist PATCH", error);
   return NextResponse.json({ item: data });
 }
 
@@ -114,6 +115,6 @@ export async function DELETE(req: Request) {
   if (!itemId) return NextResponse.json({ error: "itemId required" }, { status: 400 });
 
   const { error } = await supabase.from("wedding_checklist_items").delete().eq("id", itemId);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError("couple/checklist DELETE", error);
   return NextResponse.json({ ok: true });
 }
