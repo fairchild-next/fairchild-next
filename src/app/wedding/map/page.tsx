@@ -23,8 +23,7 @@ export default function WeddingMapPage() {
           from the south. Designated event parking as coordinated with Fairchild.
         </p>
         <p className="text-sm text-[var(--text-muted)]">
-          Interactive map below is the wedding-mode map—pins are edited in Staff → Map Editor →
-          Wedding mode.
+          Explore ceremony and reception spaces across the garden. Tap any pin for venue details.
         </p>
         <WeddingMapInteractive />
         <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide pt-2">

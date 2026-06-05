@@ -44,7 +44,6 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
   const [status, setStatus] = useState<ScanStatus>("idle");
-  const [debugText, setDebugText] = useState<string | null>(null);
   const [foundPlant, setFoundPlant] = useState<{ slug: string; name: string } | null>(null);
   const characterRef = useRef<CharacterType>("butterfly");
 
@@ -52,8 +51,6 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
     async (rawText: string) => {
       if (lastScannedRef.current === rawText) return;
       lastScannedRef.current = rawText;
-
-      setDebugText(rawText);
 
       // Try to extract slug directly; if it's a shortened/redirect URL, resolve it first
       let slug = extractPlantSlug(rawText);
@@ -63,7 +60,6 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
           const res = await fetch(`/api/resolve-url?url=${encodeURIComponent(rawText)}`);
           const data = await res.json();
           if (data.finalUrl) {
-            setDebugText(`→ ${data.finalUrl}`);
             slug = extractPlantSlug(data.finalUrl);
           }
         } catch {
@@ -161,6 +157,11 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
       controlsRef.current?.stop();
       controlsRef.current = null;
       codeReaderRef.current = null;
+      // Stop all MediaStream tracks so the camera LED turns off on unmount
+      if (videoRef.current?.srcObject instanceof MediaStream) {
+        videoRef.current.srcObject.getTracks().forEach((t) => t.stop());
+        videoRef.current.srcObject = null;
+      }
     };
   }, []);
 
@@ -195,13 +196,6 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
         {kidsMode && status === "scanning" && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#193521]/80 backdrop-blur-sm">
             <span className="text-xs text-white font-semibold">Point at the QR code 🎯</span>
-          </div>
-        )}
-
-        {/* DEBUG: shows last raw text ZXing read — remove once scanning is confirmed working */}
-        {debugText && status !== "ar_reveal" && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-3 py-1">
-            <p className="text-[10px] text-green-300 break-all font-mono">Read: {debugText}</p>
           </div>
         )}
 
@@ -377,11 +371,6 @@ export default function LearnScanner({ kidsMode = false }: { kidsMode?: boolean 
             <><p className="text-2xl mb-1">🤔</p><p className="text-sm font-bold text-amber-800">That&apos;s not a plant code!</p><p className="text-xs text-amber-700 mt-1">Look for the QR code on a green plant sign and try again.</p></>
           ) : (
             <><p className="text-sm font-medium text-amber-800">Not a garden code</p><p className="text-xs text-amber-700 mt-1">Scan a QR code from a Fairchild plant sign.</p></>
-          )}
-          {debugText && (
-            <p className="mt-2 text-xs text-gray-500 break-all">
-              <span className="font-semibold">Scanned:</span> {debugText}
-            </p>
           )}
         </div>
       )}

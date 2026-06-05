@@ -32,8 +32,7 @@ export default function EventsMapPage() {
       />
       <div className="px-4 pt-4">
         <p className="text-sm text-[var(--text-muted)] mb-3">
-          Explore the Garden. Pins and wayfinding for {bunnyHoppeningEvent.shortName} are edited in
-          Staff → Map Editor → Events mode.
+          Find your way around {bunnyHoppeningEvent.shortName}. Tap any pin for details and directions.
         </p>
         <div className="-mx-4 sm:mx-0 rounded-2xl overflow-hidden border border-[var(--surface-border)]">
           <GardenMap configSlug="events" poiListReturnPath="/events/map" />

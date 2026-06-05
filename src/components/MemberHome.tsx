@@ -43,7 +43,7 @@ const QUICK_TOOLS = [
   { href: "/learn/scan", title: "Scan QR Code", Icon: QrCode },
   { href: "/tickets/events", title: "Special Events", Icon: CalendarBlank },
   { href: "/learn/plants", title: "Browse Plants", Icon: Leaf },
-  { href: "#", title: "Member Discounts", Icon: Tag },
+  { href: "/member/discounts", title: "Member Discounts", Icon: Tag },
 ] as const;
 
 export default function MemberHome({ member }: { member: MemberInfo }) {
