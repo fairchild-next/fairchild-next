@@ -89,6 +89,53 @@ const GUEST_HOME_TOP_THREE: GuestShortcut[] = [
   { href: "/map", label: "Garden Map", image: GUEST_HOME_IMAGES.gardenMap },
 ];
 
+// ── Mode exit strip — shown at top of every mode home ──────────────────────
+type ModeKey = "kids" | "events" | "wedding";
+
+const MODE_CONFIG: Record<
+  ModeKey,
+  { label: string; bg: string; text: string; border?: string; IconEl: React.ElementType }
+> = {
+  kids: {
+    label: "Kids Mode",
+    bg: "bg-[#d4e8d0]",
+    text: "text-[#193521]",
+    IconEl: Smiley,
+  },
+  events: {
+    label: "Events Mode",
+    bg: "bg-[#193521]",
+    text: "text-white",
+    IconEl: Ticket,
+  },
+  wedding: {
+    label: "Wedding Mode",
+    bg: "bg-white",
+    text: "text-[#193521]",
+    border: "border-b border-[#e0dcd6]",
+    IconEl: Heart,
+  },
+};
+
+function ModeExitBar({ mode, onExit }: { mode: ModeKey; onExit: () => void }) {
+  const { label, bg, text, border = "", IconEl } = MODE_CONFIG[mode];
+  return (
+    <div className={`sticky top-0 z-50 flex items-center justify-between px-4 py-2 ${bg} ${border}`}>
+      <div className={`flex items-center gap-1.5 text-xs font-semibold ${text}`}>
+        <IconEl size={14} weight="duotone" aria-hidden />
+        {label}
+      </div>
+      <button
+        type="button"
+        onClick={onExit}
+        className={`text-xs font-semibold ${text} opacity-70 hover:opacity-100 transition`}
+      >
+        ← Main View
+      </button>
+    </div>
+  );
+}
+
 const QUICK_TOOLS = [
   { href: "/learn/scan", title: "Scan QR Code", Icon: QrCode },
   { href: "/tickets/events", title: "Special Events", Icon: CalendarBlank },
@@ -132,19 +179,25 @@ export default function Home() {
     return () => { cancelled = true; };
   }, []);
 
+  const exitMode = () => {
+    setKidsMode(false);
+    setEventsMode(false);
+    setWeddingMode(false);
+  };
+
   if (!loading && member) {
-    if (isKidsMode) return <KidsHome />;
-    if (isEventsMode) return <EventsHome />;
-    if (isWeddingMode) return <WeddingHome />;
+    if (isKidsMode) return <><ModeExitBar mode="kids" onExit={exitMode} /><KidsHome /></>;
+    if (isEventsMode) return <><ModeExitBar mode="events" onExit={exitMode} /><EventsHome /></>;
+    if (isWeddingMode) return <><ModeExitBar mode="wedding" onExit={exitMode} /><WeddingHome /></>;
     return <MemberHome member={member} />;
   }
 
   // Authenticated session without member record, OR unauthenticated guest who
   // activated a mode — both get the mode home in read-only/guest capacity.
   if (authReady && !loading) {
-    if (isKidsMode) return <KidsHome />;
-    if (isEventsMode) return <EventsHome />;
-    if (isWeddingMode) return <WeddingHome />;
+    if (isKidsMode) return <><ModeExitBar mode="kids" onExit={exitMode} /><KidsHome /></>;
+    if (isEventsMode) return <><ModeExitBar mode="events" onExit={exitMode} /><EventsHome /></>;
+    if (isWeddingMode) return <><ModeExitBar mode="wedding" onExit={exitMode} /><WeddingHome /></>;
   }
 
   return (
