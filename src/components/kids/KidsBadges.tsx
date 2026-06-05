@@ -149,7 +149,7 @@ export default function KidsBadges() {
               .map((b, i) => (
               <div
                 key={b.badge_key ?? i}
-                className={`aspect-square rounded-2xl border-2 flex flex-col items-center justify-center p-2 ${
+                className={`aspect-square rounded-2xl border-2 flex flex-col items-center p-1.5 ${
                   b.earned
                     ? "border-[#6A8468] bg-white"
                     : "border-dashed border-[var(--surface-border)] bg-white/50"
@@ -157,21 +157,27 @@ export default function KidsBadges() {
               >
                 {b.earned ? (
                   <>
-                    <div className="w-12 h-12 mb-1 flex items-center justify-center shrink-0">
+                    <div className="flex-1 w-full min-h-0 flex items-center justify-center">
                       {b.icon_url ? (
-                        <img src={b.icon_url} alt="" className="w-full h-full object-contain" />
+                        <img
+                          src={b.icon_url}
+                          alt={b.badge_name}
+                          className="w-full h-full object-contain"
+                        />
                       ) : (
-                        <span className="text-2xl">🏅</span>
+                        <span className="text-3xl">🏅</span>
                       )}
                     </div>
-                    <span className="text-[10px] font-medium text-[#193521] text-center line-clamp-2">
+                    <span className="text-[9px] font-semibold text-[#193521] text-center line-clamp-2 leading-tight mt-0.5 shrink-0">
                       {b.badge_name}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-2xl text-[#6A8468]">?</span>
-                    <span className="text-[10px] text-[var(--text-muted)] text-center line-clamp-2 mt-1">
+                    <div className="flex-1 flex items-center justify-center">
+                      <span className="text-2xl text-[#6A8468]">?</span>
+                    </div>
+                    <span className="text-[9px] text-[var(--text-muted)] text-center line-clamp-2 leading-tight shrink-0">
                       {b.badge_name}
                     </span>
                   </>

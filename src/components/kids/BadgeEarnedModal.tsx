@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type BadgeEarnedModalProps = {
   badge: { badge_name: string; description: string; icon_url?: string | null };
@@ -71,13 +71,6 @@ function MiniConfetti() {
 }
 
 export default function BadgeEarnedModal({ badge, onClose }: BadgeEarnedModalProps) {
-  const router = useRouter();
-
-  const handleViewBadges = () => {
-    onClose();
-    router.push("/badges");
-  };
-
   return (
     <div
       className="fixed inset-0 z-[2000] flex items-center justify-center p-6"
@@ -96,15 +89,15 @@ export default function BadgeEarnedModal({ badge, onClose }: BadgeEarnedModalPro
 
         {/* Badge detail */}
         <div className="px-6 py-5 relative">
-          <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-[#6A8468]/10 border-4 border-[#6A8468]/30 flex items-center justify-center shadow-inner">
+          <div className="w-24 h-24 mx-auto mb-3 rounded-2xl bg-[#6A8468]/10 border-2 border-[#6A8468]/30 flex items-center justify-center overflow-hidden shadow-inner">
             {badge.icon_url ? (
               <img
                 src={badge.icon_url}
-                alt=""
-                className="w-12 h-12 object-contain"
+                alt={badge.badge_name}
+                className="w-full h-full object-contain p-1"
               />
             ) : (
-              <span className="text-4xl">🏅</span>
+              <span className="text-5xl">🏅</span>
             )}
           </div>
 
@@ -115,13 +108,14 @@ export default function BadgeEarnedModal({ badge, onClose }: BadgeEarnedModalPro
             {badge.description}
           </p>
 
-          {/* Primary CTA: view all badges */}
-          <button
-            onClick={handleViewBadges}
-            className="w-full py-3 rounded-xl bg-[#6A8468] text-white font-bold text-base mb-3 active:scale-95 transition-transform"
+          {/* Primary CTA: plain link — no router dependency */}
+          <Link
+            href="/badges"
+            onClick={onClose}
+            className="block w-full py-3 rounded-xl bg-[#6A8468] text-white font-bold text-base mb-3 active:scale-95 transition-transform"
           >
             View My Badges →
-          </button>
+          </Link>
 
           {/* Secondary: keep exploring */}
           <button
