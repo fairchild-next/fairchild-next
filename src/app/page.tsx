@@ -160,7 +160,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => activateGuestMode("kids")}
-            className="flex min-h-[46px] min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[#d4e8d0] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-[#193521] transition hover:brightness-[0.97] active:brightness-95 sm:px-2 sm:text-sm"
+            className="flex min-h-[40px] min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[#d4e8d0] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-[#193521] transition hover:brightness-[0.97] active:brightness-95 sm:px-2 sm:text-sm"
           >
             <Smiley size={16} weight="duotone" aria-hidden />
             Kids Mode
@@ -168,7 +168,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => activateGuestMode("events")}
-            className="flex min-h-[46px] min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[#193521] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-white transition hover:opacity-95 active:opacity-90 sm:px-2 sm:text-sm"
+            className="flex min-h-[40px] min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[#193521] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-white transition hover:opacity-95 active:opacity-90 sm:px-2 sm:text-sm"
           >
             <Ticket size={16} weight="duotone" aria-hidden />
             Events Mode
@@ -176,7 +176,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => activateGuestMode("wedding")}
-            className="flex min-h-[46px] min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[#e0dcd6] bg-white px-1.5 py-2 text-center text-xs font-semibold leading-snug text-[#193521] transition hover:border-[#c5c0b8] active:bg-[#fafafa] sm:px-2 sm:text-sm"
+            className="flex min-h-[40px] min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[#e0dcd6] bg-white px-1.5 py-2 text-center text-xs font-semibold leading-snug text-[#193521] transition hover:border-[#c5c0b8] active:bg-[#fafafa] sm:px-2 sm:text-sm"
           >
             <Heart size={16} weight="duotone" aria-hidden />
             Wedding Mode
