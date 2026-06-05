@@ -1,37 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { decrementSlotCapacity } from "@/lib/commerce/validateCart";
+
+let stripeClient: Stripe | undefined;
+function getStripe(): Stripe {
+  if (!stripeClient) {
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2026-02-25.clover",
+    });
+  }
+  return stripeClient;
+}
+
+function generateQRCode() {
+  return crypto.randomUUID();
+}
 
 export async function POST(req: NextRequest) {
-  let stripeClient: Stripe | undefined;
-  function getStripe(): Stripe {
-    if (!stripeClient) {
-      stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2026-02-25.clover",
-      });
-    }
-    return stripeClient;
-  }
-
-  let supabaseClient: SupabaseClient | undefined;
-  function getSupabase(): SupabaseClient {
-    if (!supabaseClient) {
-      supabaseClient = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
-    }
-    return supabaseClient;
-  }
-
-  function generateQRCode() {
-    return crypto.randomUUID();
-  }
-
-  const supabase = getSupabase();
+  const supabase = createSupabaseAdminClient();
 
   const body = await req.text();
-  const signature = req.headers.get("stripe-signature")!;
+  const signature = req.headers.get("stripe-signature");
+
+  if (!signature) {
+    return new NextResponse("Missing signature", { status: 400 });
+  }
 
   let event: Stripe.Event;
 
@@ -48,28 +42,26 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-
     const internalOrderId = session.metadata?.order_id;
-    // 🔒 Prevent duplicate ticket generation
+
+    if (!internalOrderId) {
+      console.error("Missing order_id in Stripe metadata");
+      return NextResponse.json(
+        { error: "Missing order_id" },
+        { status: 400 }
+      );
+    }
+
     const { count: existingTicketCount } = await supabase
       .from("tickets")
       .select("*", { count: "exact", head: true })
       .eq("order_id", internalOrderId);
 
     if (existingTicketCount && existingTicketCount > 0) {
-      console.log("⚠️ Tickets already generated. Skipping.");
       return NextResponse.json({ received: true });
     }
 
-    if (!internalOrderId) {
-      console.error("Missing order_id in Stripe metadata");
-      return NextResponse.json({ received: true });
-    }
-
-    console.log("💰 Payment verified for order:", internalOrderId);
-
-    // 1️⃣ Update order status
-    await supabase
+    const { error: orderUpdateError } = await supabase
       .from("orders")
       .update({
         status: "paid",
@@ -77,7 +69,14 @@ export async function POST(req: NextRequest) {
       })
       .eq("id", internalOrderId);
 
-    // 2️⃣ Fetch order + order items
+    if (orderUpdateError) {
+      console.error("Order update failed:", orderUpdateError);
+      return NextResponse.json(
+        { error: "Order update failed" },
+        { status: 500 }
+      );
+    }
+
     const { data: order } = await supabase
       .from("orders")
       .select("user_id")
@@ -89,12 +88,24 @@ export async function POST(req: NextRequest) {
       .select("*")
       .eq("order_id", internalOrderId);
 
-    if (orderItemsError || !orderItems) {
+    if (orderItemsError || !orderItems?.length) {
       console.error("Failed to fetch order items:", orderItemsError);
-      return NextResponse.json({ received: true });
+      return NextResponse.json(
+        { error: "Failed to fetch order items" },
+        { status: 500 }
+      );
     }
 
-    // 3️⃣ Generate tickets
+    try {
+      await decrementSlotCapacity(supabase, orderItems);
+    } catch (capacityErr) {
+      console.error("Capacity decrement failed:", capacityErr);
+      return NextResponse.json(
+        { error: "Capacity decrement failed" },
+        { status: 500 }
+      );
+    }
+
     const ticketsToInsert: {
       order_id: string;
       order_item_id: string;
@@ -128,8 +139,10 @@ export async function POST(req: NextRequest) {
 
       if (ticketInsertError) {
         console.error("Ticket generation failed:", ticketInsertError);
-      } else {
-        console.log(`🎟 Generated ${ticketsToInsert.length} tickets`);
+        return NextResponse.json(
+          { error: "Ticket generation failed" },
+          { status: 500 }
+        );
       }
     }
   }

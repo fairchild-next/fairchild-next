@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { siteConfig } from "@/lib/siteConfig";
+import {
+  CartValidationError,
+  validateMemberReserveCart,
+  type CartItemInput,
+} from "@/lib/commerce/validateCart";
 import crypto from "crypto";
 
 /**
@@ -32,23 +37,22 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  type ReserveItem = {
-    productId: string;
-    productType: string;
-    name: string;
-    price: number;
-    quantity: number;
-    slotId?: string;
-    eventId?: string;
-    isPeak?: boolean;
-  };
-  const items = body.items as ReserveItem[];
+  const admin = createSupabaseAdminClient();
 
-  if (!items?.length) {
-    return NextResponse.json({ error: "No items" }, { status: 400 });
+  let validatedItems;
+  try {
+    validatedItems = await validateMemberReserveCart(
+      admin,
+      body.items as CartItemInput[]
+    );
+  } catch (error) {
+    if (error instanceof CartValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
   }
 
-  const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalQuantity = validatedItems.reduce((sum, i) => sum + i.quantity, 0);
   const maxAllowed = siteConfig.memberTicketMaxPerReservation;
   if (maxAllowed != null && totalQuantity > maxAllowed) {
     return NextResponse.json(
@@ -56,16 +60,6 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  if (total > 0) {
-    return NextResponse.json(
-      { error: "Member reserve is for $0 orders only. Use checkout for paid orders." },
-      { status: 400 }
-    );
-  }
-
-  const admin = createSupabaseAdminClient();
 
   // Create order
   const { data: order, error: orderError } = await admin
@@ -86,14 +80,14 @@ export async function POST(req: Request) {
   }
 
   // Create order_items
-  const orderItemsPayload = items.map((item) => ({
+  const orderItemsPayload = validatedItems.map((item) => ({
     order_id: order.id,
     ticket_type_id: item.productId,
-    slot_id: item.slotId ?? null,
-    event_id: item.eventId ?? null,
+    slot_id: item.slotId,
+    event_id: item.eventId,
     quantity: item.quantity,
     unit_price: 0,
-    is_peak: item.isPeak ?? null,
+    is_peak: item.isPeak,
   }));
 
   const { error: itemsError } = await admin

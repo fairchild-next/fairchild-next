@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { getCommerceProvider } from "@/lib/commerce";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  CartValidationError,
+  validateCheckoutCart,
+  validateDonationAmount,
+  type CartItemInput,
+} from "@/lib/commerce/validateCart";
+import type { CartLineItem } from "@/lib/commerce/types";
 
 export async function POST(req: Request) {
-  const supabase = await createSupabaseServerClient(); // ✅ now async
+  const supabase = await createSupabaseServerClient();
 
   try {
     const body = await req.json();
@@ -15,23 +23,31 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔐 Get logged-in user
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const customerEmail =
-      body.customerEmail ?? user?.email ?? null;
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
 
-    // 1️⃣ Create draft order
-    const { data: order, error: orderError } = await supabase
+    const customerEmail = body.customerEmail ?? user.email ?? null;
+    const admin = createSupabaseAdminClient();
+
+    const validatedItems = await validateCheckoutCart(
+      admin,
+      body.items as CartItemInput[]
+    );
+    const donation = validateDonationAmount(body.donation);
+
+    const { data: order, error: orderError } = await admin
       .from("orders")
       .insert({
         status: "pending",
         currency: "usd",
         payment_provider: "stripe",
         customer_email: customerEmail,
-        user_id: user?.id ?? null,
+        user_id: user.id,
       })
       .select()
       .single();
@@ -44,46 +60,58 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2️⃣ Insert order_items
-    const orderItemsPayload = body.items.map((item: any) => ({
+    const orderItemsPayload = validatedItems.map((item) => ({
       order_id: order.id,
-      ticket_type_id: item.productId ?? item.id,
+      ticket_type_id: item.productId,
       slot_id: item.slotId,
-      event_id: item.eventId ?? null,
+      event_id: item.eventId,
       quantity: item.quantity,
-      unit_price: Math.round(item.price * 100),
-      is_peak: item.isPeak ?? null,
+      unit_price: item.unitPriceCents,
+      is_peak: item.isPeak,
     }));
 
-    const { error: itemsError } = await supabase
+    const { error: itemsError } = await admin
       .from("order_items")
       .insert(orderItemsPayload);
 
     if (itemsError) {
       console.error("Order items insert failed:", itemsError);
+      await admin.from("orders").delete().eq("id", order.id);
       return NextResponse.json(
         { error: "Order items failed" },
         { status: 500 }
       );
     }
 
-    // 3️⃣ Create Stripe session
-    const provider = getCommerceProvider();
+    const stripeItems: CartLineItem[] = validatedItems.map((item) => ({
+      id: item.productId,
+      productType: item.productType,
+      productId: item.productId,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      slotId: item.slotId ?? undefined,
+      eventId: item.eventId ?? undefined,
+      isPeak: item.isPeak ?? undefined,
+    }));
 
+    const provider = getCommerceProvider();
     const session = await provider.createCheckoutSession(
-      body.items,
-      body.donation,
+      stripeItems,
+      donation,
       order.id,
       customerEmail
     );
 
     return NextResponse.json(session);
-  } catch (error: any) {
-    console.error("CHECKOUT API ERROR:", error);
+  } catch (error: unknown) {
+    if (error instanceof CartValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 
-    return NextResponse.json(
-      { error: error.message || "Checkout failed" },
-      { status: 500 }
-    );
+    console.error("CHECKOUT API ERROR:", error);
+    const message =
+      error instanceof Error ? error.message : "Checkout failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

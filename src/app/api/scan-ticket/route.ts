@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireStaff } from "@/lib/staff";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 // If someone opens the scan URL in a browser (e.g. from an old QR), redirect to home
 export async function GET(req: Request) {
@@ -25,10 +26,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = staff.supabase;
+    const admin = createSupabaseAdminClient();
 
     // 1️⃣ Find ticket
-    const { data: ticket, error } = await supabase
+    const { data: ticket, error } = await admin
       .from("tickets")
       .select("*")
       .eq("qr_code", qr_code)
@@ -46,17 +47,28 @@ export async function POST(req: Request) {
       });
     }
 
-    // 3️⃣ Mark as used
-    await supabase
+    // 3️⃣ Mark as used (service role — RLS blocks client writes)
+    const { error: updateError } = await admin
       .from("tickets")
       .update({ status: "used" })
       .eq("id", ticket.id);
 
-    await supabase.from("visits").insert({
-      user_id: ticket.user_id,
-      ticket_id: ticket.id,
-      visit_date: new Date().toISOString().split("T")[0],
-    });
+    if (updateError) {
+      console.error("Ticket update failed:", updateError);
+      return NextResponse.json({ status: "error" }, { status: 500 });
+    }
+
+    if (ticket.user_id) {
+      const { error: visitError } = await admin.from("visits").insert({
+        user_id: ticket.user_id,
+        ticket_id: ticket.id,
+        visit_date: new Date().toISOString().split("T")[0],
+      });
+
+      if (visitError) {
+        console.error("Visit insert failed:", visitError);
+      }
+    }
 
     return NextResponse.json({
       status: "valid",
