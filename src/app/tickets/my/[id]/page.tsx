@@ -75,7 +75,9 @@ export default function PastTicketDetailPage() {
       const pastTickets: Ticket[] = json.pastTickets ?? [];
       const groups = new Map<string, Ticket[]>();
       for (const t of pastTickets) {
-        const key = `${t.order_id ?? "?"}_${t.slot_id ?? "flex"}`;
+        const key = t.event_id
+          ? `${t.order_id ?? "?"}_event_${t.event_id}`
+          : `${t.order_id ?? "?"}_${t.slot_id ?? "flex"}`;
         const arr = groups.get(key) ?? [];
         arr.push(t);
         groups.set(key, arr);

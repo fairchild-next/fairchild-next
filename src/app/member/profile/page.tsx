@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMember } from "@/lib/memberContext";
@@ -31,6 +31,7 @@ export default function MemberProfilePage() {
   const { isKidsMode, setKidsMode } = useKidsMode();
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
   const { isEventsMode, setEventsMode } = useEventsMode();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (!authReady) return;
@@ -273,12 +274,30 @@ export default function MemberProfilePage() {
         <Link href="/" className="text-[var(--primary)] text-sm font-medium">
           ← Back
         </Link>
-        <button
-          onClick={handleLogout}
-          className="text-red-500 underline text-sm"
-        >
-          Logout
-        </button>
+        {showLogoutConfirm ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-[var(--text-muted)]">Log out?</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm font-semibold text-red-500 hover:text-red-400 transition"
+            >
+              Yes, log out
+            </button>
+            <button
+              onClick={() => setShowLogoutConfirm(false)}
+              className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="text-sm text-[var(--text-muted)] hover:text-red-500 transition"
+          >
+            Log out
+          </button>
+        )}
       </div>
 
       <h1 className="text-2xl font-semibold mb-6">Member Profile</h1>
