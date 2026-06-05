@@ -12,7 +12,7 @@ function getQuestImage(questId: string): string | undefined {
 }
 
 const KIDS_IMAGES = {
-  badgesBanner: "/kids/Untitled_design-20-075be45c-685f-426d-9c02-8aa4316ce1fe.png",
+  badgesBanner: "/kids/badges-banner.png",
 };
 
 type BadgeRow = {

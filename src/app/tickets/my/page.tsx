@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSupabaseBrowser } from "@/lib/supabase/SupabaseBrowserProvider";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";

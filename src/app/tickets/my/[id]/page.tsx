@@ -99,7 +99,7 @@ export default function PastTicketDetailPage() {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[200px]">
-        <p className="text-gray-500">Loading…</p>
+        <p className="text-[var(--text-muted)]">Loading…</p>
       </div>
     );
   }
@@ -109,14 +109,14 @@ export default function PastTicketDetailPage() {
       <div className="p-6 space-y-4">
         <Link
           href="/tickets/my"
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+          className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:opacity-80 transition"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back to tickets
         </Link>
-        <p className="text-gray-500">Ticket not found.</p>
+        <p className="text-[var(--text-muted)]">Ticket not found.</p>
       </div>
     );
   }
@@ -151,7 +151,7 @@ export default function PastTicketDetailPage() {
     <div className="p-6 space-y-4 pb-24">
       <Link
         href="/tickets/my"
-        className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition"
+        className="inline-flex items-center gap-2 text-sm text-[var(--primary)] hover:opacity-80 transition"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -159,7 +159,7 @@ export default function PastTicketDetailPage() {
         Back to tickets
       </Link>
 
-      <div className="border border-gray-700 rounded-xl overflow-hidden shadow-sm">
+      <div className="border border-[var(--surface-border)] rounded-xl overflow-hidden shadow-sm">
         <div className="aspect-[2/1] bg-gradient-to-br from-emerald-900/80 via-teal-900/60 to-emerald-800/80 relative overflow-hidden">
           <img
             src="/scheduled-admission-hero.png"
@@ -194,13 +194,13 @@ export default function PastTicketDetailPage() {
               {dateTimeStr}
             </p>
           ) : null}
-          <p className="text-xs text-gray-500 uppercase tracking-wide">{admissionLabel}</p>
-          <div className="w-full py-2.5 px-3 rounded-lg bg-gray-600 text-gray-300 text-center text-sm font-bold uppercase tracking-wide">
+          <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">{admissionLabel}</p>
+          <div className="w-full py-2.5 px-3 rounded-lg bg-[var(--surface-border)] text-[var(--text-muted)] text-center text-sm font-bold uppercase tracking-wide">
             Used
           </div>
-          <p className="text-sm text-gray-400">{breakdown}</p>
+          <p className="text-sm text-[var(--text-muted)]">{breakdown}</p>
           {totalStr && (
-            <p className="text-sm font-medium text-green-600">{totalStr}</p>
+            <p className="text-sm font-medium text-[var(--primary)]">{totalStr}</p>
           )}
         </div>
       </div>
