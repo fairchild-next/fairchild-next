@@ -149,35 +149,34 @@ export default function KidsBadges() {
               .map((b, i) => (
               <div
                 key={b.badge_key ?? i}
-                className={`aspect-square rounded-2xl border-2 flex flex-col items-center p-1.5 ${
+                className={`aspect-square rounded-2xl border-2 overflow-hidden ${
                   b.earned
                     ? "border-[#6A8468] bg-white"
-                    : "border-dashed border-[var(--surface-border)] bg-white/50"
+                    : "border-dashed border-[var(--surface-border)] bg-white/50 flex flex-col items-center justify-center p-2"
                 }`}
               >
                 {b.earned ? (
-                  <>
-                    <div className="flex-1 w-full min-h-0 flex items-center justify-center">
-                      {b.icon_url ? (
-                        <img
-                          src={b.icon_url}
-                          alt={b.badge_name}
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <span className="text-3xl">🏅</span>
-                      )}
+                  /* Earned: badge image fills the entire square — name is baked into the image */
+                  b.icon_url ? (
+                    <img
+                      src={b.icon_url}
+                      alt={b.badge_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    /* No image yet: show medal + name */
+                    <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                      <span className="text-3xl mb-1">🏅</span>
+                      <span className="text-[9px] font-semibold text-[#193521] text-center line-clamp-2 leading-tight">
+                        {b.badge_name}
+                      </span>
                     </div>
-                    <span className="text-[9px] font-semibold text-[#193521] text-center line-clamp-2 leading-tight mt-0.5 shrink-0">
-                      {b.badge_name}
-                    </span>
-                  </>
+                  )
                 ) : (
+                  /* Locked: question mark + name */
                   <>
-                    <div className="flex-1 flex items-center justify-center">
-                      <span className="text-2xl text-[#6A8468]">?</span>
-                    </div>
-                    <span className="text-[9px] text-[var(--text-muted)] text-center line-clamp-2 leading-tight shrink-0">
+                    <span className="text-2xl text-[#6A8468]">?</span>
+                    <span className="text-[9px] text-[var(--text-muted)] text-center line-clamp-2 leading-tight mt-1">
                       {b.badge_name}
                     </span>
                   </>

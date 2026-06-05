@@ -89,21 +89,21 @@ export default function BadgeEarnedModal({ badge, onClose }: BadgeEarnedModalPro
 
         {/* Badge detail */}
         <div className="px-6 py-5 relative">
-          <div className="w-24 h-24 mx-auto mb-3 rounded-2xl bg-[#6A8468]/10 border-2 border-[#6A8468]/30 flex items-center justify-center overflow-hidden shadow-inner">
+          <div className="w-28 h-28 mx-auto mb-4 rounded-2xl border-2 border-[#6A8468]/30 overflow-hidden shadow-md">
             {badge.icon_url ? (
               <img
                 src={badge.icon_url}
                 alt={badge.badge_name}
-                className="w-full h-full object-contain p-1"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-5xl">🏅</span>
+              <div className="w-full h-full bg-[#6A8468]/10 flex flex-col items-center justify-center">
+                <span className="text-5xl">🏅</span>
+                <span className="text-xs font-semibold text-[#193521] mt-1 text-center px-1">{badge.badge_name}</span>
+              </div>
             )}
           </div>
 
-          <h3 className="font-extrabold text-xl text-[#193521] mb-1">
-            {badge.badge_name}
-          </h3>
           <p className="text-sm text-gray-500 mb-6 leading-relaxed">
             {badge.description}
           </p>
