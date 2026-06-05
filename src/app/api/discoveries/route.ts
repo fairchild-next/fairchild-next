@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { checkForBadges } from "@/lib/kids/badgeLogic";
 
 /**
@@ -78,25 +79,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to save discovery" }, { status: 500 });
   }
 
-  // Run badge check immediately after save (same request = no race)
-  const { data: discoveries } = await supabase
+  // Run badge check immediately after save using admin client to avoid session/RLS edge cases
+  const admin = createSupabaseAdminClient();
+
+  const { data: discoveries } = await admin
     .from("kids_discoveries")
     .select("quest_item, photo_url, note")
     .eq("user_id", user.id);
 
-  const { data: existingUserBadges } = await supabase
+  const { data: existingUserBadges } = await admin
     .from("kids_user_badges")
     .select("badge_id")
     .eq("user_id", user.id);
 
-  const badgeIds = (existingUserBadges ?? []).map((b) => b.badge_id);
+  const badgeIds = (existingUserBadges ?? []).map((b: { badge_id: string }) => b.badge_id);
   const { data: existingBadgeRows } =
     badgeIds.length > 0
-      ? await supabase.from("kids_badges").select("badge_key").in("id", badgeIds)
+      ? await admin.from("kids_badges").select("badge_key").in("id", badgeIds)
       : { data: [] };
 
   const earnedKeys = checkForBadges(discoveries ?? []);
-  const existingKeys = new Set((existingBadgeRows ?? []).map((b) => b.badge_key));
+  const existingKeys = new Set((existingBadgeRows ?? []).map((b: { badge_key: string }) => b.badge_key));
 
   const newlyEarned: string[] = [];
   for (const key of earnedKeys) {
@@ -107,28 +110,30 @@ export async function POST(req: Request) {
 
   let badges: { badge_key: string; badge_name: string; description: string; icon_url: string | null }[] = [];
   if (newlyEarned.length > 0) {
-    const { data: fullBadgeRows, error: badgeFetchError } = await supabase
+    const { data: fullBadgeRows, error: badgeFetchError } = await admin
       .from("kids_badges")
       .select("id, badge_key, badge_name, description, icon_url")
       .in("badge_key", newlyEarned);
 
     if (badgeFetchError) {
       console.error("Badge fetch error:", badgeFetchError);
-    } else if (!fullBadgeRows?.length) {
-      console.error("Badge check: earned keys", newlyEarned, "but kids_badges returned no rows. Run the badge migration.");
     }
     if (fullBadgeRows?.length) {
-      const insertPayload = fullBadgeRows.map((b) => ({
+      const insertPayload = fullBadgeRows.map((b: { id: string }) => ({
         user_id: user.id,
         badge_id: b.id,
       }));
-      await supabase.from("kids_user_badges").insert(insertPayload);
-      badges = fullBadgeRows.map((b) => ({
-        badge_key: b.badge_key,
-        badge_name: b.badge_name,
-        description: b.description,
-        icon_url: b.icon_url,
-      }));
+      const { error: badgeInsertError } = await admin.from("kids_user_badges").insert(insertPayload);
+      if (badgeInsertError) {
+        console.error("Badge award error:", badgeInsertError);
+      } else {
+        badges = fullBadgeRows.map((b: { badge_key: string; badge_name: string; description: string; icon_url: string | null }) => ({
+          badge_key: b.badge_key,
+          badge_name: b.badge_name,
+          description: b.description,
+          icon_url: b.icon_url,
+        }));
+      }
     }
   }
 
