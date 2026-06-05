@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSupabaseBrowser } from "@/lib/supabase/SupabaseBrowserProvider";
@@ -56,6 +56,19 @@ export default function MyTicketsPage() {
   const [sessionResolved, setSessionResolved] = useState(false);
   const [tab, setTab] = useState<"current" | "past">("current");
   const [membershipExpanded, setMembershipExpanded] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsOffline(!navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
 
   useEffect(() => {
     if (!initialized) return;
@@ -82,14 +95,11 @@ export default function MyTicketsPage() {
 
       const res = await fetch("/api/my-tickets", { credentials: "include" });
       if (!res.ok) {
-        setData({
-          currentTickets: [],
-          pastTickets: [],
-          visitCount: 0,
-        });
+        setData({ currentTickets: [], pastTickets: [], visitCount: 0 });
         return;
       }
       const json = await res.json();
+      if (json.offline) setFromCache(true);
       setData({
         currentTickets: json.currentTickets ?? [],
         pastTickets: json.pastTickets ?? [],
@@ -138,6 +148,16 @@ export default function MyTicketsPage() {
 
   return (
     <div className="p-6 space-y-6 pb-24">
+      {(isOffline || fromCache) && (
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+          <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M3 3l18 18M6.343 6.343A8.963 8.963 0 003 12a9 9 0 001.636 5.172" />
+          </svg>
+          <p className="text-xs font-medium text-amber-400">
+            {fromCache ? "Showing cached tickets — your QR codes still work." : "You're offline — showing your saved tickets."}
+          </p>
+        </div>
+      )}
       <h1 className="text-xl font-semibold">Your Tickets</h1>
 
       <div className="flex border border-[var(--surface-border)] rounded-xl overflow-hidden">
@@ -445,7 +465,7 @@ function TicketGroupCard({
             <p className="text-sm font-medium text-[var(--primary)]">{totalStr}</p>
           )}
           <div className="space-y-3 pt-2 border-t border-[var(--surface-border)]">
-            <p className="text-xs text-[var(--text-muted)]">Show QR at entry</p>
+            <p className="text-xs text-[var(--text-muted)]">Show QR at entry — tap to enlarge</p>
             <TicketQrCarousel tickets={tickets} />
           </div>
         </div>
@@ -541,19 +561,77 @@ function TicketQrCarousel({ tickets }: { tickets: Ticket[] }) {
   );
 }
 
+function QrFullscreenModal({ qrImage, onClose }: { qrImage: string; onClose: () => void }) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKey);
+    // Lock body scroll while open
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="flex flex-col items-center gap-5 px-8">
+        <p className="text-white/60 text-sm font-medium tracking-wide uppercase">Show this at entry</p>
+        <div className="bg-white p-4 rounded-2xl shadow-2xl">
+          <img
+            src={qrImage}
+            alt="Ticket QR Code"
+            className="w-72 h-72"
+          />
+        </div>
+        <p className="text-white/40 text-xs">Tap anywhere to close</p>
+        <button
+          onClick={onClose}
+          className="mt-2 px-6 py-2.5 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 active:bg-white/15 transition"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TicketQr({ ticket }: { ticket: Ticket }) {
   const [qrImage, setQrImage] = useState<string>("");
+  const [expanded, setExpanded] = useState(false);
+
   useEffect(() => {
     if (!ticket.qr_code) return;
-    QRCode.toDataURL(ticket.qr_code).then(setQrImage);
+    QRCode.toDataURL(ticket.qr_code, { width: 512, margin: 2 }).then(setQrImage);
   }, [ticket.qr_code]);
 
   if (!qrImage) return null;
   return (
-    <img
-      src={qrImage}
-      alt="Ticket QR Code"
-      className="w-36 h-36"
-    />
+    <>
+      <button
+        type="button"
+        aria-label="Tap to enlarge QR code"
+        onClick={() => setExpanded(true)}
+        className="relative group"
+      >
+        <img
+          src={qrImage}
+          alt="Ticket QR Code"
+          className="w-36 h-36 rounded-lg"
+        />
+        <div className="absolute inset-0 rounded-lg flex items-center justify-center bg-black/0 group-hover:bg-black/10 group-active:bg-black/15 transition">
+          <svg className="w-7 h-7 text-white opacity-0 group-hover:opacity-80 drop-shadow transition" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+          </svg>
+        </div>
+      </button>
+      {expanded && <QrFullscreenModal qrImage={qrImage} onClose={() => setExpanded(false)} />}
+    </>
   );
 }
