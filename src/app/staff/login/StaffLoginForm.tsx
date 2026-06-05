@@ -10,8 +10,15 @@ export default function StaffLoginForm() {
   const supabase = useSupabaseBrowserClient();
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Default to the portal dashboard, not the scanner
-  const redirect = searchParams.get("redirect") || "/staff";
+  // Default to the portal dashboard, not the scanner.
+  // Only allow same-origin relative paths to prevent open redirect attacks.
+  const rawRedirect = searchParams.get("redirect");
+  const isSafeRedirect = (r: string | null): r is string =>
+    typeof r === "string" &&
+    r.startsWith("/") &&
+    !r.startsWith("//") &&
+    !r.startsWith("/\\");
+  const redirect = isSafeRedirect(rawRedirect) ? rawRedirect : "/staff";
 
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");

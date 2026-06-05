@@ -93,11 +93,20 @@ export default function LoginPage() {
           if (weddingRow) { window.location.href = "/couple/dashboard"; return; }
 
           // Not staff or couple — honour ?redirect= for regular members, else home
+          // Only follow same-origin relative paths to prevent open redirect attacks
           const redirect =
             typeof window !== "undefined"
               ? new URLSearchParams(window.location.search).get("redirect")
               : null;
-          if (redirect && redirect !== "/") { window.location.href = redirect; return; }
+          const isSafeRedirect = (r: string | null): r is string =>
+            typeof r === "string" &&
+            r.startsWith("/") &&
+            !r.startsWith("//") &&
+            !r.startsWith("/\\");
+          if (isSafeRedirect(redirect) && redirect !== "/") {
+            window.location.href = redirect;
+            return;
+          }
         }
         window.location.href = "/";
       }
