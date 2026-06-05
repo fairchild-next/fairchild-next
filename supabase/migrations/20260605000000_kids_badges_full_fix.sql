@@ -80,22 +80,23 @@ create policy "kids_discoveries_delete_own" on kids_discoveries
   for delete using (auth.uid() = user_id);
 
 -- ============================================
--- 4. Seed badge catalog
+-- 4. Seed badge catalog (icon_url = /kids/badges/<key>.png where available)
 -- ============================================
 insert into kids_badges (badge_key, badge_name, description, icon_url, badge_type, sort_order) values
-  ('butterfly-finder',    'Butterfly Finder',    'Spot your first butterfly in the garden!',              null, 'discovery',   1),
-  ('flower-spotter',      'Flower Spotter',      'Find your first flower on the quest!',                  null, 'discovery',   2),
-  ('tree-explorer',       'Tree Explorer',       'Discover your first tree!',                             null, 'discovery',   3),
-  ('flower-collector',    'Flower Collector',    'Find 3 different flowers — you''re a real botanist!',   null, 'discovery',   4),
-  ('pollinator-pal',      'Pollinator Pal',      'Find a butterfly and a flower together!',               null, 'discovery',   5),
-  ('nature-photographer', 'Nature Photographer', 'Upload 3 photos of your discoveries!',                  null, 'creativity',  6),
-  ('nature-detective',    'Nature Detective',    'Find 3 or more items on the quest!',                    null, 'completion',  7),
-  ('garden-traveler',     'Garden Traveler',     'Explore 3 different areas of the garden!',              null, 'completion',  8),
-  ('garden-explorer',     'Garden Explorer',     'Complete every item on the Garden Quest!',              null, 'completion',  9),
-  ('secret-garden',       'Secret Garden',       'A special surprise for curious explorers!',             null, 'secret',     10)
+  ('butterfly-finder',    'Butterfly Finder',    'Spot your first butterfly in the garden!',              '/kids/badges/butterfly-finder.png',    'discovery',   1),
+  ('flower-spotter',      'Flower Spotter',      'Find your first flower on the quest!',                  '/kids/badges/flower-spotter.png',       'discovery',   2),
+  ('tree-explorer',       'Tree Explorer',       'Discover your first tree!',                             '/kids/badges/tree-explorer.png',        'discovery',   3),
+  ('flower-collector',    'Flower Collector',    'Find 3 different flowers — you''re a real botanist!',   '/kids/badges/flower-collector.png',     'discovery',   4),
+  ('pollinator-pal',      'Pollinator Pal',      'Find a butterfly and a flower together!',               '/kids/badges/pollinator-pal.png',       'discovery',   5),
+  ('nature-photographer', 'Nature Photographer', 'Upload 3 photos of your discoveries!',                  null,                                    'creativity',  6),
+  ('nature-detective',    'Nature Detective',    'Find 3 or more items on the quest!',                    '/kids/badges/nature-detective.png',     'completion',  7),
+  ('garden-traveler',     'Garden Traveler',     'Explore 3 different areas of the garden!',              null,                                    'completion',  8),
+  ('garden-explorer',     'Garden Explorer',     'Complete every item on the Garden Quest!',              null,                                    'completion',  9),
+  ('secret-garden',       'Secret Garden',       'A special surprise for curious explorers!',             null,                                    'secret',     10)
 on conflict (badge_key) do update
   set badge_name  = excluded.badge_name,
       description = excluded.description,
+      icon_url    = excluded.icon_url,
       sort_order  = excluded.sort_order;
 
 -- ============================================

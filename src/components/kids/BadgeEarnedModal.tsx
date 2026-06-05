@@ -75,7 +75,7 @@ export default function BadgeEarnedModal({ badge, onClose }: BadgeEarnedModalPro
 
   const handleViewBadges = () => {
     onClose();
-    router.push("/kids/badges?tab=badges");
+    router.push("/badges");
   };
 
   return (
