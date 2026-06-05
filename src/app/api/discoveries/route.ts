@@ -19,6 +19,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Reject oversized payloads before parsing (base64 for a 5 MB image ≈ 6.8 MB string)
+  const contentLength = req.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > 8 * 1024 * 1024) {
+    return NextResponse.json({ error: "Payload too large (max 5 MB photo)" }, { status: 413 });
+  }
+
   const body = await req.json();
   const { quest_item, type, content } = body as {
     quest_item: string;
@@ -28,6 +34,11 @@ export async function POST(req: Request) {
 
   if (!quest_item || !type || content == null) {
     return NextResponse.json({ error: "Missing quest_item, type, or content" }, { status: 400 });
+  }
+
+  // Secondary check on decoded content size (catches clients that omit Content-Length)
+  if (type === "photo" && content.length > 7 * 1024 * 1024) {
+    return NextResponse.json({ error: "Photo too large (max 5 MB)" }, { status: 413 });
   }
 
   let photo_url: string | null = null;

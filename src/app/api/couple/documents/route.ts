@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+/** Only accept file_url values that point to this project's Supabase storage. */
+function isValidStorageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return false;
+    const supabaseHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname;
+    return parsed.hostname === supabaseHost;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * GET /api/couple/documents?bookingId=...
  * Returns documents for a booking. Couple's bookingId is looked up automatically.
@@ -45,6 +57,9 @@ export async function POST(req: Request) {
 
   const { file_name, file_url, category, bookingId: bodyBookingId } = await req.json();
   if (!file_name || !file_url) return NextResponse.json({ error: "file_name and file_url required" }, { status: 400 });
+  if (!isValidStorageUrl(file_url)) {
+    return NextResponse.json({ error: "Invalid file_url: must be a Supabase storage URL" }, { status: 400 });
+  }
 
   const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
 

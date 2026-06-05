@@ -41,6 +41,22 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === "checkout.session.completed") {
+    // Idempotency guard: insert the Stripe event ID atomically.
+    // If it already exists (error 23505 unique_violation) the webhook was
+    // already processed — return 200 so Stripe stops retrying.
+    const { error: idempotencyError } = await supabase
+      .from("stripe_webhook_events")
+      .insert({ id: event.id });
+
+    if (idempotencyError) {
+      if (idempotencyError.code === "23505") {
+        // Already processed — safe to acknowledge
+        return NextResponse.json({ received: true });
+      }
+      console.error("Idempotency check failed:", idempotencyError);
+      return NextResponse.json({ error: "Idempotency error" }, { status: 500 });
+    }
+
     const session = event.data.object as Stripe.Checkout.Session;
     const internalOrderId = session.metadata?.order_id;
 
@@ -50,15 +66,6 @@ export async function POST(req: NextRequest) {
         { error: "Missing order_id" },
         { status: 400 }
       );
-    }
-
-    const { count: existingTicketCount } = await supabase
-      .from("tickets")
-      .select("*", { count: "exact", head: true })
-      .eq("order_id", internalOrderId);
-
-    if (existingTicketCount && existingTicketCount > 0) {
-      return NextResponse.json({ received: true });
     }
 
     const { error: orderUpdateError } = await supabase
