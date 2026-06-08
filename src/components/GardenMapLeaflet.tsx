@@ -8,16 +8,20 @@ import "leaflet/dist/leaflet.css";
 import Fuse from "fuse.js";
 import { getPinIcon } from "@/lib/map-icons";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
-import { MapTrifold, List, ArrowsOut, ArrowsIn, Crosshair } from "@phosphor-icons/react";
+import { MapTrifold, List, ArrowsOut, ArrowsIn, Crosshair, Funnel } from "@phosphor-icons/react";
 
 const CENTER: [number, number] = [25.677, -80.273];
 const DEFAULT_IMAGE = "/stock/garden-1.png";
 /** Walkable zoom — avoids showing the whole garden as a small illustrated rectangle */
 const IMMERSIVE_ZOOM = 17;
 const IMMERSIVE_MIN_ZOOM = 16;
-/** Reserve space for floating search + filter bar when auto-panning popups */
-const POPUP_TOP_INSET_PX = 220;
+/** Reserve space for floating chrome when auto-panning popups */
+const POPUP_TOP_COLLAPSED_PX = 88;
+const POPUP_TOP_EXPANDED_PX = 130;
 const POPUP_BOTTOM_INSET_PX = 96;
+
+const GLASS =
+  "border border-[color-mix(in_srgb,var(--surface-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] shadow-sm backdrop-blur-md";
 
 const FALLBACK_OVERLAY_BOUNDS: LatLngBoundsExpression = [
   [25.6730, -80.2785],
@@ -227,6 +231,8 @@ export default function GardenMapLeaflet({
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [locateTrigger, setLocateTrigger] = useState(0);
   const [locateFailed, setLocateFailed] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const handleLocated = useCallback((position: [number, number]) => {
     setUserPosition(position);
@@ -316,9 +322,139 @@ export default function GardenMapLeaflet({
   ];
 
   const immersive = isFullscreen;
-  const mapResizeKey = `${isFullscreen}-${viewMode}`;
+  const mapResizeKey = `${isFullscreen}-${viewMode}-${filtersExpanded}`;
+  const popupTopInset =
+    immersive && (filtersExpanded || filter !== "all")
+      ? POPUP_TOP_EXPANDED_PX
+      : POPUP_TOP_COLLAPSED_PX;
 
   const toggleFullscreen = () => setIsFullscreen((v) => !v);
+
+  const selectFilter = (id: string) => {
+    setFilter(id);
+    if (id !== "all") setFiltersExpanded(false);
+  };
+
+  const renderImmersiveMapChrome = () => (
+    <div
+      className="pointer-events-none absolute inset-x-0 top-0 z-[500]"
+      style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top, 0px))" }}
+    >
+      <div
+        className="absolute inset-x-0 top-0 h-24"
+        style={{
+          background:
+            "linear-gradient(to bottom, color-mix(in srgb, var(--background) 92%, transparent) 0%, color-mix(in srgb, var(--background) 55%, transparent) 45%, transparent 100%)",
+        }}
+      />
+      <div className="relative pointer-events-auto space-y-1.5 px-3 pb-1">
+        <div className="flex items-center gap-2">
+          <div className={`flex shrink-0 rounded-full p-0.5 ${GLASS}`}>
+            <button
+              type="button"
+              onClick={() => setViewMode("map")}
+              aria-label="Map view"
+              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                viewMode === "map" ? "bg-[var(--text-primary)] text-white" : "text-[var(--text-muted)]"
+              }`}
+            >
+              <MapTrifold size={16} weight="bold" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              aria-label="List view"
+              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                viewMode === "list" ? "bg-[var(--text-primary)] text-white" : "text-[var(--text-muted)]"
+              }`}
+            >
+              <List size={16} weight="bold" />
+            </button>
+          </div>
+
+          <div className="relative min-w-0 flex-1">
+            <input
+              type="search"
+              placeholder="Search the garden…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => window.setTimeout(() => setSearchFocused(false), 150)}
+              className={`w-full rounded-full py-2 pl-3.5 pr-9 text-sm placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none ${GLASS}`}
+            />
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden>
+              🔍
+            </span>
+            {searchFocused && search.trim() && searchResults.length > 0 && (
+              <ul className={`absolute top-full left-0 right-0 z-[600] mt-1 max-h-44 overflow-y-auto rounded-xl py-1 shadow-lg ${GLASS}`}>
+                {searchResults.map((poi) => (
+                  <li key={poi.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPoi(poi);
+                        setFlyToTrigger((t) => t + 1);
+                        setSearch("");
+                        setSearchFocused(false);
+                        setViewMode("map");
+                      }}
+                      className="w-full px-3.5 py-2 text-left text-sm hover:bg-[var(--surface-border)]/40"
+                    >
+                      {poi.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setFiltersExpanded((v) => !v)}
+            aria-label={filtersExpanded ? "Hide filters" : "Show filters"}
+            aria-expanded={filtersExpanded}
+            className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${GLASS} ${
+              filter !== "all" ? "text-[var(--primary)]" : "text-[var(--text-primary)]"
+            }`}
+          >
+            <Funnel size={17} weight="bold" />
+            {filter !== "all" && (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--primary)]" />
+            )}
+          </button>
+
+          {allowFullscreen && (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label="Exit full screen map"
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--text-primary)] ${GLASS}`}
+            >
+              <ArrowsIn size={17} weight="bold" />
+            </button>
+          )}
+        </div>
+
+        {(filtersExpanded || filter !== "all") && (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => selectFilter(c.id)}
+                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold transition ${GLASS} ${
+                  filter === c.id
+                    ? "!bg-[var(--primary)] !text-white !border-[var(--primary)]"
+                    : "text-[var(--text-muted)]"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   const renderToolbar = (floating: boolean) => (
     <div className={`flex items-center gap-2 ${floating ? "" : "px-6 sm:px-0 pt-4 pb-3"}`}>
@@ -492,7 +628,7 @@ export default function GardenMapLeaflet({
     const minZoom = immersive ? IMMERSIVE_MIN_ZOOM : 15;
 
     return (
-    <div className={`relative w-full ${immersive ? "flex-1 min-h-0 z-[1]" : "h-[min(52vh,28rem)]"}`}>
+    <div className={`relative w-full ${immersive ? "absolute inset-0" : "h-[min(52vh,28rem)]"}`}>
       {filteredPois.length === 0 && (
         <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-[var(--surface)]/95">
           <p className="text-[var(--text-muted)] text-center px-4">No locations match your search.</p>
@@ -503,7 +639,8 @@ export default function GardenMapLeaflet({
         type="button"
         onClick={() => setLocateTrigger((t) => t + 1)}
         aria-label="Show my location on map"
-        className="absolute bottom-20 right-3 z-[600] flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--surface-border)] bg-[var(--surface)] text-[var(--text-primary)] shadow-md transition active:scale-[0.96]"
+        className="absolute bottom-20 right-3 z-[600] flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-primary)] shadow-md transition active:scale-[0.96]"
+        style={{ background: "color-mix(in srgb, var(--surface) 88%, transparent)", backdropFilter: "blur(12px)" }}
       >
         <Crosshair size={20} weight="bold" />
       </button>
@@ -569,7 +706,7 @@ export default function GardenMapLeaflet({
                 maxWidth={340}
                 minWidth={280}
                 autoPan
-                autoPanPaddingTopLeft={[16, POPUP_TOP_INSET_PX]}
+                autoPanPaddingTopLeft={[16, popupTopInset]}
                 autoPanPaddingBottomRight={[16, POPUP_BOTTOM_INSET_PX]}
               >
                 <div className="flex flex-col gap-3">
@@ -636,7 +773,7 @@ export default function GardenMapLeaflet({
   const zoom = data?.config?.zoom ?? 15;
 
   const shellClass = immersive
-    ? "fixed inset-x-0 top-0 z-[1100] mx-auto flex max-w-[28rem] flex-col overflow-hidden bg-[var(--background)]"
+    ? "fixed inset-x-0 top-0 z-[1100] mx-auto flex max-w-[28rem] flex-col overflow-hidden"
     : "relative flex flex-col";
 
   const shellStyle = immersive
@@ -650,19 +787,14 @@ export default function GardenMapLeaflet({
     <div className={shellClass} style={shellStyle}>
       {immersive ? (
         viewMode === "list" ? (
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col bg-[var(--background)]">
             <div className="shrink-0 space-y-2 px-3 pt-3">{renderControls(false)}</div>
             {renderList()}
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div
-              className="shrink-0 space-y-2 border-b border-[var(--surface-border)]/60 px-3 pb-2 pt-3"
-              style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
-            >
-              {renderControls(false)}
-            </div>
+          <div className="relative min-h-0 flex-1">
             {renderMapCanvas(center, zoom)}
+            {renderImmersiveMapChrome()}
           </div>
         )
       ) : (
