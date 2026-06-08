@@ -41,6 +41,7 @@ export default function MapOverlayPage() {
         if (ov?.image_url) {
           setImageUrl(ov.image_url);
           setBounds({ sw: ov.sw, ne: ov.ne });
+          if (typeof ov.opacity === "number") setOpacity(ov.opacity);
         }
       })
       .catch(() => {});
@@ -98,6 +99,7 @@ export default function MapOverlayPage() {
           sw_lng: bounds.sw[1],
           ne_lat: bounds.ne[0],
           ne_lng: bounds.ne[1],
+          opacity,
         }),
       });
       const json = await res.json();

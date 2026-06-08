@@ -1,12 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { vendorCategories } from "@/lib/couple/vendorData";
+import { useEffect, useState } from "react";
+import { vendorCategories as fallbackCategories } from "@/lib/couple/vendorData";
 import type { VendorCategory } from "@/lib/couple/vendorData";
 
 export default function VendorsPage() {
-  const [activeTab, setActiveTab] = useState(vendorCategories[0].id);
-  const category = vendorCategories.find((c) => c.id === activeTab) as VendorCategory;
+  const [categories, setCategories] = useState<VendorCategory[]>(fallbackCategories);
+  const [activeTab, setActiveTab] = useState(fallbackCategories[0]?.id ?? "catering");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    void fetch("/api/couple/vendors")
+      .then((r) => r.json())
+      .then((d: { categories?: VendorCategory[] }) => {
+        if (d.categories?.length) {
+          setCategories(d.categories);
+          setActiveTab(d.categories[0].id);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const category = categories.find((c) => c.id === activeTab) ?? categories[0];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24" style={{ background: "#f0f3ee" }}>
+        <div className="w-6 h-6 rounded-full border-2 border-[#4a6741] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!category) return null;
 
   return (
     <div style={{ background: "#f0f3ee", minHeight: "100%" }}>
@@ -17,9 +42,8 @@ export default function VendorsPage() {
         </p>
       </div>
 
-      {/* Category pills */}
       <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
-        {vendorCategories.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveTab(cat.id)}
@@ -35,7 +59,6 @@ export default function VendorsPage() {
         ))}
       </div>
 
-      {/* Vendor cards */}
       <div className="px-4 space-y-3 pb-4">
         {category.vendors.map((vendor) => (
           <div key={vendor.name} className="rounded-2xl bg-white shadow-sm p-4">

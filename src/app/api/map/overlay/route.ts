@@ -15,7 +15,7 @@ export async function PATCH(req: Request) {
   }
 
   const body = await req.json();
-  const { config_slug = "default", image_url, sw_lat, sw_lng, ne_lat, ne_lng } = body;
+  const { config_slug = "default", image_url, sw_lat, sw_lng, ne_lat, ne_lng, opacity } = body;
 
   if (!image_url || sw_lat == null || sw_lng == null || ne_lat == null || ne_lng == null) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -32,6 +32,7 @@ export async function PATCH(req: Request) {
       overlay_sw_lng: Number(sw_lng),
       overlay_ne_lat: Number(ne_lat),
       overlay_ne_lng: Number(ne_lng),
+      ...(opacity != null && { overlay_opacity: Number(opacity) }),
     })
     .eq("slug", config_slug);
 

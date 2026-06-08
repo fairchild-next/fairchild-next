@@ -74,6 +74,7 @@ type OverlayConfig = {
   image_url: string;
   sw: [number, number];
   ne: [number, number];
+  opacity?: number;
 };
 
 type Zone = {
@@ -367,7 +368,7 @@ export default function GardenMapLeaflet({
               <ImageOverlay
                 url={overlayImageUrl}
                 bounds={overlayBounds}
-                opacity={1}
+                opacity={overlay?.opacity ?? 1}
                 zIndex={10}
               />
 

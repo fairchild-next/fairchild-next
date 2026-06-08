@@ -10,23 +10,23 @@ type ToolItem = {
 };
 
 const TOOLS: ToolItem[] = [
-  // Live tools
-  { label: "Ticket Scanner",   description: "Scan QR codes at the gate for entry",             href: "/staff/scanner",        status: "live" },
-  { label: "Garden Map",       description: "Add and edit POIs, layers, and zones",             href: "/staff/map/edit",       status: "live" },
-  { label: "Map Overlay",      description: "Upload and position the illustrated garden map",   href: "/staff/map/overlay",    status: "live" },
-  { label: "Garden Status",    description: "Mark garden open, closed, or special hours",       href: "/staff/garden-status",  status: "live" },
-  { label: "Manage Team",      description: "Add and remove staff portal access",               href: "/staff/team",           status: "live" },
-  // Phase B — now live
-  { label: "Events Manager",   description: "Create, activate, and deactivate events",          href: "/staff/events",         status: "live" },
-  { label: "Events Mode",      description: "Turn Events Mode on and set the featured event",   href: "/staff/modes/events",   status: "live" },
-  { label: "What's Blooming",  description: "Update the seasonal featured card on the home page", href: "/staff/homepage",     status: "live" },
-  { label: "Ticket Pricing",   description: "Edit ticket prices inside each event's editor",    href: "/staff/events",         status: "live" },
-  // Phase C — now live
-  { label: "Plants Database",  description: "Add and edit plants for QR scanning and Learn",    href: "/staff/plants",         status: "live" },
-  { label: "Garden Quest",     description: "Manage Kids Mode quest items and badges",          href: "/staff/modes/kids",     status: "live" },
-  // Phase C remaining — coming soon
-  { label: "Wedding Portal",   description: "Manage wedding bookings and couples",              href: "/staff/coordinator",    status: "live" },
-  { label: "Daily Schedule",   description: "Time slots, open dates, and admission capacity",   href: "/staff/schedule",       status: "live" },
+  { label: "Ticket Scanner",     description: "Scan QR codes at the gate for entry",             href: "/staff/scanner",        status: "live" },
+  { label: "Garden Map",         description: "Add and edit POIs, layers, and zones",             href: "/staff/map/edit",       status: "live" },
+  { label: "Map Overlay",        description: "Upload and position the illustrated garden map",   href: "/staff/map/overlay",    status: "live" },
+  { label: "Garden Status",      description: "Mark garden open, closed, or special hours",       href: "/staff/garden-status",  status: "live" },
+  { label: "Manage Team",        description: "Staff access and wedding coordinators",            href: "/staff/team",           status: "live" },
+  { label: "Events Manager",     description: "Create, activate, and deactivate events",          href: "/staff/events",         status: "live" },
+  { label: "Events Mode",        description: "Turn Events Mode on and set the featured event",   href: "/staff/modes/events",   status: "live" },
+  { label: "What's Blooming",    description: "Update the seasonal featured card on the home page", href: "/staff/homepage",     status: "live" },
+  { label: "Daily Ticket Pricing", description: "Adult, child, and flex admission prices",        href: "/staff/pricing",        status: "live" },
+  { label: "Daily Schedule",     description: "Time slots, open dates, and admission capacity",   href: "/staff/schedule",       status: "live" },
+  { label: "Plants Database",    description: "Add and edit plants for QR scanning and Learn",    href: "/staff/plants",         status: "live" },
+  { label: "Garden Quest",       description: "Manage Kids Mode quest items and badges",          href: "/staff/modes/kids",     status: "live" },
+  { label: "Garden Quiz",        description: "Edit adult and kids quiz questions",               href: "/staff/quiz",           status: "live" },
+  { label: "Wedding Portal",     description: "Manage wedding bookings and couples",              href: "/staff/coordinator",    status: "live" },
+  { label: "Wedding Vendors",    description: "Preferred vendor list for the couple portal",      href: "/staff/vendors",        status: "live" },
+  { label: "Members",            description: "View members and edit display names on cards",     href: "/staff/members",        status: "live" },
+  { label: "Push Notifications", description: "Day-of alerts and event reminders",                href: "/staff/notifications",  status: "soon" },
 ];
 
 function IconChevron() {
@@ -51,8 +51,6 @@ const soon = TOOLS.filter((t) => t.status === "soon");
 export default function StaffMorePage() {
   return (
     <div style={{ background: "var(--background)", minHeight: "100%" }} className="pb-24">
-
-      {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-12 pb-4">
         <Link href="/staff" className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition">
           <IconBack />
@@ -64,8 +62,6 @@ export default function StaffMorePage() {
       </div>
 
       <div className="px-5 space-y-6 pb-6">
-
-        {/* Live tools */}
         <div className="space-y-2">
           <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide px-1">Available Now</p>
           {live.map((tool) => (
@@ -84,29 +80,27 @@ export default function StaffMorePage() {
           ))}
         </div>
 
-        {/* Coming soon tools */}
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide px-1">Coming Soon</p>
-          {soon.map((tool) => (
-            <div
-              key={tool.href}
-              className="flex items-center gap-4 rounded-2xl px-5 py-4 opacity-50"
-              style={{ background: "var(--surface)", border: "1px solid var(--surface-border)" }}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-bold text-[var(--text-primary)]">{tool.label}</p>
-                <p className="text-xs text-[var(--text-muted)] mt-0.5">{tool.description}</p>
-              </div>
-              <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-lg"
-                style={{ background: "var(--surface-border)", color: "var(--text-muted)" }}
+        {soon.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide px-1">Coming Soon</p>
+            {soon.map((tool) => (
+              <div
+                key={tool.href}
+                className="flex items-center gap-4 rounded-2xl px-5 py-4 opacity-50"
+                style={{ background: "var(--surface)", border: "1px solid var(--surface-border)" }}
               >
-                Soon
-              </span>
-            </div>
-          ))}
-        </div>
-
+                <div className="flex-1 min-w-0">
+                  <p className="text-[15px] font-bold text-[var(--text-primary)]">{tool.label}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{tool.description}</p>
+                </div>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg"
+                  style={{ background: "var(--surface-border)", color: "var(--text-muted)" }}>
+                  Soon
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

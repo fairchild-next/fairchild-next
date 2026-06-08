@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const { data: config, error: configErr } = await supabase
     .from("map_config")
     .select(
-      "id, name, center_lat, center_lng, default_zoom, overlay_image_url, overlay_sw_lat, overlay_sw_lng, overlay_ne_lat, overlay_ne_lng"
+      "id, name, center_lat, center_lng, default_zoom, overlay_image_url, overlay_sw_lat, overlay_sw_lng, overlay_ne_lat, overlay_ne_lng, overlay_opacity"
     )
     .eq("slug", configSlug)
     .single();
@@ -67,6 +67,7 @@ export async function GET(req: Request) {
               image_url: config.overlay_image_url,
               sw: [Number(config.overlay_sw_lat), Number(config.overlay_sw_lng)],
               ne: [Number(config.overlay_ne_lat), Number(config.overlay_ne_lng)],
+              opacity: config.overlay_opacity != null ? Number(config.overlay_opacity) : 0.7,
             }
           : null,
       },

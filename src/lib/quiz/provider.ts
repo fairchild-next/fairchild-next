@@ -1,6 +1,5 @@
 /**
  * QuizProvider interface - abstract data source for quiz content.
- * Swap implementations (Static vs API) without changing UI.
  */
 
 import type { Quiz, QuizQuestion } from "./types";
@@ -9,26 +8,39 @@ export interface QuizProvider {
   getQuiz(slug: string): Promise<Quiz>;
 }
 
-/** Static provider - loads quiz from JSON. Works offline. */
+async function loadFromJson(slug: string): Promise<Quiz> {
+  const quizLoaders: Record<string, () => Promise<Quiz>> = {
+    garden: () =>
+      import("@/data/quizzes/garden-quiz.json").then((m) => m.default as Quiz),
+    "garden-kids": () =>
+      import("@/data/quizzes/garden-quiz-kids.json").then((m) => m.default as Quiz),
+  };
+  const loader = quizLoaders[slug];
+  if (!loader) throw new Error(`Quiz not found: ${slug}`);
+  return loader();
+}
+
+/** Loads quiz from DB API first, falls back to bundled JSON. */
 export class StaticQuizProvider implements QuizProvider {
-  private quizzes: Map<string, Quiz> = new Map();
+  private cache = new Map<string, Quiz>();
 
   async getQuiz(slug: string): Promise<Quiz> {
-    const cached = this.quizzes.get(slug);
+    const cached = this.cache.get(slug);
     if (cached) return cached;
 
-    const quizLoaders: Record<string, () => Promise<Quiz>> = {
-      garden: () =>
-        import("@/data/quizzes/garden-quiz.json").then((m) => m.default as Quiz),
-      "garden-kids": () =>
-        import("@/data/quizzes/garden-quiz-kids.json").then((m) => m.default as Quiz),
-    };
+    try {
+      const res = await fetch(`/api/quizzes/${encodeURIComponent(slug)}`);
+      if (res.ok) {
+        const data = await res.json() as { quiz: Quiz };
+        this.cache.set(slug, data.quiz);
+        return data.quiz;
+      }
+    } catch {
+      // fall through to JSON
+    }
 
-    const loader = quizLoaders[slug];
-    if (!loader) throw new Error(`Quiz not found: ${slug}`);
-
-    const quiz = await loader();
-    this.quizzes.set(slug, quiz);
+    const quiz = await loadFromJson(slug);
+    this.cache.set(slug, quiz);
     return quiz;
   }
 }
