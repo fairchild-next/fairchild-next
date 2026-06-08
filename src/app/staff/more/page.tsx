@@ -25,8 +25,8 @@ const TOOLS: ToolItem[] = [
   { label: "Plants Database",  description: "Add and edit plants for QR scanning and Learn",    href: "/staff/plants",         status: "live" },
   { label: "Garden Quest",     description: "Manage Kids Mode quest items and badges",          href: "/staff/modes/kids",     status: "live" },
   // Phase C remaining — coming soon
-  { label: "Coordinator",      description: "View wedding bookings and manage couples",         href: "/staff/coordinator",    status: "soon" },
-  { label: "Time Slots",       description: "Edit daily admission schedule and capacity",       href: "/staff/schedule",       status: "soon" },
+  { label: "Wedding Portal",   description: "Manage wedding bookings and couples",              href: "/staff/coordinator",    status: "live" },
+  { label: "Daily Schedule",   description: "Time slots, open dates, and admission capacity",   href: "/staff/schedule",       status: "live" },
 ];
 
 function IconChevron() {

@@ -56,7 +56,7 @@ export default function DailyTicketsPage() {
             Select a day to visit and save $5
           </p>
           <ul className="space-y-2 text-sm text-[var(--text-muted)] mb-4">
-            <li>• Guaranteed entry for selected date and time</li>
+            <li>• Guaranteed entry for your selected visit date</li>
             <li>• Save $5 per adult ticket</li>
             <li>• Money-back guarantee for unforeseen closures or weather</li>
           </ul>

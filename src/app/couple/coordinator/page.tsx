@@ -46,25 +46,24 @@ export default function CoordinatorDashboardPage() {
     setCreateError(null);
     try {
       const res = await fetch("/api/couple/booking", {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          bookingId: "__new__",
           couple_name: newCouple.trim(),
           partner_name: newPartner.trim(),
           wedding_date: newDate || null,
           status: "inquiry",
         }),
       });
-      // The PATCH route requires an existing booking ID — use the admin direct insert instead
-      // For now we surface a clear note; a dedicated POST endpoint can be added when needed.
-      if (!res.ok) {
-        setCreateError("To create a new booking, add the couple directly in Supabase and return here.");
-      } else {
-        const d = await res.json() as { booking?: WeddingBooking };
-        if (d.booking) setBookings((prev) => [...prev, d.booking!]);
+      const d = await res.json() as { booking?: WeddingBooking; error?: string };
+      if (res.ok && d.booking) {
+        setBookings((prev) => [...prev, d.booking!]);
         setShowCreate(false);
-        setNewCouple(""); setNewPartner(""); setNewDate("");
+        setNewCouple("");
+        setNewPartner("");
+        setNewDate("");
+      } else {
+        setCreateError(d.error ?? "Could not create booking.");
       }
     } finally {
       setCreating(false);

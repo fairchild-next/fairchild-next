@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getScheduledAdmissionConfig } from "@/lib/admission/config";
 
 /** Flex tickets = scheduled price + this upcharge (matches flex/page.tsx). */
 export const FLEX_UPCHARGE = 5;
@@ -13,6 +14,8 @@ export type CartItemInput = {
   price?: number;
   quantity: number;
   slotId?: string;
+  /** Date-only scheduled admission (when time slots are disabled) */
+  visitDate?: string;
   eventId?: string;
   isPeak?: boolean;
 };
@@ -24,6 +27,7 @@ export type ValidatedCartItem = {
   price: number;
   quantity: number;
   slotId: string | null;
+  scheduledDate: string | null;
   eventId: string | null;
   isPeak: boolean | null;
   unitPriceCents: number;
@@ -36,6 +40,12 @@ type TicketTypeRow = {
   price_peak: number | null;
   is_active: boolean;
   event_id: string | null;
+};
+
+type AdmissionDateRow = {
+  date: string;
+  capacity_remaining: number;
+  is_active: boolean;
 };
 
 type SlotRow = {
@@ -78,6 +88,13 @@ function parseQuantity(quantity: unknown): number {
   return q;
 }
 
+function parseVisitDate(value: unknown): string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new CartValidationError("Invalid visit date.");
+  }
+  return value;
+}
+
 export function validateDonationAmount(donation: unknown): number {
   const amount = Number(donation ?? 0);
   if (!Number.isFinite(amount) || amount < 0) {
@@ -101,6 +118,8 @@ export async function validateCheckoutCart(
   if (!items?.length) {
     throw new CartValidationError("No items provided.");
   }
+
+  const admissionConfig = await getScheduledAdmissionConfig(admin);
 
   const ticketIds = [...new Set(items.map((i) => i.productId))];
   const { data: ticketRows, error: ticketErr } = await admin
@@ -141,6 +160,31 @@ export async function validateCheckoutCart(
   }
 
   const slotDemand = new Map<string, number>();
+  const dateDemand = new Map<string, number>();
+  const visitDates = [
+    ...new Set(
+      items
+        .map((i) => i.visitDate)
+        .filter((d): d is string => typeof d === "string" && d.length > 0)
+    ),
+  ];
+  const dateByValue = new Map<string, AdmissionDateRow>();
+
+  if (visitDates.length > 0) {
+    const { data: dates, error: dateErr } = await admin
+      .from("admission_dates")
+      .select("date, capacity_remaining, is_active")
+      .in("date", visitDates);
+
+    if (dateErr || !dates?.length) {
+      throw new CartValidationError("Invalid visit date.");
+    }
+
+    for (const row of dates as AdmissionDateRow[]) {
+      dateByValue.set(row.date, row);
+    }
+  }
+
   const validated: ValidatedCartItem[] = [];
 
   for (const item of items) {
@@ -161,27 +205,47 @@ export async function validateCheckoutCart(
     let authoritativePrice: number;
     let isPeak: boolean | null = null;
     let slotId: string | null = null;
+    let scheduledDate: string | null = null;
     let eventId: string | null = null;
 
     switch (productType) {
       case "scheduled-daily": {
-        if (!item.slotId) {
-          throw new CartValidationError("Scheduled tickets require a time slot.");
-        }
-        const slot = slotById.get(item.slotId);
-        if (!slot || !slot.is_active) {
-          throw new CartValidationError("Time slot is not available.");
-        }
         if (ticket.event_id != null) {
           throw new CartValidationError("Invalid ticket type for scheduled admission.");
         }
-        isPeak = isSlotPeak(slot.date);
-        authoritativePrice = baseTicketPrice(ticket, isPeak);
-        slotId = item.slotId;
-        slotDemand.set(
-          item.slotId,
-          (slotDemand.get(item.slotId) ?? 0) + quantity
-        );
+
+        if (admissionConfig.time_slots_enabled) {
+          if (!item.slotId) {
+            throw new CartValidationError("Scheduled tickets require a time slot.");
+          }
+          const slot = slotById.get(item.slotId);
+          if (!slot || !slot.is_active) {
+            throw new CartValidationError("Time slot is not available.");
+          }
+          isPeak = isSlotPeak(slot.date);
+          authoritativePrice = baseTicketPrice(ticket, isPeak);
+          slotId = item.slotId;
+          slotDemand.set(
+            item.slotId,
+            (slotDemand.get(item.slotId) ?? 0) + quantity
+          );
+        } else {
+          if (item.slotId) {
+            throw new CartValidationError("Time slots are not required for this visit date.");
+          }
+          const visitDate = parseVisitDate(item.visitDate);
+          const admissionDate = dateByValue.get(visitDate);
+          if (!admissionDate || !admissionDate.is_active) {
+            throw new CartValidationError("Visit date is not available.");
+          }
+          isPeak = isSlotPeak(visitDate);
+          authoritativePrice = baseTicketPrice(ticket, isPeak);
+          scheduledDate = visitDate;
+          dateDemand.set(
+            visitDate,
+            (dateDemand.get(visitDate) ?? 0) + quantity
+          );
+        }
         break;
       }
 
@@ -230,6 +294,7 @@ export async function validateCheckoutCart(
       price: authoritativePrice,
       quantity,
       slotId,
+      scheduledDate,
       eventId,
       isPeak,
       unitPriceCents: Math.round(authoritativePrice * 100),
@@ -242,6 +307,16 @@ export async function validateCheckoutCart(
     if (slot.capacity_remaining < demand) {
       throw new CartValidationError(
         "Not enough capacity remaining for the selected time slot."
+      );
+    }
+  }
+
+  for (const [date, demand] of dateDemand) {
+    const admissionDate = dateByValue.get(date);
+    if (!admissionDate) continue;
+    if (admissionDate.capacity_remaining < demand) {
+      throw new CartValidationError(
+        "Not enough capacity remaining for the selected visit date."
       );
     }
   }
@@ -305,6 +380,7 @@ export async function validateMemberReserveCart(
       price: 0,
       quantity,
       slotId: item.slotId ?? null,
+      scheduledDate: null,
       eventId: item.eventId ?? ticket.event_id ?? null,
       isPeak: item.isPeak ?? null,
       unitPriceCents: 0,
@@ -314,18 +390,30 @@ export async function validateMemberReserveCart(
   return validated;
 }
 
-/** Decrement slot capacity after successful payment (webhook). */
+/** Decrement slot or date capacity after successful payment (webhook). */
 export async function decrementSlotCapacity(
   admin: SupabaseClient,
-  orderItems: Array<{ slot_id: string | null; quantity: number }>
+  orderItems: Array<{
+    slot_id: string | null;
+    scheduled_date?: string | null;
+    quantity: number;
+  }>
 ): Promise<void> {
   const demandBySlot = new Map<string, number>();
+  const demandByDate = new Map<string, number>();
+
   for (const item of orderItems) {
-    if (!item.slot_id) continue;
-    demandBySlot.set(
-      item.slot_id,
-      (demandBySlot.get(item.slot_id) ?? 0) + item.quantity
-    );
+    if (item.slot_id) {
+      demandBySlot.set(
+        item.slot_id,
+        (demandBySlot.get(item.slot_id) ?? 0) + item.quantity
+      );
+    } else if (item.scheduled_date) {
+      demandByDate.set(
+        item.scheduled_date,
+        (demandByDate.get(item.scheduled_date) ?? 0) + item.quantity
+      );
+    }
   }
 
   for (const [slotId, demand] of demandBySlot) {
@@ -353,6 +441,34 @@ export async function decrementSlotCapacity(
 
     if (updateErr) {
       throw new Error(`Failed to decrement capacity for slot ${slotId}`);
+    }
+  }
+
+  for (const [date, demand] of demandByDate) {
+    const { data: admissionDate, error: fetchErr } = await admin
+      .from("admission_dates")
+      .select("date, capacity_remaining")
+      .eq("date", date)
+      .single();
+
+    if (fetchErr || !admissionDate) {
+      throw new Error(`Admission date not found: ${date}`);
+    }
+
+    if (admissionDate.capacity_remaining < demand) {
+      throw new Error(
+        `Insufficient capacity for date ${date}: need ${demand}, have ${admissionDate.capacity_remaining}`
+      );
+    }
+
+    const { error: updateErr } = await admin
+      .from("admission_dates")
+      .update({ capacity_remaining: admissionDate.capacity_remaining - demand })
+      .eq("date", date)
+      .gte("capacity_remaining", demand);
+
+    if (updateErr) {
+      throw new Error(`Failed to decrement capacity for date ${date}`);
     }
   }
 }

@@ -18,15 +18,26 @@ interface Slot {
 const normalizeDate = (date: Date) =>
   date.toISOString().split("T")[0];
 
+function formatGuaranteedDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function DailyTicketsContent() {
   const supabase = useSupabaseBrowserClient();
   const router = useRouter();
 
+  const [timeSlotsEnabled, setTimeSlotsEnabled] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [festivalDates, setFestivalDates] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loadingDates, setLoadingDates] = useState(true);
 
   const availableDatesSet = useMemo(
     () => new Set(availableDates),
@@ -38,26 +49,37 @@ export default function DailyTicketsContent() {
     [festivalDates]
   );
 
-  useEffect(() => {
-    if (!supabase) return;
-    let cancelled = false;
-    const fetchAvailableDates = async () => {
-      const { data } = await supabase
-        .from("time_slots")
-        .select("date")
-        .eq("is_active", true)
-        .gt("capacity_remaining", 0);
+  const selectedDateStr = selectedDate ? normalizeDate(selectedDate) : null;
 
-      if (!cancelled && data) {
-        const unique: string[] = Array.from(new Set(data.map((slot: { date: string }) => slot.date)));
-        setAvailableDates(unique);
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSettingsAndDates() {
+      setLoadingDates(true);
+      try {
+        const [settingsRes, datesRes] = await Promise.all([
+          fetch("/api/admission/settings"),
+          fetch("/api/admission/dates"),
+        ]);
+        if (settingsRes.ok) {
+          const settings = await settingsRes.json() as { time_slots_enabled?: boolean };
+          if (!cancelled) setTimeSlotsEnabled(settings.time_slots_enabled !== false);
+        }
+        if (datesRes.ok) {
+          const data = await datesRes.json() as { dates?: string[]; time_slots_enabled?: boolean };
+          if (!cancelled) {
+            setAvailableDates(data.dates ?? []);
+            if (typeof data.time_slots_enabled === "boolean") {
+              setTimeSlotsEnabled(data.time_slots_enabled);
+            }
+          }
+        }
+      } finally {
+        if (!cancelled) setLoadingDates(false);
       }
-    };
-    fetchAvailableDates();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase]);
+    }
+    void loadSettingsAndDates();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!supabase) return;
@@ -81,14 +103,15 @@ export default function DailyTicketsContent() {
         setFestivalDates(dates);
       }
     };
-    fetchFestivalDates();
-    return () => {
-      cancelled = true;
-    };
+    void fetchFestivalDates();
+    return () => { cancelled = true; };
   }, [supabase]);
 
   useEffect(() => {
-    if (!selectedDate || !supabase) return;
+    if (!selectedDate || !supabase || !timeSlotsEnabled) {
+      setSlots([]);
+      return;
+    }
 
     let cancelled = false;
     setLoadingSlots(true);
@@ -108,10 +131,8 @@ export default function DailyTicketsContent() {
         }
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedDate, supabase]);
+    return () => { cancelled = true; };
+  }, [selectedDate, supabase, timeSlotsEnabled]);
 
   const formatTime = (time: string) => {
     const [h, m] = time.split(":").map(Number);
@@ -126,6 +147,12 @@ export default function DailyTicketsContent() {
       <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
         Select Your Visit Date
       </h1>
+
+      {!timeSlotsEnabled && (
+        <div className="p-3 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-sm text-[var(--text-primary)]">
+          Enter anytime during garden hours on your selected date.
+        </div>
+      )}
 
       <div className="w-full min-w-0 overflow-x-auto">
         <div className="flex justify-center min-w-[280px] mx-auto">
@@ -142,7 +169,7 @@ export default function DailyTicketsContent() {
         </div>
       </div>
 
-      {!selectedDate && availableDates.length === 0 && (
+      {!loadingDates && !selectedDate && availableDates.length === 0 && (
         <p className="text-sm text-[var(--text-muted)] text-center">
           No upcoming dates available — check back soon.
         </p>
@@ -150,62 +177,76 @@ export default function DailyTicketsContent() {
 
       {selectedDate && (
         <div className="space-y-4">
-          {loadingSlots ? (
-            <div className="flex items-center gap-2 text-[var(--text-muted)]">
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden>
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-              </svg>
-              <span className="text-sm">Loading available times…</span>
-            </div>
-          ) : slots.length === 0 ? (
-            <p className="text-[var(--text-muted)]">
-              No available times for this date.
-            </p>
-          ) : (
-            <>
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
-                <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          {timeSlotsEnabled ? (
+            loadingSlots ? (
+              <div className="flex items-center gap-2 text-[var(--text-muted)]">
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
-                <div className="text-sm text-[var(--text-primary)]">
-                  <p className="font-medium">You must enter at your scheduled time.</p>
-                  <p className="text-[var(--text-muted)] mt-0.5">A 30-minute grace period applies after your slot ends.</p>
+                <span className="text-sm">Loading available times…</span>
+              </div>
+            ) : slots.length === 0 ? (
+              <p className="text-[var(--text-muted)]">
+                No available times for this date.
+              </p>
+            ) : (
+              <>
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-sm text-[var(--text-primary)]">
+                    <p className="font-medium">You must enter at your scheduled time.</p>
+                    <p className="text-[var(--text-muted)] mt-0.5">A 30-minute grace period applies after your slot ends.</p>
+                  </div>
                 </div>
-              </div>
 
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Select Your Time
-              </h2>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                  Select Your Time
+                </h2>
 
-              <div className="space-y-3">
-                {slots.map((slot) => (
-                  <button
-                    key={slot.id}
-                    onClick={() => router.push(`/tickets/daily/scheduled/${slot.id}`)}
-                    className="w-full border border-[var(--surface-border)] rounded-xl p-4 text-left hover:bg-[var(--surface-border)]/50 transition text-[var(--text-primary)] flex items-center justify-between"
-                  >
-                    <span>
-                      {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
-                    </span>
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      slot.capacity_remaining <= 5
-                        ? "bg-red-500/10 text-red-500"
-                        : slot.capacity_remaining <= 15
-                          ? "bg-amber-500/10 text-amber-500"
-                          : "bg-[var(--primary)]/10 text-[var(--primary)]"
-                    }`}>
-                      {slot.capacity_remaining <= 5
-                        ? `${slot.capacity_remaining} left!`
-                        : slot.capacity_remaining <= 15
-                          ? `${slot.capacity_remaining} spots`
-                          : "Available"}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+                <div className="space-y-3">
+                  {slots.map((slot) => (
+                    <button
+                      key={slot.id}
+                      onClick={() => router.push(`/tickets/daily/scheduled/${slot.id}`)}
+                      className="w-full border border-[var(--surface-border)] rounded-xl p-4 text-left hover:bg-[var(--surface-border)]/50 transition text-[var(--text-primary)] flex items-center justify-between"
+                    >
+                      <span>
+                        {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+                      </span>
+                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                        slot.capacity_remaining <= 5
+                          ? "bg-red-500/10 text-red-500"
+                          : slot.capacity_remaining <= 15
+                            ? "bg-amber-500/10 text-amber-500"
+                            : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                      }`}>
+                        {slot.capacity_remaining <= 5
+                          ? `${slot.capacity_remaining} left!`
+                          : slot.capacity_remaining <= 15
+                            ? `${slot.capacity_remaining} spots`
+                            : "Available"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )
+          ) : selectedDateStr ? (
+            <div className="space-y-4">
+              <p className="text-sm text-[var(--text-muted)]">
+                Guaranteed entry for {formatGuaranteedDate(selectedDateStr)}. Arrive anytime during open hours.
+              </p>
+              <button
+                onClick={() => router.push(`/tickets/daily/scheduled/date/${selectedDateStr}`)}
+                className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-semibold"
+              >
+                Select Tickets for This Date
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

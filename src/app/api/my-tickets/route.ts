@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 function isTicketPast(
-  ticket: { status: string; slot_id: string | null; event_id: string | null },
+  ticket: { status: string; slot_id: string | null; scheduled_date?: string | null; event_id: string | null },
   slotBySlotId: Map<string, { date: string; end_time: string }>,
   eventByEventId: Map<string, { end_date: string; end_time: string | null }>
 ): boolean {
@@ -17,6 +17,10 @@ function isTicketPast(
       return endDt < new Date();
     }
     return false;
+  }
+  if (ticket.scheduled_date && !ticket.slot_id) {
+    const endDt = new Date(`${ticket.scheduled_date}T23:59:59`);
+    return endDt < new Date();
   }
   if (!ticket.slot_id) return false; // flex: not past until used
   const slot = slotBySlotId.get(ticket.slot_id);
@@ -106,12 +110,13 @@ export async function GET() {
               .eq("order_id", order.id);
             if (items?.length) {
               const toInsert = items.flatMap(
-                (item: { id: string; ticket_type_id: string; slot_id: string | null; event_id: string | null; quantity: number }) =>
+                (item: { id: string; ticket_type_id: string; slot_id: string | null; scheduled_date?: string | null; event_id: string | null; quantity: number }) =>
                   Array.from({ length: item.quantity }, () => ({
                     order_id: order.id,
                     order_item_id: item.id,
                     ticket_type_id: item.ticket_type_id,
                     slot_id: item.slot_id,
+                    scheduled_date: item.scheduled_date ?? null,
                     event_id: item.event_id ?? null,
                     qr_code: crypto.randomUUID(),
                     status: "unused",
@@ -239,9 +244,10 @@ export async function GET() {
     return {
       ...t,
       ticket_type_name: ticketTypeById.get(t.ticket_type_id as string) ?? "Ticket",
-      slot_date: slot?.date,
+      slot_date: slot?.date ?? (t.scheduled_date as string | undefined),
       slot_start_time: slot?.start_time,
       slot_end_time: slot?.end_time,
+      scheduled_date: t.scheduled_date,
       visit_date: visitDate,
       event_name: ev?.name,
       event_slug: ev?.slug,

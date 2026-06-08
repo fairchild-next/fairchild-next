@@ -21,6 +21,7 @@ type Ticket = {
   slot_date?: string;
   slot_start_time?: string;
   slot_end_time?: string;
+  scheduled_date?: string;
   visit_date?: string;
   order_total?: number;
   created_at?: string;
@@ -356,7 +357,8 @@ function TicketGroupCard({
   if (!first) return null;
 
   const isEvent = !!first.event_id;
-  const isScheduled = !!first.slot_id && !isEvent;
+  const isScheduled = (!!first.slot_id || !!first.scheduled_date) && !isEvent;
+  const isDateOnlyScheduled = isScheduled && !first.slot_id && !!first.scheduled_date;
   const isFlex = !isScheduled && !isEvent;
   const flexWeekend = isFlex && first.is_peak === true;
   const flexWeekday = isFlex && first.is_peak === false;
@@ -381,6 +383,9 @@ function TicketGroupCard({
     }
     if (isScheduled && first.slot_date && first.slot_start_time && first.slot_end_time) {
       return `${formatDate(first.slot_date)}, ${formatTime(first.slot_start_time)} - ${formatTime(first.slot_end_time)}`;
+    }
+    if (isDateOnlyScheduled && first.scheduled_date) {
+      return formatDate(first.scheduled_date);
     }
     if (first.visit_date) return formatDate(first.visit_date);
     if (isScheduled && first.slot_date) return formatDate(first.slot_date);
@@ -492,9 +497,14 @@ function TicketGroupCard({
             </p>
           ) : null}
           <p className="text-sm font-medium text-[var(--text-muted)]">{admissionLabel}</p>
-          {isScheduled && (
+          {isScheduled && !isDateOnlyScheduled && (
             <p className="text-xs text-amber-400/90">
               Enter at your scheduled time. 30-min grace after slot end.
+            </p>
+          )}
+          {isDateOnlyScheduled && (
+            <p className="text-xs text-[var(--text-muted)]">
+              Enter anytime during garden hours on your visit date.
             </p>
           )}
           {flexLegalText && (

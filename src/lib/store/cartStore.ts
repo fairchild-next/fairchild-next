@@ -18,6 +18,8 @@ export interface CartItem {
   price: number;
   quantity: number;
   slotId?: string;
+  /** Date-only scheduled admission (when time slots are disabled) */
+  visitDate?: string;
   /** For flex tickets: true = weekend/peak, false = weekday/off-peak */
   isPeak?: boolean;
   /** For special-event: event uuid */
@@ -43,14 +45,17 @@ export const useCartStore = create<CartState>()(
       addItems: (newItems) =>
         set((state) => {
           const slotId = newItems[0]?.slotId;
+          const visitDate = newItems[0]?.visitDate;
           const eventId = newItems[0]?.eventId;
 
           let result =
             slotId !== undefined
               ? state.items.filter((item) => item.slotId !== slotId)
-              : eventId !== undefined
-                ? state.items.filter((item) => item.eventId !== eventId)
-                : [...state.items];
+              : visitDate !== undefined
+                ? state.items.filter((item) => item.visitDate !== visitDate)
+                : eventId !== undefined
+                  ? state.items.filter((item) => item.eventId !== eventId)
+                  : [...state.items];
 
           for (const newItem of newItems) {
             const match = result.find(
@@ -59,7 +64,8 @@ export const useCartStore = create<CartState>()(
                 i.productType === newItem.productType &&
                 (newItem.productType !== "flex" || i.isPeak === newItem.isPeak) &&
                 (newItem.productType !== "special-event" || i.eventId === newItem.eventId) &&
-                (newItem.slotId == null || i.slotId === newItem.slotId)
+                (newItem.slotId == null || i.slotId === newItem.slotId) &&
+                (newItem.visitDate == null || i.visitDate === newItem.visitDate)
             );
             if (match) {
               result = result.map((r) =>

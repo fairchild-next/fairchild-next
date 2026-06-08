@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
       order_item_id: string;
       ticket_type_id: string;
       slot_id: string | null;
+      scheduled_date: string | null;
       event_id: string | null;
       qr_code: string;
       status: string;
@@ -132,6 +133,7 @@ export async function POST(req: NextRequest) {
           order_item_id: item.id,
           ticket_type_id: item.ticket_type_id,
           slot_id: item.slot_id ?? null,
+          scheduled_date: item.scheduled_date ?? null,
           event_id: item.event_id ?? null,
           qr_code: generateQRCode(),
           status: "unused",

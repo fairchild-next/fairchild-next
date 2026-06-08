@@ -76,3 +76,49 @@ export async function PATCH(req: Request) {
   if (error) return serverError("couple/booking PATCH couple", error);
   return NextResponse.json({ booking: data });
 }
+
+/**
+ * POST /api/couple/booking
+ * Coordinator only: create a new wedding booking inquiry.
+ * Body: { couple_name, partner_name, wedding_date?, venue?, package?, status? }
+ */
+export async function POST(req: Request) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const coordinator = await isCoordinator(supabase, user.id);
+  if (!coordinator) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const body = await req.json() as {
+    couple_name?: string;
+    partner_name?: string;
+    wedding_date?: string | null;
+    venue?: string | null;
+    package?: string | null;
+    status?: string;
+  };
+
+  const couple_name = body.couple_name?.trim();
+  const partner_name = body.partner_name?.trim();
+  if (!couple_name || !partner_name) {
+    return NextResponse.json({ error: "couple_name and partner_name are required" }, { status: 400 });
+  }
+
+  const { data, error } = await supabase
+    .from("wedding_bookings")
+    .insert({
+      couple_name,
+      partner_name,
+      wedding_date: body.wedding_date || null,
+      venue: body.venue || null,
+      package: body.package || null,
+      status: body.status || "inquiry",
+      coordinator_id: user.id,
+    })
+    .select()
+    .single();
+
+  if (error) return serverError("couple/booking POST", error);
+  return NextResponse.json({ booking: data }, { status: 201 });
+}

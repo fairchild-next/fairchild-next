@@ -64,6 +64,7 @@ export async function POST(req: Request) {
       order_id: order.id,
       ticket_type_id: item.productId,
       slot_id: item.slotId,
+      scheduled_date: item.scheduledDate,
       event_id: item.eventId,
       quantity: item.quantity,
       unit_price: item.unitPriceCents,
