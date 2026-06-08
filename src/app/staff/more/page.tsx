@@ -21,10 +21,11 @@ const TOOLS: ToolItem[] = [
   { label: "Events Mode",      description: "Turn Events Mode on and set the featured event",   href: "/staff/modes/events",   status: "live" },
   { label: "What's Blooming",  description: "Update the seasonal featured card on the home page", href: "/staff/homepage",     status: "live" },
   { label: "Ticket Pricing",   description: "Edit ticket prices inside each event's editor",    href: "/staff/events",         status: "live" },
-  // Phase C — coming soon
+  // Phase C — now live
+  { label: "Plants Database",  description: "Add and edit plants for QR scanning and Learn",    href: "/staff/plants",         status: "live" },
+  { label: "Garden Quest",     description: "Manage Kids Mode quest items and badges",          href: "/staff/modes/kids",     status: "live" },
+  // Phase C remaining — coming soon
   { label: "Coordinator",      description: "View wedding bookings and manage couples",         href: "/staff/coordinator",    status: "soon" },
-  { label: "Plants Database",  description: "Add and edit plants for QR scanning and Learn",    href: "/staff/learn",          status: "soon" },
-  { label: "Garden Quest",     description: "Manage Kids Mode quest items and badges",          href: "/staff/modes/kids",     status: "soon" },
   { label: "Time Slots",       description: "Edit daily admission schedule and capacity",       href: "/staff/schedule",       status: "soon" },
 ];
 

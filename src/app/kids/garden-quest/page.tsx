@@ -51,6 +51,30 @@ export default function KidsGardenQuestPage() {
   const [badgeQueue, setBadgeQueue] = useState<BadgeInfo[]>([]);
   const [discoveries, setDiscoveries] = useState<DiscoveryEntry[]>([]);
   const [saveError, setSaveError] = useState(false);
+  // DB-driven quest list — falls back to the hardcoded GARDEN_QUESTS if the DB is empty
+  const [questItems, setQuestItems] = useState<GardenQuestItem[]>(GARDEN_QUESTS);
+
+  // Fetch quest items from DB (staff can add/edit via /staff/modes/kids)
+  useEffect(() => {
+    fetch("/api/kids/quest-items")
+      .then((r) => r.json())
+      .then((d: { items?: Array<{ id: string; name: string; hint: string; image_url: string | null; quest_type: string | null; zone: string | null; name_color: string | null }> }) => {
+        if (d.items && d.items.length > 0) {
+          setQuestItems(
+            d.items.map((i) => ({
+              id: i.id,
+              name: i.name,
+              image: i.image_url ?? "",
+              hint: i.hint,
+              questType: i.quest_type ?? undefined,
+              zone: i.zone ?? undefined,
+              nameColor: i.name_color ?? undefined,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const loadDiscoveries = async () => {
@@ -187,8 +211,8 @@ export default function KidsGardenQuestPage() {
     }
   };
 
-  const foundQuests = GARDEN_QUESTS.filter((q) => foundIds.includes(q.id));
-  const discoverQuests = GARDEN_QUESTS.filter((q) => !foundIds.includes(q.id));
+  const foundQuests = questItems.filter((q) => foundIds.includes(q.id));
+  const discoverQuests = questItems.filter((q) => !foundIds.includes(q.id));
 
   if (view === "word-helper") {
     return (
@@ -467,7 +491,7 @@ export default function KidsGardenQuestPage() {
           </Link>
         </div>
         <p className="text-[#193521] font-semibold mb-1">
-          You found {foundIds.length} / {GARDEN_QUESTS.length} things!
+          You found {foundIds.length} / {questItems.length} things!
         </p>
         {foundIds.length > 0 && process.env.NODE_ENV === "development" && (
           <button
