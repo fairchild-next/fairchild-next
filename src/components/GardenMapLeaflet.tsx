@@ -12,6 +12,12 @@ import { MapTrifold, List, ArrowsOut, ArrowsIn, Crosshair } from "@phosphor-icon
 
 const CENTER: [number, number] = [25.677, -80.273];
 const DEFAULT_IMAGE = "/stock/garden-1.png";
+/** Walkable zoom — avoids showing the whole garden as a small illustrated rectangle */
+const IMMERSIVE_ZOOM = 17;
+const IMMERSIVE_MIN_ZOOM = 16;
+/** Reserve space for floating search + filter bar when auto-panning popups */
+const POPUP_TOP_INSET_PX = 220;
+const POPUP_BOTTOM_INSET_PX = 96;
 
 const FALLBACK_OVERLAY_BOUNDS: LatLngBoundsExpression = [
   [25.6730, -80.2785],
@@ -108,6 +114,25 @@ function MapInvalidateSize({ trigger }: { trigger: unknown }) {
     const id = window.setTimeout(() => map.invalidateSize(), 50);
     return () => window.clearTimeout(id);
   }, [map, trigger]);
+  return null;
+}
+
+function MapInitialView({
+  center,
+  zoom,
+  immersive,
+}: {
+  center: [number, number];
+  zoom: number;
+  immersive: boolean;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const targetZoom = immersive ? Math.max(zoom, IMMERSIVE_ZOOM) : zoom;
+    map.setView(center, targetZoom, { animate: false });
+  }, [map, center, zoom, immersive]);
+
   return null;
 }
 
@@ -462,8 +487,12 @@ export default function GardenMapLeaflet({
     </div>
   );
 
-  const renderMapCanvas = (center: [number, number], zoom: number) => (
-    <div className={`relative w-full ${immersive ? "flex-1 min-h-0" : "h-[min(52vh,28rem)]"}`}>
+  const renderMapCanvas = (center: [number, number], zoom: number) => {
+    const initialZoom = immersive ? Math.max(zoom, IMMERSIVE_ZOOM) : zoom;
+    const minZoom = immersive ? IMMERSIVE_MIN_ZOOM : 15;
+
+    return (
+    <div className={`relative w-full ${immersive ? "flex-1 min-h-0 z-[1]" : "h-[min(52vh,28rem)]"}`}>
       {filteredPois.length === 0 && (
         <div className="absolute inset-0 z-[1000] flex flex-col items-center justify-center bg-[var(--surface)]/95">
           <p className="text-[var(--text-muted)] text-center px-4">No locations match your search.</p>
@@ -485,7 +514,7 @@ export default function GardenMapLeaflet({
       )}
       <MapContainer
         center={center}
-        zoom={zoom}
+        zoom={initialZoom}
         scrollWheelZoom
         touchZoom
         doubleClickZoom
@@ -494,8 +523,9 @@ export default function GardenMapLeaflet({
         zoomControl={false}
         maxBounds={dynamicMaxBounds}
         maxBoundsViscosity={1.0}
-        minZoom={14}
+        minZoom={minZoom}
       >
+        <MapInitialView center={center} zoom={zoom} immersive={immersive} />
         <MapInvalidateSize trigger={mapResizeKey} />
         <MapFlyTo poi={selectedPoi} trigger={flyToTrigger} />
         <MapLocateHandler trigger={locateTrigger} onLocated={handleLocated} onError={handleLocateError} />
@@ -506,7 +536,7 @@ export default function GardenMapLeaflet({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png"
           maxZoom={19}
-          opacity={0.3}
+          opacity={immersive ? 0.45 : 0.3}
         />
 
         <ImageOverlay
@@ -516,16 +546,18 @@ export default function GardenMapLeaflet({
           zIndex={10}
         />
 
-        <GeoJSON
-          key={`mask-${sw[0]}-${ne[0]}`}
-          data={worldMask}
-          style={() => ({
-            fillColor: "#e8e4dc",
-            fillOpacity: 0.88,
-            color: "transparent",
-            weight: 0,
-          })}
-        />
+        {!immersive && (
+          <GeoJSON
+            key={`mask-${sw[0]}-${ne[0]}`}
+            data={worldMask}
+            style={() => ({
+              fillColor: "#e8e4dc",
+              fillOpacity: 0.88,
+              color: "transparent",
+              weight: 0,
+            })}
+          />
+        )}
 
         {filteredPois.map((poi) => {
           const imgSrc = resolveImageUrl(poi.image_url, DEFAULT_IMAGE);
@@ -533,7 +565,13 @@ export default function GardenMapLeaflet({
           const previewDesc = fullDesc.length > 120 ? fullDesc.slice(0, 120).trim() + "…" : fullDesc;
           return (
             <Marker key={poi.id} position={[poi.lat, poi.lng]} icon={getPinIcon(poi.category)}>
-              <Popup maxWidth={340} minWidth={280}>
+              <Popup
+                maxWidth={340}
+                minWidth={280}
+                autoPan
+                autoPanPaddingTopLeft={[16, POPUP_TOP_INSET_PX]}
+                autoPanPaddingBottomRight={[16, POPUP_BOTTOM_INSET_PX]}
+              >
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-3">
                     <div className="min-w-0 flex-1">
@@ -579,7 +617,8 @@ export default function GardenMapLeaflet({
         })}
       </MapContainer>
     </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -597,7 +636,7 @@ export default function GardenMapLeaflet({
   const zoom = data?.config?.zoom ?? 15;
 
   const shellClass = immersive
-    ? "fixed inset-x-0 top-0 z-[1100] mx-auto flex max-w-[28rem] flex-col bg-[var(--background)]"
+    ? "fixed inset-x-0 top-0 z-[1100] mx-auto flex max-w-[28rem] flex-col overflow-hidden bg-[var(--background)]"
     : "relative flex flex-col";
 
   const shellStyle = immersive
@@ -616,19 +655,15 @@ export default function GardenMapLeaflet({
             {renderList()}
           </div>
         ) : (
-          <>
+          <div className="flex min-h-0 flex-1 flex-col">
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 z-[500] px-3 pb-10 pt-3"
-              style={{
-                paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))",
-                background:
-                  "linear-gradient(to bottom, color-mix(in srgb, var(--background) 96%, transparent) 0%, color-mix(in srgb, var(--background) 88%, transparent) 55%, transparent 100%)",
-              }}
+              className="shrink-0 space-y-2 border-b border-[var(--surface-border)]/60 px-3 pb-2 pt-3"
+              style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
             >
-              <div className="pointer-events-auto space-y-2">{renderControls(true)}</div>
+              {renderControls(false)}
             </div>
-            <div className="relative flex min-h-0 flex-1 flex-col">{renderMapCanvas(center, zoom)}</div>
-          </>
+            {renderMapCanvas(center, zoom)}
+          </div>
         )
       ) : (
         <>

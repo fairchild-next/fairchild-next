@@ -93,6 +93,15 @@ main {
   touch-action: manipulation;
 }
 
+/* Leaflet popups above map chrome when embedded */
+.leaflet-popup-pane {
+  z-index: 900 !important;
+}
+
+.leaflet-popup {
+  margin-bottom: 8px;
+}
+
 /* DayPicker: allow horizontal scroll when zoomed to prevent clipping */
 .rdp-root {
   margin: 0 auto;
