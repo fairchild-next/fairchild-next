@@ -35,7 +35,7 @@ export default function EventsMapPage() {
           Find your way around {bunnyHoppeningEvent.shortName}. Tap any pin for details and directions.
         </p>
         <div className="-mx-4 sm:mx-0 rounded-2xl overflow-hidden border border-[var(--surface-border)]">
-          <GardenMap configSlug="events" poiListReturnPath="/events/map" />
+          <GardenMap configSlug="events" poiListReturnPath="/events/map" allowFullscreen />
         </div>
 
         {/* Fallback — always visible; especially helpful if event POIs haven't been seeded */}

@@ -9,7 +9,7 @@ import { isMapConfigSlug, type MapConfigSlug } from "@/lib/mapConfigs";
 const GardenMap = dynamic(() => import("@/components/GardenMapLeaflet"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[480px] rounded-lg bg-[var(--surface)] flex items-center justify-center">
+    <div className="mx-3 flex h-[min(52vh,28rem)] items-center justify-center rounded-xl bg-[var(--surface)]">
       <span className="text-[var(--text-muted)]">Loading map…</span>
     </div>
   ),
@@ -27,8 +27,8 @@ function MapBody() {
   }, [searchParams, isKidsMode]);
 
   return (
-    <div className="-mx-6 sm:mx-0">
-      <GardenMap configSlug={configSlug} poiListReturnPath="/map" />
+    <div className="min-h-0 flex-1 pb-2">
+      <GardenMap configSlug={configSlug} poiListReturnPath="/map" allowFullscreen defaultExpanded />
     </div>
   );
 }
@@ -37,7 +37,7 @@ export default function MapPageClient() {
   return (
     <Suspense
       fallback={
-        <div className="w-full h-[480px] rounded-lg bg-[var(--surface)] flex items-center justify-center">
+        <div className="mx-3 flex h-[min(52vh,28rem)] items-center justify-center rounded-xl bg-[var(--surface)]">
           <span className="text-[var(--text-muted)]">Loading map…</span>
         </div>
       }
