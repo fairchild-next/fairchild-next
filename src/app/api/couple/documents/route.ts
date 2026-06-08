@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { serverError } from "@/lib/api-error";
+import { isCoordinator } from "@/lib/couple/auth";
 
 /** Only accept file_url values that point to this project's Supabase storage. */
 function isValidStorageUrl(url: string): boolean {
@@ -26,9 +27,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   let bookingId = searchParams.get("bookingId");
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
+  const coordinator = await isCoordinator(supabase, user.id);
 
-  if (!staffRow) {
+  if (!coordinator) {
     const { data: wb } = await supabase
       .from("wedding_bookings").select("id").eq("couple_user_id", user.id).single();
     bookingId = wb?.id ?? null;
@@ -62,10 +63,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid file_url: must be a Supabase storage URL" }, { status: 400 });
   }
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
+  const coordinator = await isCoordinator(supabase, user.id);
 
   let bookingId = bodyBookingId;
-  if (!staffRow) {
+  if (!coordinator) {
     const { data: wb } = await supabase
       .from("wedding_bookings").select("id").eq("couple_user_id", user.id).single();
     bookingId = wb?.id ?? null;
@@ -96,11 +97,11 @@ export async function DELETE(req: Request) {
   const docId = searchParams.get("docId");
   if (!docId) return NextResponse.json({ error: "docId required" }, { status: 400 });
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
+  const coordinator = await isCoordinator(supabase, user.id);
 
-  if (staffRow) {
+  if (coordinator) {
     const { error } = await supabase.from("wedding_documents").delete().eq("id", docId);
-    if (error) return serverError("couple/documents DELETE staff", error);
+    if (error) return serverError("couple/documents DELETE coordinator", error);
     return NextResponse.json({ ok: true });
   }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { serverError } from "@/lib/api-error";
+import { isCoordinator } from "@/lib/couple/auth";
 
 async function getBookingIdForCouple(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, userId: string): Promise<string | null> {
   const { data } = await supabase
@@ -24,9 +25,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   let bookingId = searchParams.get("bookingId");
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
+  const coordinator = await isCoordinator(supabase, user.id);
 
-  if (!staffRow) {
+  if (!coordinator) {
     bookingId = await getBookingIdForCouple(supabase, user.id);
   }
   if (!bookingId) return NextResponse.json({ items: [] });
@@ -50,8 +51,8 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
-  if (!staffRow) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const coordinator = await isCoordinator(supabase, user.id);
+  if (!coordinator) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { booking_id, title, description, due_date, sort_order } = await req.json();
   if (!booking_id || !title) return NextResponse.json({ error: "booking_id and title required" }, { status: 400 });
@@ -107,8 +108,8 @@ export async function DELETE(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
-  if (!staffRow) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const coordinator = await isCoordinator(supabase, user.id);
+  if (!coordinator) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const itemId = searchParams.get("itemId");

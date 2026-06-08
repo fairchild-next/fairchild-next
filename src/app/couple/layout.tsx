@@ -21,9 +21,15 @@ export default function CoupleLayout({ children }: { children: React.ReactNode }
         return;
       }
 
-      const { data: staffRow } = await supabase
-        .from("staff").select("id").eq("user_id", user.id).single();
-      if (staffRow) { setRole("coordinator"); return; }
+      // Coordinator access is now granted via the wedding_coordinators table,
+      // not by being in the staff table. Dual-role users are in both.
+      const { data: coordRow } = await supabase
+        .from("wedding_coordinators")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .single();
+      if (coordRow) { setRole("coordinator"); return; }
 
       const { data: booking } = await supabase
         .from("wedding_bookings").select("id").eq("couple_user_id", user.id).single();

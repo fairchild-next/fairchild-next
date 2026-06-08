@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { serverError } from "@/lib/api-error";
+import { isCoordinator } from "@/lib/couple/auth";
 
 /**
  * GET /api/couple/messages?bookingId=...
@@ -14,10 +15,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   let bookingId = searchParams.get("bookingId");
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
+  const coordinator = await isCoordinator(supabase, user.id);
 
-  if (!staffRow) {
-    // Couple: look up their booking
+  if (!coordinator) {
     const { data: wb } = await supabase
       .from("wedding_bookings")
       .select("id")
@@ -50,11 +50,11 @@ export async function POST(req: Request) {
   const { message, bookingId: bodyBookingId } = await req.json();
   if (!message?.trim()) return NextResponse.json({ error: "message required" }, { status: 400 });
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
-  const senderRole = staffRow ? "coordinator" : "couple";
+  const coordinator = await isCoordinator(supabase, user.id);
+  const senderRole = coordinator ? "coordinator" : "couple";
 
   let bookingId = bodyBookingId;
-  if (!staffRow) {
+  if (!coordinator) {
     const { data: wb } = await supabase
       .from("wedding_bookings")
       .select("id")

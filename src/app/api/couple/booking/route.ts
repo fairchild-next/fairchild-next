@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { serverError } from "@/lib/api-error";
+import { isCoordinator } from "@/lib/couple/auth";
 
 /**
  * GET /api/couple/booking
@@ -12,14 +13,9 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Check if staff/coordinator
-  const { data: staffRow } = await supabase
-    .from("staff")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const coordinator = await isCoordinator(supabase, user.id);
 
-  if (staffRow) {
+  if (coordinator) {
     // Coordinator: return all bookings with full details
     const { data, error } = await supabase
       .from("wedding_bookings")
@@ -52,13 +48,9 @@ export async function PATCH(req: Request) {
 
   const body = await req.json();
 
-  const { data: staffRow } = await supabase
-    .from("staff")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
+  const coordinator = await isCoordinator(supabase, user.id);
 
-  if (staffRow) {
+  if (coordinator) {
     // Coordinator update — full access
     const { bookingId, ...fields } = body;
     if (!bookingId) return NextResponse.json({ error: "bookingId required" }, { status: 400 });

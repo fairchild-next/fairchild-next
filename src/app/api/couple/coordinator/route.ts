@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { serverError } from "@/lib/api-error";
+import { isCoordinator } from "@/lib/couple/auth";
 
 /**
  * POST /api/couple/coordinator
@@ -15,8 +16,8 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
-  if (!staffRow) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const coordinator = await isCoordinator(supabase, user.id);
+  if (!coordinator) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { bookingId, email } = await req.json();
   if (!bookingId || !email) return NextResponse.json({ error: "bookingId and email required" }, { status: 400 });
@@ -52,8 +53,8 @@ export async function DELETE(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: staffRow } = await supabase.from("staff").select("id").eq("user_id", user.id).single();
-  if (!staffRow) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const coordinator = await isCoordinator(supabase, user.id);
+  if (!coordinator) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const bookingId = searchParams.get("bookingId");
