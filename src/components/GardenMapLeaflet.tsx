@@ -21,6 +21,8 @@ const POPUP_TOP_EXPANDED_PX = 168;
 const POPUP_BOTTOM_INSET_PX = 96;
 
 const TAP = "min-h-[var(--tap-target-min)] min-w-[var(--tap-target-min)]";
+/** Compact map/list toggle — frees horizontal space for search */
+const VIEW_TOGGLE = "h-10 w-10";
 
 const GLASS =
   "border border-[color-mix(in_srgb,var(--surface-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] shadow-sm backdrop-blur-md";
@@ -356,26 +358,26 @@ export default function GardenMapLeaflet({
       />
       <div className="relative pointer-events-auto space-y-2.5 px-3 pb-2">
         <div className="flex items-center gap-2.5">
-          <div className={`flex shrink-0 rounded-full p-1 ${GLASS}`}>
+          <div className={`flex shrink-0 rounded-full p-0.5 ${GLASS}`}>
             <button
               type="button"
               onClick={() => setViewMode("map")}
               aria-label="Map view"
-              className={`flex ${TAP} items-center justify-center rounded-full transition ${
+              className={`flex ${VIEW_TOGGLE} items-center justify-center rounded-full transition ${
                 viewMode === "map" ? "bg-[var(--text-primary)] text-white" : "text-[var(--text-muted)]"
               }`}
             >
-              <MapTrifold size={18} weight="bold" />
+              <MapTrifold size={17} weight="bold" />
             </button>
             <button
               type="button"
               onClick={() => setViewMode("list")}
               aria-label="List view"
-              className={`flex ${TAP} items-center justify-center rounded-full transition ${
+              className={`flex ${VIEW_TOGGLE} items-center justify-center rounded-full transition ${
                 viewMode === "list" ? "bg-[var(--text-primary)] text-white" : "text-[var(--text-muted)]"
               }`}
             >
-              <List size={18} weight="bold" />
+              <List size={17} weight="bold" />
             </button>
           </div>
 
