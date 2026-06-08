@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -164,9 +164,32 @@ const QUICK_TOOLS = [
   { href: "/tickets", title: "Plan Your Visit", Icon: MapPin },
 ] as const;
 
+/**
+ * Reads ?preview=kids|events|wedding from the URL and activates the matching mode.
+ * Must live in its own component because useSearchParams() requires a Suspense boundary.
+ */
+function PreviewActivator() {
+  const searchParams = useSearchParams();
+  const { setKidsMode } = useKidsMode();
+  const { setWeddingMode } = useWeddingMode();
+  const { setEventsMode } = useEventsMode();
+  const { authReady } = useMember();
+
+  useEffect(() => {
+    if (!authReady) return;
+    const preview = searchParams.get("preview") as "kids" | "events" | "wedding" | null;
+    if (preview === "kids" || preview === "events" || preview === "wedding") {
+      setKidsMode(preview === "kids");
+      setEventsMode(preview === "events");
+      setWeddingMode(preview === "wedding");
+    }
+  }, [authReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null;
+}
+
 export default function Home() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { member, loading, hasSession, authReady } = useMember();
   const { isKidsMode, setKidsMode } = useKidsMode();
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
@@ -195,18 +218,6 @@ export default function Home() {
       setEventsMode(true);
     }
   };
-
-  // Auto-activate mode when ?preview=kids/events/wedding is in the URL
-  // (used by staff portal "Preview" buttons which open in a new tab)
-  useEffect(() => {
-    if (!authReady) return;
-    const preview = searchParams.get("preview") as "kids" | "events" | "wedding" | null;
-    if (preview === "kids" || preview === "events" || preview === "wedding") {
-      setKidsMode(preview === "kids");
-      setEventsMode(preview === "events");
-      setWeddingMode(preview === "wedding");
-    }
-  }, [authReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let cancelled = false;
@@ -253,6 +264,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F3EFEE]">
+      {/* Activates a mode when ?preview= is in the URL (staff portal preview links) */}
+      <Suspense fallback={null}><PreviewActivator /></Suspense>
+
       {/* Hero: dispersed hours / weather / events on stock photo (refetches via /api/today) */}
       <div className="relative">
         <GuestHeroDispersed hasSession={hasSession} />
