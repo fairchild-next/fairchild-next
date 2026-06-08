@@ -117,32 +117,32 @@ export default function GuestHeroDispersed({ hasSession }: { hasSession: boolean
           <div className="min-h-0 flex-1" aria-hidden />
           <div className="mx-auto w-full max-w-md shrink-0 pb-1 text-center">
             <div className="-translate-y-2 sm:-translate-y-3 [text-shadow:0_1px_3px_rgba(0,0,0,0.85),0_3px_14px_rgba(0,0,0,0.65),0_8px_32px_rgba(0,0,0,0.35)]">
-              <p className="font-serif text-sm font-medium text-white sm:text-base">Welcome to</p>
-              <h1 className="mt-0.5 font-serif text-[1.75rem] font-bold leading-[1] tracking-tight text-white sm:text-[2.05rem] md:text-[2.25rem]">
+              <p className="font-serif text-base font-medium text-white sm:text-lg">Welcome to</p>
+              <h1 className="mt-0.5 font-serif text-[2rem] font-bold leading-[1.02] tracking-tight text-white sm:text-[2.35rem] md:text-[2.5rem]">
                 Fairchild
               </h1>
-              <p className="font-system mt-0.5 text-[10px] font-bold uppercase leading-snug tracking-[0.16em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.95),0_2px_14px_rgba(0,0,0,0.75),0_0_1px_rgba(0,0,0,0.9)] sm:text-[11px] sm:tracking-[0.18em]">
+              <p className="font-system mt-1 text-[11px] font-bold uppercase leading-snug tracking-[0.16em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.95),0_2px_14px_rgba(0,0,0,0.75),0_0_1px_rgba(0,0,0,0.9)] sm:text-xs sm:tracking-[0.18em]">
                 Tropical Botanical Garden
               </p>
-              <p className="mt-1 font-serif text-[11px] font-medium italic leading-snug text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.95),0_2px_16px_rgba(0,0,0,0.8),0_0_1px_rgba(0,0,0,0.85)] sm:text-xs">
+              <p className="mt-1.5 font-serif text-xs font-medium italic leading-snug text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.95),0_2px_16px_rgba(0,0,0,0.8),0_0_1px_rgba(0,0,0,0.85)] sm:text-[13px]">
                 Coral Gables, Florida — Est. 1938
               </p>
             </div>
 
-            <div className="mt-5 flex w-full items-stretch gap-2 pb-2 font-system sm:mt-6">
+            <div className="mt-5 flex w-full items-stretch gap-2.5 pb-2 font-system sm:mt-6">
               <div
-                className="flex min-h-0 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border border-white/22 bg-black/32 px-2 py-1 backdrop-blur-[6px]"
+                className="flex min-h-0 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-white/22 bg-black/32 px-2.5 py-1.5 backdrop-blur-[6px] sm:px-3 sm:py-2"
                 title={hoursLabel}
               >
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#9dc88a]" aria-hidden />
-                <span className="truncate text-[10px] font-medium leading-tight text-white">{hoursLabel}</span>
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[#9dc88a]" aria-hidden />
+                <span className="truncate text-xs font-medium leading-tight text-white sm:text-[13px]">{hoursLabel}</span>
               </div>
               <div
-                className="flex min-h-0 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border border-white/22 bg-black/32 px-2 py-1 backdrop-blur-[6px]"
+                className="flex min-h-0 min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-white/22 bg-black/32 px-2.5 py-1.5 backdrop-blur-[6px] sm:px-3 sm:py-2"
                 title={weatherLabel}
               >
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" aria-hidden />
-                <span className="truncate text-[10px] font-medium leading-tight text-white">{weatherLabel}</span>
+                <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" aria-hidden />
+                <span className="truncate text-xs font-medium leading-tight text-white sm:text-[13px]">{weatherLabel}</span>
               </div>
             </div>
           </div>
