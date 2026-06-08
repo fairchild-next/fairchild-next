@@ -38,7 +38,7 @@ export default function EventsAboutEventPage() {
               key={i}
               className={
                 i === 0
-                  ? "text-pink-600 font-bold uppercase text-xs tracking-wide text-center"
+                  ? "rounded-xl border border-[var(--event-accent)] bg-[var(--event-accent)]/5 px-4 py-3 text-xs font-semibold text-center"
                   : i === 1
                     ? "font-semibold text-base"
                     : ""

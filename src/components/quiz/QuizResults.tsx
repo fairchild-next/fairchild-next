@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trophy, ArrowCounterClockwise } from "@phosphor-icons/react";
+import { Trophy, ArrowCounterClockwise, Leaf } from "@phosphor-icons/react";
 import type { QuizResult } from "@/lib/quiz/types";
 
 interface QuizResultsProps {
@@ -20,9 +20,13 @@ export default function QuizResults({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <Trophy size={48} weight="fill" className="mx-auto mb-3 text-[var(--primary)]" />
+        {percent >= 60 ? (
+          <Trophy size={48} weight="fill" className="mx-auto mb-3 text-[var(--primary)]" />
+        ) : (
+          <Leaf size={48} weight="regular" className="mx-auto mb-3 text-[var(--text-muted)]" />
+        )}
         <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
-          Quiz Complete!
+          {percent >= 60 ? "Well done!" : "Keep exploring!"}
         </h3>
         <p className="text-3xl font-bold text-[var(--primary)]">
           {result.score} / {result.total}

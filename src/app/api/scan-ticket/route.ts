@@ -29,43 +29,49 @@ export async function POST(req: Request) {
 
     const admin = createSupabaseAdminClient();
 
-    // 1️⃣ Find ticket
-    const { data: ticket, error } = await admin
+    // Atomic optimistic lock: the UPDATE only succeeds if status is currently
+    // 'unused'. Two concurrent scan requests cannot both pass — only the first
+    // one to reach Postgres will match the WHERE clause; the second gets 0 rows.
+    const { data: ticket, error: updateError } = await admin
       .from("tickets")
-      .select("*")
+      .update({ status: "used" })
       .eq("qr_code", qr_code)
-      .single();
+      .eq("status", "unused")
+      .select()
+      .maybeSingle();
 
-    if (error || !ticket) {
-      return NextResponse.json({ status: "not_found" });
+    if (updateError) {
+      console.error("Ticket scan update error:", updateError);
+      return NextResponse.json({ status: "error" }, { status: 500 });
     }
 
-    // 2️⃣ Check if already used
-    if (ticket.status === "used") {
+    if (!ticket) {
+      // 0 rows matched — either the QR doesn't exist or was already scanned.
+      // Do a quick read to distinguish the two cases.
+      const { data: existing } = await admin
+        .from("tickets")
+        .select("id, status")
+        .eq("qr_code", qr_code)
+        .maybeSingle();
+
+      if (!existing) {
+        return NextResponse.json({ status: "not_found" });
+      }
+
       void logAudit({
         action: "ticket.scan_failed",
         userId: staff.ok ? staff.userId : null,
         resourceType: "ticket",
-        resourceId: ticket.id,
+        resourceId: existing.id,
         metadata: { reason: "already_used", qr_code },
       });
       return NextResponse.json({
         status: "already_used",
-        ticket_id: ticket.id,
+        ticket_id: existing.id,
       });
     }
 
-    // 3️⃣ Mark as used (service role — RLS blocks client writes)
-    const { error: updateError } = await admin
-      .from("tickets")
-      .update({ status: "used" })
-      .eq("id", ticket.id);
-
-    if (updateError) {
-      console.error("Ticket update failed:", updateError);
-      return NextResponse.json({ status: "error" }, { status: 500 });
-    }
-
+    // Ticket was atomically marked used — log the visit and audit trail.
     if (ticket.user_id) {
       const { error: visitError } = await admin.from("visits").insert({
         user_id: ticket.user_id,

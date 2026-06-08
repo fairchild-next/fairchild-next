@@ -18,8 +18,8 @@ const STEPS = [
   {
     num: 3,
     icon: "📱",
-    title: "Check a Plant ID App",
-    text: "Use a smartphone app to identify the plant if you're unsure.",
+    title: "Scan the Plant Sign",
+    text: "Point your camera at any QR code on a Fairchild plant sign using the Scan feature in this app for an instant identification.",
   },
   {
     num: 4,

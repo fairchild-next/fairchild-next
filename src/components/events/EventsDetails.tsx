@@ -22,7 +22,7 @@ export default function EventsDetails() {
       style={{ ["--event-accent" as string]: accent }}
     >
       <div className="pt-6">
-        <div className="pl-0 pr-6">
+        <div className="px-6">
           <h1
             className="text-3xl font-bold font-serif tracking-tight mb-4 text-left"
             style={{ color: TITLE_GREEN }}
@@ -43,7 +43,7 @@ export default function EventsDetails() {
           />
         </div>
 
-        <div className="pr-6 pl-0">
+        <div className="px-6">
           <p className="text-center text-sm sm:text-[15px] leading-relaxed font-serif text-[#1a1a1a] mt-5 mb-8 max-w-md mx-auto px-1">
             {ev.detailsIntro}
           </p>

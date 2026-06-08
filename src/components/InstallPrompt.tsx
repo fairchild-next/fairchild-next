@@ -14,8 +14,11 @@ export default function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // Don't show on cart/checkout so it never blocks the checkout button
-  const isCartOrCheckout = pathname === "/tickets/cart" || pathname === "/tickets/checkout";
+  // Suppress during the entire purchase flow so it never blocks commerce CTAs
+  const isCartOrCheckout =
+    pathname === "/tickets/cart" ||
+    pathname === "/tickets/checkout" ||
+    pathname === "/tickets/success";
 
   useEffect(() => {
     const key = "fairchild-install-dismissed";
