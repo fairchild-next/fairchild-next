@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMember } from "@/lib/memberContext";
 import { useKidsMode } from "@/lib/kidsModeContext";
+import type { ChildProfile } from "@/lib/kidsModeContext";
 import { useWeddingMode } from "@/lib/weddingModeContext";
 import { useEventsMode } from "@/lib/eventsModeContext";
 import { useSupabaseBrowserClient } from "@/lib/supabase/SupabaseBrowserProvider";
@@ -30,18 +31,26 @@ export default function MemberProfilePage() {
   const router = useRouter();
   const supabase = useSupabaseBrowserClient();
   const { member, loading, authReady, hasSession } = useMember();
-  const { isKidsMode, setKidsMode } = useKidsMode();
+  const { isKidsMode, setKidsMode, activeChild, setActiveChild } = useKidsMode();
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
   const { isEventsMode, setEventsMode } = useEventsMode();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [kidsFoundCount, setKidsFoundCount] = useState(0);
+  const [siblingProfiles, setSiblingProfiles] = useState<ChildProfile[]>([]);
 
   useEffect(() => {
     if (!supabase || !hasSession) return;
     void supabase.auth.getUser().then(({ data }) => {
       if (data.user?.email) setUserEmail(data.user.email);
     });
+    // Load all child profiles so we can show the switcher
+    fetch("/api/kids/profiles", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d: { profiles?: ChildProfile[] }) => {
+        if (d.profiles) setSiblingProfiles(d.profiles);
+      })
+      .catch(() => {});
     try {
       const stored = localStorage.getItem(FOUND_IDS_KEY);
       const ids: string[] = stored ? JSON.parse(stored) : [];
@@ -102,9 +111,23 @@ export default function MemberProfilePage() {
   };
 
   if (isKidsMode) {
+    const otherProfiles = siblingProfiles.filter((p) => p.id !== activeChild?.id);
     return (
       <div className="px-6 pt-6 pb-24 min-h-screen bg-[#F3EFEE]">
-        <h1 className="text-2xl font-semibold text-[#193521] mb-6">Profile</h1>
+        <h1 className="text-2xl font-semibold text-[#193521] mb-2">Profile</h1>
+
+        {/* Active child display */}
+        {activeChild && (
+          <div className="flex items-center gap-3 mb-6 p-3 rounded-2xl bg-[#d4e8d0]/60">
+            <span className="text-3xl" aria-hidden>{activeChild.avatar_emoji}</span>
+            <div>
+              <p className="text-xs text-[#6A8468] font-medium">Exploring as</p>
+              <p className="font-semibold text-[#193521] text-lg leading-tight">{activeChild.name}</p>
+            </div>
+          </div>
+        )}
+
+        {!activeChild && <p className="text-sm text-[var(--text-muted)] mb-6">No explorer selected</p>}
 
         <div className="space-y-4">
           <button
@@ -124,6 +147,43 @@ export default function MemberProfilePage() {
               <span className="text-white">→</span>
             </div>
           </button>
+
+          {/* Switch child — shown when there are other profiles */}
+          {otherProfiles.length > 0 && (
+            <div className="p-4 rounded-2xl bg-[var(--surface)] border-2 border-[var(--surface-border)] space-y-2">
+              <p className="text-xs font-medium text-[var(--text-muted)]">Switch explorer</p>
+              <div className="flex flex-wrap gap-2">
+                {otherProfiles.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setActiveChild(p);
+                      router.push("/");
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-[#d4e8d0] bg-white hover:border-[#6A8468] transition text-sm font-medium text-[#193521]"
+                  >
+                    <span aria-hidden>{p.avatar_emoji}</span>
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Link
+            href="/kids/profiles"
+            className="block p-4 rounded-2xl bg-[var(--surface)] border-2 border-[var(--surface-border)] hover:border-[#6A8468] transition"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-[#193521]">Manage Explorers</p>
+                <p className="text-sm text-[var(--text-muted)] mt-0.5">
+                  Add or remove child profiles
+                </p>
+              </div>
+              <span className="text-[#6A8468]">→</span>
+            </div>
+          </Link>
 
           <Link
             href="/kids/garden-quest"

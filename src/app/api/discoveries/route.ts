@@ -26,14 +26,28 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { quest_item, type, content } = body as {
+  const { quest_item, type, content, child_profile_id } = body as {
     quest_item: string;
     type: "photo" | "description";
     content: string;
+    child_profile_id?: string | null;
   };
 
   if (!quest_item || !type || content == null) {
     return NextResponse.json({ error: "Missing quest_item, type, or content" }, { status: 400 });
+  }
+
+  // If a child_profile_id is provided, verify it belongs to this user before using it.
+  let resolvedChildId: string | null = null;
+  if (child_profile_id) {
+    const admin = createSupabaseAdminClient();
+    const { data: childProfile } = await admin
+      .from("kids_child_profiles")
+      .select("id")
+      .eq("id", child_profile_id)
+      .eq("parent_user_id", user.id)
+      .maybeSingle();
+    if (childProfile) resolvedChildId = childProfile.id;
   }
 
   // Secondary check on decoded content size (catches clients that omit Content-Length)
@@ -81,6 +95,7 @@ export async function POST(req: Request) {
       quest_item,
       photo_url,
       note,
+      ...(resolvedChildId ? { child_profile_id: resolvedChildId } : {}),
     })
     .select("id")
     .single();
@@ -93,15 +108,27 @@ export async function POST(req: Request) {
   // Run badge check immediately after save using admin client to avoid session/RLS edge cases
   const admin = createSupabaseAdminClient();
 
-  const { data: discoveries } = await admin
+  const discoveriesQuery = admin
     .from("kids_discoveries")
     .select("quest_item, photo_url, note")
     .eq("user_id", user.id);
+  if (resolvedChildId) {
+    discoveriesQuery.eq("child_profile_id", resolvedChildId);
+  } else {
+    discoveriesQuery.is("child_profile_id", null);
+  }
+  const { data: discoveries } = await discoveriesQuery;
 
-  const { data: existingUserBadges } = await admin
+  const badgesQuery = admin
     .from("kids_user_badges")
     .select("badge_id")
     .eq("user_id", user.id);
+  if (resolvedChildId) {
+    badgesQuery.eq("child_profile_id", resolvedChildId);
+  } else {
+    badgesQuery.is("child_profile_id", null);
+  }
+  const { data: existingUserBadges } = await badgesQuery;
 
   const badgeIds = (existingUserBadges ?? []).map((b: { badge_id: string }) => b.badge_id);
   const { data: existingBadgeRows } =
@@ -133,6 +160,7 @@ export async function POST(req: Request) {
       const insertPayload = fullBadgeRows.map((b: { id: string }) => ({
         user_id: user.id,
         badge_id: b.id,
+        ...(resolvedChildId ? { child_profile_id: resolvedChildId } : {}),
       }));
       const { error: badgeInsertError } = await admin.from("kids_user_badges").insert(insertPayload);
       if (badgeInsertError) {

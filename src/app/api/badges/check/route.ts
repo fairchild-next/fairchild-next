@@ -5,11 +5,11 @@ import { checkForBadges } from "@/lib/kids/badgeLogic";
 
 /**
  * POST /api/badges/check
- * Runs badge logic for the current user. Returns newly earned badges.
- * Call after saving a discovery, or on badges tab load for retroactive awards.
- * Uses admin client for DB ops to avoid session/RLS edge cases.
+ * Runs badge logic for the current user (or a child profile).
+ * Body: { child_profile_id?: string }
+ * Returns newly earned badges.
  */
-export async function POST() {
+export async function POST(req: Request) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -19,17 +19,42 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const body = await req.json().catch(() => ({})) as { child_profile_id?: string };
   const admin = createSupabaseAdminClient();
 
-  const { data: discoveries } = await admin
+  // If a child_profile_id is provided, verify ownership before using it.
+  let resolvedChildId: string | null = null;
+  if (body.child_profile_id) {
+    const { data: childProfile } = await admin
+      .from("kids_child_profiles")
+      .select("id")
+      .eq("id", body.child_profile_id)
+      .eq("parent_user_id", user.id)
+      .maybeSingle();
+    if (childProfile) resolvedChildId = childProfile.id;
+  }
+
+  const discoveriesQuery = admin
     .from("kids_discoveries")
     .select("quest_item, photo_url, note")
     .eq("user_id", user.id);
+  if (resolvedChildId) {
+    discoveriesQuery.eq("child_profile_id", resolvedChildId);
+  } else {
+    discoveriesQuery.is("child_profile_id", null);
+  }
+  const { data: discoveries } = await discoveriesQuery;
 
-  const { data: existingUserBadges } = await admin
+  const badgesQuery = admin
     .from("kids_user_badges")
     .select("badge_id")
     .eq("user_id", user.id);
+  if (resolvedChildId) {
+    badgesQuery.eq("child_profile_id", resolvedChildId);
+  } else {
+    badgesQuery.is("child_profile_id", null);
+  }
+  const { data: existingUserBadges } = await badgesQuery;
 
   const badgeIds = (existingUserBadges ?? []).map((b: { badge_id: string }) => b.badge_id);
   const { data: existingBadgeRows } =
@@ -59,6 +84,7 @@ export async function POST() {
   const toInsert = (badgeRows ?? []).map((b: { id: string }) => ({
     user_id: user.id,
     badge_id: b.id,
+    ...(resolvedChildId ? { child_profile_id: resolvedChildId } : {}),
   }));
 
   const { error } = await admin.from("kids_user_badges").insert(toInsert);

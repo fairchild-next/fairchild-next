@@ -153,11 +153,15 @@ export default function Home() {
 
   const activateGuestMode = (mode: "kids" | "wedding" | "events") => {
     if (!authReady) return;
-    // Allow read-only preview without login — purchases inside each mode
-    // require auth and redirect there contextually (checkout, discoveries, etc.)
     if (mode === "kids") {
       setWeddingMode(false);
       setEventsMode(false);
+      // Logged-in users go through the profile picker so they can select a child.
+      // Guests activate Kids Mode directly (no profiles possible without an account).
+      if (hasSession) {
+        router.push("/kids/profiles");
+        return;
+      }
       setKidsMode(true);
     } else if (mode === "wedding") {
       setEventsMode(false);
