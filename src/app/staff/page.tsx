@@ -69,13 +69,24 @@ function IconChevron() {
 
 // ── Quick-action cards ───────────────────────────────────────────────────────
 
+function IconCalendar() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+}
+
 const ACTIONS = [
-  { label: "Scan Tickets",     icon: IconScan,    href: "/staff/scanner" },
-  { label: "Garden Status",    icon: IconShield,  href: "/staff/garden-status" },
-  { label: "Garden Map",       icon: IconMap,     href: "/staff/map/edit" },
-  { label: "Map Overlay",      icon: IconOverlay, href: "/staff/map/overlay" },
-  { label: "Manage Team",      icon: IconTeam,    href: "/staff/team" },
-  { label: "More Tools",       icon: IconGrid,    href: "/staff/more" },
+  { label: "Scan Tickets",     icon: IconScan,     href: "/staff/scanner" },
+  { label: "Garden Status",    icon: IconShield,   href: "/staff/garden-status" },
+  { label: "Events Manager",   icon: IconCalendar, href: "/staff/events" },
+  { label: "Garden Map",       icon: IconMap,      href: "/staff/map/edit" },
+  { label: "Manage Team",      icon: IconTeam,     href: "/staff/team" },
+  { label: "More Tools",       icon: IconGrid,     href: "/staff/more" },
 ];
 
 // ── Mode preview buttons ─────────────────────────────────────────────────────

@@ -21,6 +21,27 @@ type FeaturedEvent = {
   image_url: string | null;
 };
 
+type BloomingCard = {
+  title: string;
+  description: string;
+  badge: string;
+  image_url: string;
+  link_url: string;
+};
+
+type EventsModeConfig = {
+  active: boolean;
+  featured_event_slug: string | null;
+};
+
+const DEFAULT_BLOOMING_CARD: BloomingCard = {
+  title: "Tropical Flower Garden",
+  description: "Orchids, bromeliads & exotic blooms at their peak",
+  badge: "Peak Bloom",
+  image_url: "/home/browse-plans.png",
+  link_url: "https://orders.fairchildgarden.org/collections/all-plants/orchids",
+};
+
 function formatEventDate(start: string, end: string): string {
   const s = new Date(start + "T00:00:00");
   const e = new Date(end + "T00:00:00");
@@ -51,6 +72,8 @@ export default function MemberHome({ member }: { member: MemberInfo }) {
   const { setWeddingMode } = useWeddingMode();
   const { setEventsMode } = useEventsMode();
   const [featuredEvent, setFeaturedEvent] = useState<FeaturedEvent | null>(null);
+  const [bloomingCard, setBloomingCard] = useState<BloomingCard>(DEFAULT_BLOOMING_CARD);
+  const [eventsModeConfig, setEventsModeConfig] = useState<EventsModeConfig>({ active: true, featured_event_slug: null });
 
   function activateMode(mode: "kids" | "wedding" | "events") {
     setKidsMode(mode === "kids");
@@ -62,10 +85,21 @@ export default function MemberHome({ member }: { member: MemberInfo }) {
     let cancelled = false;
     fetch("/api/events/featured?limit=1", { credentials: "include" })
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: { events?: FeaturedEvent[] }) => {
         if (!cancelled && data.events?.[0]) setFeaturedEvent(data.events[0]);
       })
       .catch(() => {});
+
+    fetch("/api/admin/app-config", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data: { config?: Record<string, unknown> }) => {
+        if (cancelled) return;
+        const cfg = data.config ?? {};
+        if (cfg.blooming_card) setBloomingCard(cfg.blooming_card as BloomingCard);
+        if (cfg.events_mode) setEventsModeConfig(cfg.events_mode as EventsModeConfig);
+      })
+      .catch(() => {});
+
     return () => { cancelled = true; };
   }, []);
 
@@ -129,7 +163,7 @@ export default function MemberHome({ member }: { member: MemberInfo }) {
 
       {/* Mode switcher */}
       <div className="mt-4 px-3 sm:px-4">
-        <div className="grid grid-cols-3 gap-2 font-system">
+        <div className={`grid gap-2 font-system ${eventsModeConfig.active ? "grid-cols-3" : "grid-cols-2"}`}>
           <button
             type="button"
             onClick={() => activateMode("kids")}
@@ -138,14 +172,16 @@ export default function MemberHome({ member }: { member: MemberInfo }) {
             <Smiley size={16} weight="duotone" aria-hidden />
             Kids Mode
           </button>
-          <button
-            type="button"
-            onClick={() => activateMode("events")}
-            className="flex min-h-[40px] min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[#193521] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-white transition hover:opacity-95 active:opacity-90 sm:px-2 sm:text-sm"
-          >
-            <Ticket size={16} weight="duotone" aria-hidden />
-            Events Mode
-          </button>
+          {eventsModeConfig.active && (
+            <button
+              type="button"
+              onClick={() => activateMode("events")}
+              className="flex min-h-[40px] min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[#193521] px-1.5 py-2 text-center text-xs font-semibold leading-snug text-white transition hover:opacity-95 active:opacity-90 sm:px-2 sm:text-sm"
+            >
+              <Ticket size={16} weight="duotone" aria-hidden />
+              Events Mode
+            </button>
+          )}
           <button
             type="button"
             onClick={() => activateMode("wedding")}
@@ -203,12 +239,12 @@ export default function MemberHome({ member }: { member: MemberInfo }) {
         </div>
       </div>
 
-      {/* What's Blooming */}
+      {/* What's Blooming (content managed by staff in /staff/homepage) */}
       <div className="mt-8 border-t border-[#e8e4de] pt-6 px-3 sm:px-4">
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg font-semibold text-[#193521]">What&apos;s Blooming</h2>
           <a
-            href={FAIRCHILD_SHOP_ORCHIDS}
+            href={bloomingCard.link_url || FAIRCHILD_SHOP_ORCHIDS}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 font-system text-sm font-semibold text-[#6A8468] transition hover:text-[#5a7360]"
@@ -217,18 +253,19 @@ export default function MemberHome({ member }: { member: MemberInfo }) {
           </a>
         </div>
         <a
-          href={FAIRCHILD_SHOP_ORCHIDS}
+          href={bloomingCard.link_url || FAIRCHILD_SHOP_ORCHIDS}
           target="_blank"
           rel="noopener noreferrer"
           className="flex min-h-[132px] overflow-hidden rounded-2xl border border-[#6A8468]/35 bg-white shadow-sm transition hover:border-[#6A8468]/55"
         >
           <div className="relative w-[44%] max-w-[200px] shrink-0 bg-[#e8e4e0]">
             <Image
-              src="/home/browse-plans.png"
+              src={bloomingCard.image_url || "/home/browse-plans.png"}
               alt=""
               fill
               className="object-cover object-center"
               sizes="200px"
+              unoptimized
             />
             <div
               className="pointer-events-none absolute inset-y-0 right-0 w-[42%] bg-gradient-to-r from-transparent to-white"
@@ -236,13 +273,13 @@ export default function MemberHome({ member }: { member: MemberInfo }) {
             />
           </div>
           <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
-            <h3 className="font-system text-base font-bold text-black">Tropical Flower Garden</h3>
-            <p className="font-system mt-1 text-sm leading-snug text-black">
-              Orchids, bromeliads &amp; exotic blooms at their peak
-            </p>
-            <span className="font-system mt-3 inline-flex w-fit rounded-full bg-[#d4e8d0] px-3 py-1 text-xs font-semibold text-[#193521]">
-              Peak Bloom
-            </span>
+            <h3 className="font-system text-base font-bold text-black">{bloomingCard.title}</h3>
+            <p className="font-system mt-1 text-sm leading-snug text-black">{bloomingCard.description}</p>
+            {bloomingCard.badge && (
+              <span className="font-system mt-3 inline-flex w-fit rounded-full bg-[#d4e8d0] px-3 py-1 text-xs font-semibold text-[#193521]">
+                {bloomingCard.badge}
+              </span>
+            )}
           </div>
         </a>
       </div>

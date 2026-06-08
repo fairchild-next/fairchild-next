@@ -16,10 +16,11 @@ const TOOLS: ToolItem[] = [
   { label: "Map Overlay",      description: "Upload and position the illustrated garden map",   href: "/staff/map/overlay",    status: "live" },
   { label: "Garden Status",    description: "Mark garden open, closed, or special hours",       href: "/staff/garden-status",  status: "live" },
   { label: "Manage Team",      description: "Add and remove staff portal access",               href: "/staff/team",           status: "live" },
-  // Phase B — coming soon
-  { label: "Events Manager",   description: "Create, activate, and deactivate events",          href: "/staff/events",         status: "soon" },
-  { label: "Ticket Pricing",   description: "Edit adult, child, and member ticket prices",      href: "/staff/tickets",        status: "soon" },
-  { label: "Events Mode",      description: "Turn Events Mode on and set the featured event",   href: "/staff/modes/events",   status: "soon" },
+  // Phase B — now live
+  { label: "Events Manager",   description: "Create, activate, and deactivate events",          href: "/staff/events",         status: "live" },
+  { label: "Events Mode",      description: "Turn Events Mode on and set the featured event",   href: "/staff/modes/events",   status: "live" },
+  { label: "What's Blooming",  description: "Update the seasonal featured card on the home page", href: "/staff/homepage",     status: "live" },
+  { label: "Ticket Pricing",   description: "Edit ticket prices inside each event's editor",    href: "/staff/events",         status: "live" },
   // Phase C — coming soon
   { label: "Coordinator",      description: "View wedding bookings and manage couples",         href: "/staff/coordinator",    status: "soon" },
   { label: "Plants Database",  description: "Add and edit plants for QR scanning and Learn",    href: "/staff/learn",          status: "soon" },
