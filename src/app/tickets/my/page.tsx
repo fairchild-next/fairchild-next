@@ -154,12 +154,19 @@ export default function MyTicketsPage() {
   return (
     <div className="p-6 space-y-6 pb-24">
       {(isOffline || fromCache) && (
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-          <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M3 3l18 18M6.343 6.343A8.963 8.963 0 003 12a9 9 0 001.636 5.172" />
+        <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border ${
+          fromCache
+            ? "bg-[#d4e8d0]/60 border-[#6A8468]/30"
+            : "bg-amber-500/10 border-amber-500/20"
+        }`}>
+          <svg className={`w-4 h-4 shrink-0 ${fromCache ? "text-[#193521]" : "text-amber-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            {fromCache
+              ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728M15.536 8.464a5 5 0 010 7.072M3 3l18 18M6.343 6.343A8.963 8.963 0 003 12a9 9 0 001.636 5.172" />
+            }
           </svg>
-          <p className="text-xs font-medium text-amber-400">
-            {fromCache ? "Showing cached tickets — your QR codes still work." : "You're offline — showing your saved tickets."}
+          <p className={`text-xs font-medium ${fromCache ? "text-[#193521]" : "text-amber-400"}`}>
+            {fromCache ? "Tickets saved on this device — your QR codes work offline." : "You're offline — showing your saved tickets."}
           </p>
         </div>
       )}
@@ -583,28 +590,54 @@ function TicketQrCarousel({ tickets }: { tickets: Ticket[] }) {
         <span className="text-xs text-[var(--text-muted)]">
           Ticket {index + 1} of {tickets.length}
         </span>
-        <TicketQr ticket={ticket} />
+        <TicketQr ticket={ticket} ticketIndex={index} ticketTotal={tickets.length} />
       </div>
       {tickets.length > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          {tickets.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Go to ticket ${i + 1}`}
-              onClick={() => setIndex(i)}
-              className={`w-2 h-2 rounded-full transition ${
-                i === index ? "bg-[var(--primary)]" : "bg-[var(--surface-border)]"
-              }`}
-            />
-          ))}
+        <div className="flex items-center justify-center gap-4 mt-4">
+          <button
+            type="button"
+            aria-label="Previous ticket"
+            onClick={() => setIndex((i) => Math.max(i - 1, 0))}
+            disabled={index === 0}
+            className="w-9 h-9 rounded-full border border-[var(--surface-border)] flex items-center justify-center text-[var(--text-muted)] disabled:opacity-30 transition hover:border-[var(--primary)] hover:text-[var(--primary)] active:scale-95"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <div className="flex gap-2">
+            {tickets.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Go to ticket ${i + 1}`}
+                onClick={() => setIndex(i)}
+                className={`w-2 h-2 rounded-full transition ${
+                  i === index ? "bg-[var(--primary)]" : "bg-[var(--surface-border)]"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            aria-label="Next ticket"
+            onClick={() => setIndex((i) => Math.min(i + 1, tickets.length - 1))}
+            disabled={index === tickets.length - 1}
+            className="w-9 h-9 rounded-full border border-[var(--surface-border)] flex items-center justify-center text-[var(--text-muted)] disabled:opacity-30 transition hover:border-[var(--primary)] hover:text-[var(--primary)] active:scale-95"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-function QrFullscreenModal({ qrImage, onClose }: { qrImage: string; onClose: () => void }) {
+function QrFullscreenModal({ qrImage, ticketIndex, ticketTotal, onClose }: { qrImage: string; ticketIndex: number; ticketTotal: number; onClose: () => void }) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -626,6 +659,11 @@ function QrFullscreenModal({ qrImage, onClose }: { qrImage: string; onClose: () 
     >
       <div className="flex flex-col items-center gap-5 px-8">
         <p className="text-white/60 text-sm font-medium tracking-wide uppercase">Show this at entry</p>
+        {ticketTotal > 1 && (
+          <p className="text-white font-semibold text-base -mt-2">
+            Ticket {ticketIndex + 1} of {ticketTotal}
+          </p>
+        )}
         <div className="bg-white p-4 rounded-2xl shadow-2xl">
           <img
             src={qrImage}
@@ -645,7 +683,7 @@ function QrFullscreenModal({ qrImage, onClose }: { qrImage: string; onClose: () 
   );
 }
 
-function TicketQr({ ticket }: { ticket: Ticket }) {
+function TicketQr({ ticket, ticketIndex, ticketTotal }: { ticket: Ticket; ticketIndex: number; ticketTotal: number }) {
   const [qrImage, setQrImage] = useState<string>("");
   const [expanded, setExpanded] = useState(false);
 
@@ -674,7 +712,14 @@ function TicketQr({ ticket }: { ticket: Ticket }) {
           </svg>
         </div>
       </button>
-      {expanded && <QrFullscreenModal qrImage={qrImage} onClose={() => setExpanded(false)} />}
+      {expanded && (
+        <QrFullscreenModal
+          qrImage={qrImage}
+          ticketIndex={ticketIndex}
+          ticketTotal={ticketTotal}
+          onClose={() => setExpanded(false)}
+        />
+      )}
     </>
   );
 }
