@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarBlank, Heart, Leaf, MapPin, QrCode, Smiley, Ticket } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMember } from "@/lib/memberContext";
 import { useKidsMode } from "@/lib/kidsModeContext";
 import { useWeddingMode } from "@/lib/weddingModeContext";
@@ -166,6 +166,7 @@ const QUICK_TOOLS = [
 
 export default function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { member, loading, hasSession, authReady } = useMember();
   const { isKidsMode, setKidsMode } = useKidsMode();
   const { isWeddingMode, setWeddingMode } = useWeddingMode();
@@ -194,6 +195,18 @@ export default function Home() {
       setEventsMode(true);
     }
   };
+
+  // Auto-activate mode when ?preview=kids/events/wedding is in the URL
+  // (used by staff portal "Preview" buttons which open in a new tab)
+  useEffect(() => {
+    if (!authReady) return;
+    const preview = searchParams.get("preview") as "kids" | "events" | "wedding" | null;
+    if (preview === "kids" || preview === "events" || preview === "wedding") {
+      setKidsMode(preview === "kids");
+      setEventsMode(preview === "events");
+      setWeddingMode(preview === "wedding");
+    }
+  }, [authReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let cancelled = false;

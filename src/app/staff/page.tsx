@@ -213,16 +213,18 @@ export default function StaffHomePage() {
           <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">Preview Guest Modes</p>
           <div className="flex gap-2">
             {MODE_PREVIEWS.map(({ label, href, style }) => (
-              <Link
+              <a
                 key={href}
                 href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex-1 rounded-xl py-2.5 text-center text-xs font-bold leading-tight transition-opacity active:opacity-70"
                 style={style}
               >
                 {label.split("\n").map((line, i) => (
                   <span key={i} className="block">{line}</span>
                 ))}
-              </Link>
+              </a>
             ))}
           </div>
         </div>
