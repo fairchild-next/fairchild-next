@@ -13,10 +13,10 @@ function IconHome({ active }: { active: boolean }) {
   );
 }
 
-function IconTicket({ active }: { active: boolean }) {
+function IconScan({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 9a1 1 0 011-1h18a1 1 0 011 1v2a2 2 0 000 4v2a1 1 0 01-1 1H3a1 1 0 01-1-1v-2a2 2 0 000-4V9z" />
+    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
     </svg>
   );
 }
@@ -31,11 +31,11 @@ function IconMap({ active }: { active: boolean }) {
   );
 }
 
-function IconLearn({ active }: { active: boolean }) {
+function IconStatus({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={active ? 2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <polyline points="9 12 11 14 15 10" />
     </svg>
   );
 }
@@ -51,11 +51,11 @@ function IconMore() {
 }
 
 const NAV_ITEMS: { href: string; label: string; icon: (a: { active: boolean }) => ReactNode; exact?: boolean }[] = [
-  { href: "/staff",          label: "Home",    icon: IconHome,   exact: true },
-  { href: "/staff/tickets",  label: "Tickets", icon: IconTicket },
-  { href: "/staff/map/edit", label: "Map",     icon: IconMap },
-  { href: "/staff/learn",    label: "Learn",   icon: IconLearn },
-  { href: "/staff/more",     label: "More",    icon: IconMore },
+  { href: "/staff",                label: "Home",    icon: IconHome,   exact: true },
+  { href: "/staff/scanner",        label: "Scan",    icon: IconScan },
+  { href: "/staff/map/edit",       label: "Map",     icon: IconMap },
+  { href: "/staff/garden-status",  label: "Status",  icon: IconStatus },
+  { href: "/staff/more",           label: "More",    icon: IconMore },
 ];
 
 export default function StaffBottomNav() {
