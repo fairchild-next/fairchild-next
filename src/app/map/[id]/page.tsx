@@ -4,10 +4,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
 import { sanitizeMapReturnPath } from "@/lib/mapConfigs";
 
-function getDirectionsUrl(lat: number, lng: number): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-}
-
 export default async function MapPoiDetailPage({
   params,
   searchParams,
@@ -69,14 +65,12 @@ export default async function MapPoiDetailPage({
         </div>
       )}
 
-      <a
-        href={getDirectionsUrl(Number(poi.lat), Number(poi.lng))}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-6 inline-flex items-center justify-center rounded-xl bg-[var(--primary)] px-6 py-3 font-semibold text-white"
+      <Link
+        href={`/map?nav=${poi.id}`}
+        className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[var(--primary)] px-6 py-3 font-semibold text-white"
       >
         Get Directions
-      </a>
+      </Link>
     </div>
   );
 }

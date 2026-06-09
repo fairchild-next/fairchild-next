@@ -9,6 +9,13 @@ import { siteConfig } from "@/lib/siteConfig";
 import { useMember } from "@/lib/memberContext";
 import MembershipCard from "@/components/MembershipCard";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
+import {
+  buildQrCache,
+  getCachedQrImage,
+  loadWalletCache,
+  saveWalletCache,
+  type CachedTicket,
+} from "@/lib/offline/ticketCache";
 
 type Ticket = {
   id: string;
@@ -95,19 +102,68 @@ export default function MyTicketsPage() {
       setSessionResolved(true);
       setFetching(true);
 
+      const userId = session.user.id;
+      const cached = loadWalletCache(userId);
+
+      const applyPayload = (payload: {
+        currentTickets: Ticket[];
+        pastTickets: Ticket[];
+        visitCount: number;
+      }, fromLocal: boolean) => {
+        setData(payload);
+        setFromCache(fromLocal);
+      };
+
       try {
         const res = await fetch("/api/my-tickets", { credentials: "include" });
-        if (!res.ok) {
-          setData({ currentTickets: [], pastTickets: [], visitCount: 0 });
+        const json = res.ok ? await res.json() : null;
+
+        if (json && !json.offline && Array.isArray(json.currentTickets)) {
+          const payload = {
+            currentTickets: json.currentTickets ?? [],
+            pastTickets: json.pastTickets ?? [],
+            visitCount: json.visitCount ?? 0,
+          };
+          applyPayload(payload, false);
+          const allTickets = [...payload.currentTickets, ...payload.pastTickets] as CachedTicket[];
+          void buildQrCache(allTickets, cached?.qrByCode).then((qrByCode) => {
+            saveWalletCache({
+              userId,
+              currentTickets: payload.currentTickets as CachedTicket[],
+              pastTickets: payload.pastTickets as CachedTicket[],
+              visitCount: payload.visitCount,
+              qrByCode,
+            });
+          });
           return;
         }
-        const json = await res.json();
-        if (json.offline) setFromCache(true);
-        setData({
-          currentTickets: json.currentTickets ?? [],
-          pastTickets: json.pastTickets ?? [],
-          visitCount: json.visitCount ?? 0,
-        });
+
+        if (cached) {
+          applyPayload(
+            {
+              currentTickets: cached.currentTickets as Ticket[],
+              pastTickets: cached.pastTickets as Ticket[],
+              visitCount: cached.visitCount,
+            },
+            true
+          );
+          return;
+        }
+
+        applyPayload({ currentTickets: [], pastTickets: [], visitCount: 0 }, false);
+      } catch {
+        if (cached) {
+          applyPayload(
+            {
+              currentTickets: cached.currentTickets as Ticket[],
+              pastTickets: cached.pastTickets as Ticket[],
+              visitCount: cached.visitCount,
+            },
+            true
+          );
+        } else {
+          applyPayload({ currentTickets: [], pastTickets: [], visitCount: 0 }, false);
+        }
       } finally {
         setFetching(false);
       }
@@ -167,7 +223,9 @@ export default function MyTicketsPage() {
             }
           </svg>
           <p className={`text-xs font-medium ${fromCache ? "text-[#193521]" : "text-amber-400"}`}>
-            {fromCache ? "Tickets saved on this device — your QR codes work offline." : "You're offline — showing your saved tickets."}
+            {fromCache
+              ? "Tickets saved on this device — QR codes work without cell service."
+              : "You're offline — showing tickets saved on this device."}
           </p>
         </div>
       )}
@@ -694,11 +752,18 @@ function QrFullscreenModal({ qrImage, ticketIndex, ticketTotal, onClose }: { qrI
 }
 
 function TicketQr({ ticket, ticketIndex, ticketTotal }: { ticket: Ticket; ticketIndex: number; ticketTotal: number }) {
-  const [qrImage, setQrImage] = useState<string>("");
+  const [qrImage, setQrImage] = useState<string>(() =>
+    ticket.qr_code ? getCachedQrImage(ticket.qr_code) ?? "" : ""
+  );
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (!ticket.qr_code) return;
+    const cached = getCachedQrImage(ticket.qr_code);
+    if (cached) {
+      setQrImage(cached);
+      return;
+    }
     QRCode.toDataURL(ticket.qr_code, { width: 512, margin: 2 }).then(setQrImage);
   }, [ticket.qr_code]);
 

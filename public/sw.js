@@ -1,33 +1,47 @@
 /**
  * Fairchild PWA Service Worker
- * - Caches static assets (images, JS, CSS) for offline / low-signal use in the garden.
- * - Network-first cache for /api/my-tickets so tickets are available offline.
+ * - Caches static assets for weak garden cell service
+ * - Network-first /api/my-tickets with offline fallback
+ * - Caches map API for wayfinding when signal is spotty
  */
-const CACHE_VERSION  = "fairchild-v3";
-const TICKETS_CACHE  = "fairchild-tickets-v1";
+const CACHE_VERSION = "fairchild-v4";
+const TICKETS_CACHE = "fairchild-tickets-v1";
+const MAP_CACHE = "fairchild-map-v1";
 
-// Max age for cached ticket data: 48 hours
-const TICKETS_MAX_AGE_MS = 48 * 60 * 60 * 1000;
-
-// Paths to cache on first fetch (images and static assets)
-const ASSET_PATTERNS = ["/events/", "/stock/", "/map/", "/scheduled-admission", "/logo", "/hero", "/window.svg", "/manifest.json"];
+const ASSET_PATTERNS = [
+  "/events/",
+  "/stock/",
+  "/map/",
+  "/scheduled-admission",
+  "/logo",
+  "/hero",
+  "/window.svg",
+  "/manifest.json",
+  "/garden-map-overlay",
+];
 
 function shouldCacheAsset(url) {
   const path = new URL(url).pathname;
   return ASSET_PATTERNS.some((p) => path.startsWith(p) || path.includes(p));
 }
 
-// Routes handled by the dedicated tickets network-first strategy
 function isTicketsRoute(url) {
+  return new URL(url).pathname === "/api/my-tickets";
+}
+
+function isMapApiRoute(url) {
+  return new URL(url).pathname === "/api/map";
+}
+
+function isStaticAsset(url) {
   const path = new URL(url).pathname;
-  return path === "/api/my-tickets";
+  return path.startsWith("/_next/static/");
 }
 
 function shouldSkipCache(url) {
   const path = new URL(url).pathname;
-  // Skip all API routes EXCEPT the ones we explicitly handle above
   return (
-    (path.startsWith("/api/") && !isTicketsRoute(url)) ||
+    (path.startsWith("/api/") && !isTicketsRoute(url) && !isMapApiRoute(url)) ||
     path.startsWith("/_next/data/")
   );
 }
@@ -41,7 +55,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => k !== CACHE_VERSION && k !== TICKETS_CACHE)
+          .filter((k) => k !== CACHE_VERSION && k !== TICKETS_CACHE && k !== MAP_CACHE)
           .map((k) => caches.delete(k))
       )
     )
@@ -49,52 +63,61 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+function networkFirstWithCache(request, cacheName) {
+  return fetch(request)
+    .then((res) => {
+      if (res.ok) {
+        const clone = res.clone();
+        caches.open(cacheName).then((cache) => cache.put(request, clone));
+      }
+      return res;
+    })
+    .catch(() =>
+      caches.open(cacheName).then((cache) =>
+        cache.match(request).then(
+          (cached) =>
+            cached ||
+            new Response(JSON.stringify({ offline: true }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            })
+        )
+      )
+    );
+}
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.origin !== location.origin) return;
   if (shouldSkipCache(url.href)) return;
 
-  // ── Tickets: network-first, fall back to cache ───────────────────────────
   if (isTicketsRoute(url.href)) {
+    event.respondWith(networkFirstWithCache(event.request, TICKETS_CACHE));
+    return;
+  }
+
+  if (isMapApiRoute(url.href)) {
+    event.respondWith(networkFirstWithCache(event.request, MAP_CACHE));
+    return;
+  }
+
+  if (isStaticAsset(url.href)) {
     event.respondWith(
-      fetch(event.request)
-        .then((res) => {
-          if (res.ok) {
-            const clone = res.clone();
-            caches.open(TICKETS_CACHE).then((cache) => {
-              // Store with a timestamp header so we can check staleness
-              const headers = new Headers(clone.headers);
-              headers.set("sw-cached-at", Date.now().toString());
-              clone.text().then((body) => {
-                const stamped = new Response(body, {
-                  status: clone.status,
-                  statusText: clone.statusText,
-                  headers,
-                });
-                cache.put(event.request, stamped);
-              });
-            });
-          }
-          return res;
-        })
-        .catch(() =>
-          caches.open(TICKETS_CACHE).then((cache) =>
-            cache.match(event.request).then((cached) => {
-              if (!cached) return new Response(JSON.stringify({ offline: true, currentTickets: [], pastTickets: [], visitCount: 0 }), {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-              });
-              // Return cached even if stale — better than nothing in the garden
-              return cached;
+      caches.open(CACHE_VERSION).then((cache) =>
+        cache.match(event.request).then(
+          (cached) =>
+            cached ||
+            fetch(event.request).then((res) => {
+              if (res.ok) cache.put(event.request, res.clone());
+              return res;
             })
-          )
         )
+      )
     );
     return;
   }
 
-  // ── Images / static assets: cache-first ──────────────────────────────────
   const isImage =
     event.request.destination === "image" ||
     /\.(png|jpg|jpeg|gif|webp|svg)(\?|$)/.test(url.pathname);
@@ -111,8 +134,5 @@ self.addEventListener("fetch", (event) => {
         })
       )
     );
-    return;
   }
-
-  // Don't cache HTML or JS — ensures fresh page loads
 });

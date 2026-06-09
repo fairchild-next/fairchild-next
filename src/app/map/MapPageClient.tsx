@@ -26,9 +26,17 @@ function MapBody() {
     return "default";
   }, [searchParams, isKidsMode]);
 
+  const navPoiId = searchParams.get("nav");
+
   return (
     <div className="min-h-0 flex-1 pb-2">
-      <GardenMap configSlug={configSlug} poiListReturnPath="/map" allowFullscreen defaultExpanded />
+      <GardenMap
+        configSlug={configSlug}
+        poiListReturnPath="/map"
+        allowFullscreen
+        defaultExpanded
+        initialNavPoiId={navPoiId}
+      />
     </div>
   );
 }

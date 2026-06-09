@@ -2,13 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, ImageOverlay, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, ImageOverlay, Circle, Polyline, useMap } from "react-leaflet";
 import type { LatLngBoundsExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Fuse from "fuse.js";
 import { getPinIcon } from "@/lib/map-icons";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
 import { MapTrifold, List, ArrowsOut, ArrowsIn, Crosshair, Funnel } from "@phosphor-icons/react";
+import {
+  distanceMeters,
+  estimateWalkMinutes,
+  formatWalkDistance,
+} from "@/lib/map/walkingRoute";
 
 const CENTER: [number, number] = [25.677, -80.273];
 const DEFAULT_IMAGE = "/stock/garden-1.png";
@@ -105,6 +110,35 @@ type MapData = {
 
 function getDirectionsUrl(lat: number, lng: number): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+}
+
+type RouteTarget = { id: string; name: string; lat: number; lng: number };
+
+function MapRouteFit({
+  origin,
+  target,
+  trigger,
+}: {
+  origin: [number, number] | null;
+  target: RouteTarget | null;
+  trigger: number;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!target || !trigger) return;
+    if (origin) {
+      map.fitBounds(
+        [
+          [origin[0], origin[1]],
+          [target.lat, target.lng],
+        ],
+        { padding: [80, 80], maxZoom: 18, animate: true }
+      );
+    } else {
+      map.flyTo([target.lat, target.lng], 17, { duration: 0.5 });
+    }
+  }, [map, origin, target, trigger]);
+  return null;
 }
 
 function MapFlyTo({ poi, trigger }: { poi: Poi | null; trigger: number }) {
@@ -216,6 +250,8 @@ type GardenMapLeafletProps = {
   allowFullscreen?: boolean;
   /** Start in expanded full-height mode (e.g. main /map tab) */
   defaultExpanded?: boolean;
+  /** POI id to start in-app directions (from detail page link) */
+  initialNavPoiId?: string | null;
 };
 
 function poiDetailHref(poiId: string, listReturnPath: string) {
@@ -228,6 +264,7 @@ export default function GardenMapLeaflet({
   poiListReturnPath = "/map",
   allowFullscreen = false,
   defaultExpanded = false,
+  initialNavPoiId = null,
 }: GardenMapLeafletProps) {
   const [data, setData] = useState<MapData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -242,6 +279,8 @@ export default function GardenMapLeaflet({
   const [locateFailed, setLocateFailed] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [routeTarget, setRouteTarget] = useState<RouteTarget | null>(null);
+  const [routeFitTrigger, setRouteFitTrigger] = useState(0);
 
   const handleLocated = useCallback((position: [number, number]) => {
     setUserPosition(position);
@@ -338,6 +377,30 @@ export default function GardenMapLeaflet({
       : POPUP_TOP_COLLAPSED_PX;
 
   const toggleFullscreen = () => setIsFullscreen((v) => !v);
+
+  const startWalkingRoute = (poi: Poi) => {
+    setRouteTarget({ id: poi.id, name: poi.name, lat: poi.lat, lng: poi.lng });
+    setRouteFitTrigger((t) => t + 1);
+    setViewMode("map");
+  };
+
+  const clearWalkingRoute = () => setRouteTarget(null);
+
+  const routeOrigin = userPosition;
+  const routeMeters =
+    routeTarget && routeOrigin
+      ? distanceMeters(
+          { lat: routeOrigin[0], lng: routeOrigin[1] },
+          { lat: routeTarget.lat, lng: routeTarget.lng }
+        )
+      : null;
+
+  useEffect(() => {
+    if (!initialNavPoiId || !data?.pois?.length || routeTarget) return;
+    const poi = data.pois.find((p) => p.id === initialNavPoiId);
+    if (poi) startWalkingRoute(poi);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once when POIs load
+  }, [initialNavPoiId, data?.pois]);
 
   const selectFilter = (id: string) => {
     setFilter(id);
@@ -648,7 +711,7 @@ export default function GardenMapLeaflet({
         type="button"
         onClick={() => setLocateTrigger((t) => t + 1)}
         aria-label="Show my location on map"
-        className={`absolute bottom-20 right-3 z-[600] flex ${TAP} items-center justify-center rounded-xl text-[var(--text-primary)] shadow-md transition active:scale-[0.96]`}
+        className={`absolute ${routeTarget ? "bottom-36" : "bottom-20"} right-3 z-[600] flex ${TAP} items-center justify-center rounded-xl text-[var(--text-primary)] shadow-md transition active:scale-[0.96]`}
         style={{ background: "color-mix(in srgb, var(--surface) 88%, transparent)", backdropFilter: "blur(12px)" }}
       >
         <Crosshair size={20} weight="bold" />
@@ -657,6 +720,31 @@ export default function GardenMapLeaflet({
         <p className="absolute bottom-32 right-3 z-[600] max-w-[10rem] rounded-lg border border-[var(--surface-border)] bg-[var(--surface)] px-2.5 py-1.5 text-xs text-[var(--text-muted)] shadow-md">
           Location unavailable
         </p>
+      )}
+      {routeTarget && (
+        <div
+          className="absolute inset-x-3 bottom-4 z-[600] rounded-2xl border border-[var(--surface-border)] px-4 py-3 shadow-lg"
+          style={{ background: "color-mix(in srgb, var(--surface) 92%, transparent)", backdropFilter: "blur(12px)" }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">Walking to</p>
+              <p className="truncate text-sm font-bold text-[var(--text-primary)]">{routeTarget.name}</p>
+              <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                {routeMeters != null
+                  ? `${formatWalkDistance(routeMeters)} · ~${estimateWalkMinutes(routeMeters)} min walk`
+                  : "Tap locate to see distance from you"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={clearWalkingRoute}
+              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            >
+              End
+            </button>
+          </div>
+        </div>
       )}
       <MapContainer
         center={center}
@@ -676,6 +764,22 @@ export default function GardenMapLeaflet({
         <MapFlyTo poi={selectedPoi} trigger={flyToTrigger} />
         <MapLocateHandler trigger={locateTrigger} onLocated={handleLocated} onError={handleLocateError} />
         <UserLocationMarker position={userPosition} />
+        <MapRouteFit origin={routeOrigin} target={routeTarget} trigger={routeFitTrigger} />
+        {routeTarget && routeOrigin && (
+          <Polyline
+            positions={[
+              routeOrigin,
+              [routeTarget.lat, routeTarget.lng],
+            ]}
+            pathOptions={{
+              color: "#4285F4",
+              weight: 5,
+              opacity: 0.85,
+              dashArray: "8 10",
+              lineCap: "round",
+            }}
+          />
+        )}
         <ZoomControl position="bottomright" />
 
         <TileLayer
@@ -746,14 +850,21 @@ export default function GardenMapLeaflet({
                       </Link>
                     </div>
                   </div>
-                  <div className="flex justify-center border-t border-[var(--surface-border)] pt-2">
+                  <div className="flex flex-col gap-2 border-t border-[var(--surface-border)] pt-2">
+                    <button
+                      type="button"
+                      onClick={() => startWalkingRoute(poi)}
+                      className="inline-flex w-full items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold bg-[var(--primary)] transition hover:opacity-90 !text-white"
+                    >
+                      Get Directions
+                    </button>
                     <a
                       href={getDirectionsUrl(poi.lat, poi.lng)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-xl px-5 py-2 text-sm font-semibold bg-[var(--primary)] transition hover:opacity-90 !text-white"
+                      className="text-center text-xs font-medium text-gray-500 hover:text-gray-700"
                     >
-                      Get Directions
+                      Open in Maps app
                     </a>
                   </div>
                 </div>

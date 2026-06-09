@@ -50,9 +50,11 @@ export default function SuccessClient() {
 
       const data = await response.json();
 
-      if (data.status === "paid") {
+        if (data.status === "paid") {
         clearCart();
         setStatus("paid");
+        // Warm offline wallet cache before visitor heads to the garden
+        void fetch("/api/my-tickets", { credentials: "include" }).catch(() => {});
 
         setTimeout(() => {
           router.push("/tickets/my");
